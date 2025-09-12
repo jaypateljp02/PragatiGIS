@@ -10,6 +10,9 @@ import Dashboard from "@/pages/Dashboard";
 import ClaimsPage from "@/pages/ClaimsPage";
 import MapPage from "@/pages/MapPage";
 import UploadPage from "@/pages/UploadPage";
+import LoginPage from "@/pages/LoginPage";
+import ClaimDetailPage from "@/pages/ClaimDetailPage";
+import OCRReviewPage from "@/pages/OCRReviewPage";
 import NotFound from "@/pages/not-found";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -49,9 +52,12 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/claims/:id" component={ClaimDetailPage} />
       <Route path="/claims" component={ClaimsPage} />
+      <Route path="/ocr-review" component={OCRReviewPage} />
       <Route path="/maps" component={MapPage} />
       <Route path="/upload" component={UploadPage} />
+      <Route path="/login" component={LoginPage} />
       <Route component={NotFound} />
     </Switch>
   );

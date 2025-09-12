@@ -10,7 +10,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
-import { BarChart3, FileText, Map, Upload, Settings, TreePine } from "lucide-react";
+import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,6 +25,12 @@ const navigation = [
     url: "/claims",
     icon: FileText,
     badge: "1,234"
+  },
+  {
+    title: "OCR Review",
+    url: "/ocr-review",
+    icon: Eye,
+    badge: "3"
   },
   {
     title: "Interactive Maps",
