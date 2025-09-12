@@ -1,93 +1,84 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import ClaimsTable, { type Claim } from "@/components/ClaimsTable";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function ClaimsPage() {
-  //todo: remove mock functionality
-  const mockClaims: Claim[] = [
-    {
-      id: "FRA-MH-2024-001234",
-      claimantName: "Ramesh Kumar Tribal Cooperative",
-      location: "Gadchiroli Forest Block A",
-      district: "Gadchiroli",
-      state: "Maharashtra",
-      area: 15.75,
-      status: "approved",
-      dateSubmitted: "2024-03-15",
-      landType: "community"
-    },
-    {
-      id: "FRA-OR-2024-005678",
-      claimantName: "Sita Devi",
-      location: "Koraput Village Settlement",
-      district: "Koraput",
-      state: "Odisha",
-      area: 2.50,
-      status: "pending",
-      dateSubmitted: "2024-06-22",
-      landType: "individual"
-    },
-    {
-      id: "FRA-MP-2024-009876",
-      claimantName: "Tribal Development Society",
-      location: "Balaghat Reserve Forest",
-      district: "Balaghat",
-      state: "Madhya Pradesh",
-      area: 45.20,
-      status: "under-review",
-      dateSubmitted: "2024-02-10",
-      landType: "community"
-    },
-    {
-      id: "FRA-TG-2024-003456",
-      claimantName: "Anjali Gond",
-      location: "Adilabad Forest Area",
-      district: "Adilabad",
-      state: "Telangana",
-      area: 3.80,
-      status: "rejected",
-      dateSubmitted: "2024-01-28",
-      landType: "individual"
-    },
-    {
-      id: "FRA-GJ-2024-007890",
-      claimantName: "Bhil Community Trust",
-      location: "Dang Forest Division",
-      district: "The Dangs",
-      state: "Gujarat",
-      area: 28.90,
-      status: "approved",
-      dateSubmitted: "2024-04-05",
-      landType: "community"
-    },
-    {
-      id: "FRA-WB-2024-004567",
-      claimantName: "Sunderbans Fishermen Society",
-      location: "Sundarbans Delta Region",
-      district: "South 24 Parganas",
-      state: "West Bengal",
-      area: 12.30,
-      status: "pending",
-      dateSubmitted: "2024-07-12",
-      landType: "community"
-    },
-    {
-      id: "FRA-HP-2024-008901",
-      claimantName: "Mountain Village Collective",
-      location: "Himachal Hill Forest",
-      district: "Shimla",
-      state: "Himachal Pradesh",
-      area: 8.75,
-      status: "under-review",
-      dateSubmitted: "2024-05-18",
-      landType: "community"
+  const [, setLocation] = useLocation();
+  
+  const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
+    queryKey: ['/api/claims'],
+    enabled: true,
+  });
+
+  const handleViewClaim = (id: string) => {
+    setLocation(`/claims/${id}`);
+  };
+
+  const handleExportData = async () => {
+    try {
+      const response = await fetch('/api/claims/export', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `fra-claims-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
     }
-  ];
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96" data-testid="claims-loading">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading claims data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4" data-testid="claims-error">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load claims data. Please check your authentication and try again.
+          </AlertDescription>
+        </Alert>
+        <Button 
+          onClick={() => window.location.reload()} 
+          variant="outline"
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div data-testid="claims-page">
       <ClaimsTable 
-        claims={mockClaims}
-        onViewClaim={(id) => console.log('Viewing claim:', id)}
-        onExportData={() => console.log('Exporting claims data')}
+        claims={claims}
+        onViewClaim={handleViewClaim}
+        onExportData={handleExportData}
       />
     </div>
   );

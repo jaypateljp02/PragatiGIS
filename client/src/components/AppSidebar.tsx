@@ -21,6 +21,12 @@ const navigation = [
     icon: BarChart3,
   },
   {
+    title: "State Analytics",
+    url: "/state-dashboard",
+    icon: CheckSquare,
+    badge: "MH"
+  },
+  {
     title: "Claims Management",
     url: "/claims",
     icon: FileText,

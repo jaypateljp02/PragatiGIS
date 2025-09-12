@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,67 +55,69 @@ interface Document {
 
 export default function ClaimDetailPage() {
   const [match, params] = useRoute("/claims/:id");
-  const [claim, setClaim] = useState<ClaimDetail | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (params?.id) {
-      // Simulate API call to fetch claim details
-      setTimeout(() => {
-        const mockClaim: ClaimDetail = {
-          id: params.id,
-          claimId: `FRA-MH-2024-${params.id.substring(-6)}`,
-          claimantName: "Ramesh Kumar Tribal Cooperative",
-          location: "Gadchiroli Forest Block A, Village Markegaon",
-          district: "Gadchiroli",
-          state: "Maharashtra",
-          area: 15.75,
-          landType: "community",
-          status: "under-review",
-          dateSubmitted: "2024-03-15",
-          familyMembers: 45,
-          coordinates: { lat: 20.1809, lng: 80.0076 },
-          notes: "Community forest rights claim for traditional cultivation and grazing. Historical evidence provided.",
-          assignedOfficer: "officer-1"
-        };
+  const { data: claim, isLoading: claimLoading, error: claimError } = useQuery<ClaimDetail>({
+    queryKey: ['/api/claims', params?.id],
+    enabled: !!params?.id,
+  });
 
-        const mockDocuments: Document[] = [
-          {
-            id: "doc-1",
-            filename: "community-certificate.pdf",
-            fileType: "application/pdf", 
-            ocrStatus: "completed",
-            reviewStatus: "approved",
-            uploadedBy: "village-officer",
-            createdAt: "2024-03-15"
-          },
-          {
-            id: "doc-2",
-            filename: "survey-settlement-record.jpg",
-            fileType: "image/jpeg",
-            ocrStatus: "completed", 
-            reviewStatus: "pending",
-            uploadedBy: "district-officer",
-            createdAt: "2024-03-16"
-          },
-          {
-            id: "doc-3", 
-            filename: "forest-rights-evidence.pdf",
-            fileType: "application/pdf",
-            ocrStatus: "processing",
-            reviewStatus: "pending",
-            uploadedBy: "claimant",
-            createdAt: "2024-03-17"
-          }
-        ];
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
+    queryKey: ['/api/documents', params?.id],
+    enabled: !!params?.id,
+  });
 
-        setClaim(mockClaim);
-        setDocuments(mockDocuments);
-        setIsLoading(false);
-      }, 800);
+  const approveMutation = useMutation({
+    mutationFn: () => apiRequest(`/api/claims/${params?.id}/approve`, {
+      method: 'POST',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims', params?.id] });
+      toast({
+        title: "Claim Approved",
+        description: "The claim has been successfully approved.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Approval Failed",
+        description: "Failed to approve the claim. Please try again.",
+      });
     }
-  }, [params?.id]);
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (data: { reason: string }) => apiRequest(`/api/claims/${params?.id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims', params?.id] });
+      toast({
+        title: "Claim Rejected",
+        description: "The claim has been rejected with the provided reason.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Rejection Failed",
+        description: "Failed to reject the claim. Please try again.",
+      });
+    }
+  });
+
+  const handleApprove = () => {
+    approveMutation.mutate();
+  };
+
+  const handleReject = () => {
+    // For now, reject with a default reason
+    rejectMutation.mutate({ reason: "Insufficient documentation provided" });
+  };
+
+  const isLoading = claimLoading || documentsLoading;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -332,13 +337,23 @@ export default function ClaimDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button className="bg-chart-3 hover:bg-chart-3/90" data-testid="button-approve-claim">
+            <Button 
+              className="bg-chart-3 hover:bg-chart-3/90" 
+              onClick={handleApprove}
+              disabled={approveMutation.isPending}
+              data-testid="button-approve-claim"
+            >
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Approve Claim
+              {approveMutation.isPending ? "Approving..." : "Approve Claim"}
             </Button>
-            <Button variant="destructive" data-testid="button-reject-claim">
+            <Button 
+              variant="destructive" 
+              onClick={handleReject}
+              disabled={rejectMutation.isPending}
+              data-testid="button-reject-claim"
+            >
               <XCircle className="h-4 w-4 mr-2" />
-              Reject Claim  
+              {rejectMutation.isPending ? "Rejecting..." : "Reject Claim"}
             </Button>
             <Button variant="outline" data-testid="button-request-info">
               <AlertTriangle className="h-4 w-4 mr-2" />
