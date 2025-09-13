@@ -58,6 +58,51 @@ function requireRole(...allowedRoles: string[]) {
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication routes
+  app.get("/api/auth/me", requireAuth, async (req: any, res: any) => {
+    try {
+      // Return current user info if authenticated
+      const user = {
+        id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        fullName: req.user.fullName,
+        role: req.user.role,
+        stateId: req.user.stateId,
+        districtId: req.user.districtId,
+        isActive: req.user.isActive
+      };
+      res.json({ user });
+    } catch (error) {
+      console.error('Get current user error:', error);
+      res.status(500).json({ error: "Failed to get user info" });
+    }
+  });
+
+  app.post("/api/auth/logout", requireAuth, async (req: any, res: any) => {
+    try {
+      // Invalidate the session
+      await storage.deleteSession(req.session.token);
+      
+      // Clear the session cookie
+      res.clearCookie('fra_session');
+      
+      // Log the logout
+      await storage.logAudit({
+        userId: req.user.id,
+        action: "logout",
+        resourceType: "session",
+        resourceId: req.session.id,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+
+      res.json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
