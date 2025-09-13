@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import ClaimsPage from "@/pages/ClaimsPage";
 import MapPage from "@/pages/MapPage";
 import DSSPage from "@/pages/DSSPage";
+import ReportsPage from "@/pages/ReportsPage";
 import LoginPage from "@/pages/LoginPage";
 import ClaimDetailPage from "@/pages/ClaimDetailPage";
 import DocumentWorkflowPage from "@/pages/DocumentWorkflowPage";
@@ -66,6 +67,7 @@ function Router() {
       <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
       <Route path="/dss" component={() => <ProtectedRoute><DSSPage /></ProtectedRoute>} />
+      <Route path="/reports" component={() => <ProtectedRoute><ReportsPage /></ProtectedRoute>} />
       <Route path="/settings" component={() => <ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route component={NotFound} />
     </Switch>

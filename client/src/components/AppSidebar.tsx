@@ -10,7 +10,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
-import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare, Brain } from "lucide-react";
+import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare, Brain, Download } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,6 +42,12 @@ const navigation = [
     url: "/dss",
     icon: Brain,
     badge: "AI"
+  },
+  {
+    title: "Reports & Analytics",
+    url: "/reports",
+    icon: Download,
+    badge: "PDF"
   },
   {
     title: "Claims Management",
