@@ -1,0 +1,132 @@
+FRA Atlas Platform – Project Brief for AI Development Agent
+This document provides a comprehensive outline of all components, technologies, data sources, and steps needed to build the FRA Atlas web platform, including OCR/NER, database, APIs, frontend, storage, and real data ingestion.
+ 
+1. Project Overview
+Objective: Digitize Forest Rights Act (FRA) claim documents, extract structured data using OCR and NER, visualize spatial assets on a WebGIS dashboard, and deliver decision support for scheme recommendations.
+Key Capabilities:
+•	Multi-script OCR (Hindi, Odia, Telugu, Bengali,Gujarati, English)
+•	NER for claim-specific entities (Claim ID, Person, Location, Area, Date, Status)
+•	Real-time ingestion of government FRA data (data.gov.in, state portals)
+•	Interactive React dashboard with charts and Leaflet maps
+•	Scalable, serverless backend on free tiers (Render, Vercel)
+•	Cloud storage for documents in Cloudinary
+•	Secure, compliant data handling
+ 
+2. Data Sources & Ingestion
+1.	data.gov.in API
+o	Endpoint: https://api.data.gov.in/resource/state-wise-details-claims-received-and-titles-distributed-under-forest-rights-act-fra-30
+o	API Key registration required
+o	JSON/CSV with state-level statistics
+2.	Ministry of Tribal Affairs
+o	Monthly Progress Reports (PDF/Excel) at https://tribal.nic.in/FRA.aspx
+3.	State Portals
+o	Madhya Pradesh: tribal.mp.gov.in (district lists)
+o	Odisha: stsc.odisha.gov.in (village-level data)
+o	Telangana: tribal.telangana.gov.in (claim PDFs)
+o	Tripura: tribal.tripura.gov.in (community rights)
+Ingestion Workflow (Backend)
+•	Fetch via requests or Supabase Import API
+•	Parse JSON/CSV/Excel with pandas
+•	Upsert into Supabase fra_stats, mp_claims, od_claims, etc.
+•	Schedule daily/weekly via GitHub Actions or Render Cron
+ 
+3. Database Schema (Supabase)
+Run supabase_schema.sql in Supabase SQL Editor:
+CREATE EXTENSION postgis;
+-- states, districts, villages
+-- fra_claims table
+-- document_metadata table
+-- satellite_assets table
+-- scheme_recommendations table
+-- fra_stats table for real-time government data
+
+Tables:
+•	states, districts, villages (with PostGIS geometry)
+•	fra_claims (individual/community claims)
+•	document_metadata (uploaded documents)
+•	satellite_assets (mapped assets)
+•	scheme_recommendations (decision support)
+•	fra_stats (govt data ingestion)
+ 
+4. Backend API (FastAPI)
+Tech Stack:
+•	Python 3.9+, FastAPI, Uvicorn
+•	Supabase Python client
+•	SQLAlchemy (optional)
+•	Cloudinary SDK
+•	spaCy, pytesseract, OpenCV for OCR/NER
+Endpoints:
+GET  /health
+GET  /api/states
+GET  /api/states/{id}/districts
+GET  /api/claims?limit=&offset=
+POST /api/claims
+POST /api/upload-document
+POST /api/process-document  # OCR + NER
+GET  /api/fra-stats
+GET  /api/analytics/dashboard
+
+OCR+NER Pipeline:
+•	Preprocess: Grayscale → Denoise → Threshold (OpenCV)
+•	OCR: Tesseract (--oem 3 --psm 6)
+•	NER: spaCy custom model (CLAIM_ID, PERSON, LOCATION, AREA, DATE, STATUS)
+•	Process-document endpoint for background tasks
+ 
+5. Frontend Application (React)
+Tech Stack:
+•	React 18, TypeScript
+•	Material-UI, Ant Design
+•	Redux Toolkit
+•	react-leaflet + Leaflet
+•	Recharts for analytics
+Pages & Components:
+•	Layout: AppBar + Drawer
+•	Dashboard: Summary cards, PieChart, BarChart
+•	ClaimsView: Paginated table, filters
+•	MapView: Interactive map with asset layers
+•	DocumentUpload: Drag-and-drop, progress, extracted entities
+API Integration:
+•	Axios with REACT_APP_API_URL
+•	Service module: getStates(), getClaims(), uploadDocument(), getFraStats()
+ 
+6. Cloud Infrastructure
+•	Database: Supabase (Free 500MB + PostGIS)
+•	Backend: Render (Free tier, Docker-based)
+•	Frontend: Vercel (Unlimited static)
+•	Storage: Cloudinary (25GB free)
+•	Maps: OpenStreetMap (no key)
+Environment Variables:
+SUPABASE_URL
+SUPABASE_ANON_KEY
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+SECRET_KEY
+REACT_APP_API_URL
+
+Deployment:
+•	Backend: GitHub Actions → Render
+•	Frontend: GitHub Actions → Vercel
+•	Daily ingestion: Render Cron
+ 
+7. Local Development with Docker Compose
+docker-compose.yml for local full-stack:
+services:
+  db: postgis/postgis
+  backend: build ./backend + env vars
+  frontend: build ./frontend + REACT_APP_API_URL
+
+Run docker-compose up --build to launch local stack.
+ 
+8. Decision Support & Analytics
+•	Scheme Recommendation: Business rules + ML
+•	Analytics: Recharts for Insighs, Export CSV/PDF
+•	Monitoring: Sentry, Render logs, Supabase metrics
+ 
+9. Success Metrics & Roadmap
+•	OCR Accuracy >95%
+•	Processing Speed: 100 docs/hour
+•	Uptime: 99.9%
+•	Extension: Mobile app, SMS notifications, advanced ML models
+ 
+This document should be provided to the AI agent so it can scaffold, code, and deploy the entire FRA Atlas platform end-to-end using the specified technologies, data sources, and processes.
