@@ -1,5 +1,5 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -8,11 +8,10 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configure Neon for serverless HTTP connections (no persistent WebSocket)
-neonConfig.fetchConnectionCache = true; // Enable connection caching for performance
-
-// Create HTTP-based neon client (eliminates persistent connections)
-const sql = neon(process.env.DATABASE_URL);
+// Create postgres client for Supabase (with prepare: false for Transaction pooling)
+const sql = postgres(process.env.DATABASE_URL, { 
+  prepare: false  // Disable prepared statements for Supabase Transaction pooling
+});
 
 // Retry wrapper for transient database errors
 async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
