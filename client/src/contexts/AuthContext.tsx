@@ -33,8 +33,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/auth/me'],
     retry: false, // Don't retry on 401
-    staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    staleTime: 10 * 60 * 1000, // Consider fresh for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnMount: false, // Don't refetch when component mounts if data is fresh
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
   });
 
   useEffect(() => {
@@ -42,11 +44,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (data && typeof data === 'object' && 'user' in data) {
       console.log('Setting user:', data.user);
       setUser(data.user as User);
-    } else if (error) {
+    } else if (error && !isLoading) {
       console.log('Auth error, clearing user:', error);
       setUser(null);
     }
-  }, [data, error, isLoading, user]);
+  }, [data, error, isLoading]);
 
   const logout = async () => {
     try {
