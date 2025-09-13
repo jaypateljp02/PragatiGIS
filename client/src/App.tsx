@@ -21,6 +21,7 @@ import BulkUploadPage from "@/pages/BulkUploadPage";
 import NotFound from "@/pages/not-found";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
@@ -73,6 +74,7 @@ function Router() {
 
 function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
   const style = {
     "--sidebar-width": "20rem",
     "--sidebar-width-icon": "4rem",
@@ -88,6 +90,11 @@ function AppLayout() {
         </div>
       </div>
     );
+  }
+
+  // ALWAYS show simple layout without sidebar for login page
+  if (location === '/login') {
+    return <Router />;
   }
 
   // For unauthenticated users, show simple layout without sidebar
