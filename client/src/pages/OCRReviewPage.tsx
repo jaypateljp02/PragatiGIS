@@ -19,6 +19,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface OCRDocument {
   id: string;
@@ -39,78 +40,73 @@ interface OCRDocument {
 }
 
 export default function OCRReviewPage() {
-  const [documents, setDocuments] = useState<OCRDocument[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<OCRDocument | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [editedText, setEditedText] = useState("");
   const [editedData, setEditedData] = useState<any>({});
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch documents for OCR review
+  const { data: documents = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/ocr-review'],
+    queryFn: async () => {
+      const response = await fetch('/api/ocr-review', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch OCR documents');
+      }
+      return response.json();
+    }
+  });
+
+  // Update OCR data mutation
+  const updateOCRMutation = useMutation({
+    mutationFn: async ({ documentId, data }: { documentId: string, data: any }) => {
+      const response = await fetch(`/api/documents/${documentId}/correct-ocr`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update OCR data');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ocr-review'] });
+      toast({
+        title: "OCR data updated",
+        description: "Document has been updated successfully",
+      });
+      setSelectedDoc(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Update failed",
+        description: "Failed to update OCR data",
+        variant: "destructive"
+      });
+    }
+  });
 
   useEffect(() => {
-    // Simulate loading OCR documents
-    setTimeout(() => {
-      const mockDocuments: OCRDocument[] = [
-        {
-          id: "doc-1",
-          filename: "fra-claim-mp-001.pdf",
-          originalFilename: "claim_form_ramesh_kumar.pdf",
-          ocrText: "वन अधिकार दावा फॉर्म\nदावेदार का नाम: रमेश कुमार\nगाँव: मर्केगाँव\nजिला: गड़चिरौली\nराज्य: महाराष्ट्र\nभूमि क्षेत्रफल: 15.75 हेक्टेयर\nपारिवारिक सदस्य: 45\nदावा प्रकार: सामुदायिक वन अधिकार",
-          extractedData: {
-            claimId: "FRA-MH-2024-001234",
-            claimantName: "रमेश कुमार", 
-            location: "मर्केगाँव, गड़चिरौली",
-            area: "15.75 हेक्टेयर",
-            landType: "सामुदायिक",
-            dateSubmitted: "2024-03-15"
-          },
-          confidence: 92.5,
-          reviewStatus: "pending",
-          claimId: "claim-1"
-        },
-        {
-          id: "doc-2", 
-          filename: "forest-certificate-or-002.jpg",
-          originalFilename: "forest_rights_certificate.jpg",
-          ocrText: "FOREST RIGHTS CERTIFICATE\nClaimant: Sita Devi\nVillage: Koraput Settlement\nDistrict: Koraput\nState: Odisha\nLand Area: 2.50 hectares\nFamily Members: 8\nType: Individual Forest Rights",
-          extractedData: {
-            claimId: "FRA-OR-2024-005678",
-            claimantName: "Sita Devi",
-            location: "Koraput Settlement, Koraput", 
-            area: "2.50 hectares",
-            landType: "Individual",
-            dateSubmitted: "2024-06-22"
-          },
-          confidence: 88.3,
-          reviewStatus: "pending",
-          claimId: "claim-2"
-        },
-        {
-          id: "doc-3",
-          filename: "community-rights-tg-003.pdf", 
-          originalFilename: "tribal_community_application.pdf",
-          ocrText: "త్రైబల్ కమ్యూనిటీ అప్లికేషన్\nదరఖాస్తుదారుని పేరు: త్రైబల్ డెవలప్మెంట్ సొసైటీ\nగ్రామం: అదిలాబాద్ ఫారెస్ట్ ఏరియా\nజిల్లా: అదిలాబాద్\nరాష్ట్రం: తెలంగాణ\nభూమి విస్తీర్ణం: 45.20 హెక్టార్లు",
-          extractedData: {
-            claimId: "FRA-TG-2024-009876",
-            claimantName: "Tribal Development Society",
-            location: "Adilabad Forest Area, Adilabad",
-            area: "45.20 hectares", 
-            landType: "Community",
-            dateSubmitted: "2024-02-10"
-          },
-          confidence: 76.8,
-          reviewStatus: "pending",
-          claimId: "claim-3"
-        }
-      ];
+    if (selectedDoc) {
+      setEditedText(selectedDoc.ocrText);
+      setEditedData(selectedDoc.extractedData);
+    }
+  }, [selectedDoc]);
 
-      setDocuments(mockDocuments);
-      setSelectedDoc(mockDocuments[0]);
-      setEditedText(mockDocuments[0].ocrText);
-      setEditedData(mockDocuments[0].extractedData);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+  // Auto-select first document when documents load
+  useEffect(() => {
+    if (!selectedDoc && documents.length > 0) {
+      setSelectedDoc(documents[0]);
+    }
+  }, [documents, selectedDoc]);
 
   const handleDocumentSelect = (doc: OCRDocument) => {
     setSelectedDoc(doc);
@@ -122,49 +118,45 @@ export default function OCRReviewPage() {
     if (!selectedDoc) return;
     
     setIsProcessing(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const updatedDocuments = documents.map(doc => 
-      doc.id === selectedDoc.id 
-        ? { ...doc, reviewStatus: 'approved', ocrText: editedText, extractedData: editedData }
-        : doc
-    );
-    
-    setDocuments(updatedDocuments);
-    setSelectedDoc(prev => prev ? { ...prev, reviewStatus: 'approved', ocrText: editedText, extractedData: editedData } : null);
-    setIsProcessing(false);
-    
-    toast({
-      title: "Document Approved",
-      description: "OCR data has been approved and saved to the claim record.",
-    });
+    try {
+      await updateOCRMutation.mutateAsync({
+        documentId: selectedDoc.id,
+        data: {
+          ocrText: editedText,
+          extractedData: editedData,
+          reviewStatus: 'approved'
+        }
+      });
+    } catch (error) {
+      console.error('Approval failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleReject = async () => {
     if (!selectedDoc) return;
     
     setIsProcessing(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const updatedDocuments = documents.map(doc => 
-      doc.id === selectedDoc.id 
-        ? { ...doc, reviewStatus: 'rejected' }
-        : doc
-    );
-    
-    setDocuments(updatedDocuments);
-    setSelectedDoc(prev => prev ? { ...prev, reviewStatus: 'rejected' } : null);
-    setIsProcessing(false);
-    
-    toast({
-      variant: "destructive",
-      title: "Document Rejected",
-      description: "OCR data has been rejected and marked for re-processing.",
-    });
+    try {
+      await updateOCRMutation.mutateAsync({
+        documentId: selectedDoc.id,
+        data: {
+          ocrText: editedText,
+          extractedData: editedData,
+          reviewStatus: 'rejected'
+        }
+      });
+      toast({
+        variant: "destructive",
+        title: "Document Rejected",
+        description: "OCR data has been rejected and marked for re-processing.",
+      });
+    } catch (error) {
+      console.error('Rejection failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleReprocess = async () => {
@@ -221,7 +213,7 @@ export default function OCRReviewPage() {
         
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-chart-4/10">
-            {documents.filter(d => d.reviewStatus === 'pending').length} Pending Review
+            {documents.filter((d: OCRDocument) => d.reviewStatus === 'pending').length} Pending Review
           </Badge>
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -245,7 +237,7 @@ export default function OCRReviewPage() {
           <CardContent>
             <ScrollArea className="h-96">
               <div className="space-y-2">
-                {documents.map((doc) => (
+                {documents.map((doc: OCRDocument) => (
                   <div
                     key={doc.id}
                     className={`p-3 rounded-lg border cursor-pointer hover-elevate transition-colors ${
