@@ -10,7 +10,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
-import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare } from "lucide-react";
+import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare, Brain } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
@@ -36,6 +36,12 @@ const navigation = [
     title: "Interactive Maps",
     url: "/maps",
     icon: Map,
+  },
+  {
+    title: "Decision Support",
+    url: "/dss",
+    icon: Brain,
+    badge: "AI"
   },
   {
     title: "Claims Management",

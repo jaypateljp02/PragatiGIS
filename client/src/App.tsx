@@ -11,6 +11,7 @@ import AppSidebar from "@/components/AppSidebar";
 import Dashboard from "@/pages/Dashboard";
 import ClaimsPage from "@/pages/ClaimsPage";
 import MapPage from "@/pages/MapPage";
+import DSSPage from "@/pages/DSSPage";
 import LoginPage from "@/pages/LoginPage";
 import ClaimDetailPage from "@/pages/ClaimDetailPage";
 import DocumentWorkflowPage from "@/pages/DocumentWorkflowPage";
@@ -64,6 +65,7 @@ function Router() {
       <Route path="/bulk-upload" component={() => <ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
       <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
+      <Route path="/dss" component={() => <ProtectedRoute><DSSPage /></ProtectedRoute>} />
       <Route path="/settings" component={() => <ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route component={NotFound} />
     </Switch>
