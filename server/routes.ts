@@ -416,6 +416,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OCR Processing function (simulated)
+  async function processDocumentOCR(documentId: string) {
+    try {
+      // Update status to processing
+      await storage.updateDocument(documentId, {
+        ocrStatus: 'processing'
+      });
+
+      // Simulate OCR processing delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Simulate realistic OCR results based on document type
+      const mockOCRResults = {
+        hindi: {
+          ocrText: "वन अधिकार दावा फॉर्म\nदावेदार का नाम: रमेश कुमार\nगाँव: देवगांव\nजिला: गड़चिरौली\nराज्य: महाराष्ट्र\nभूमि क्षेत्रफल: 12.50 हेक्टेयर\nपारिवारिक सदस्य: 6\nदावा प्रकार: व्यक्तिगत वन अधिकार",
+          extractedData: {
+            claimId: `FRA-MH-${Date.now()}`,
+            claimantName: "रमेश कुमार",
+            location: "देवगांव, गड़चिरौली",
+            area: "12.50 हेक्टेयर",
+            landType: "व्यक्तिगत",
+            familyMembers: "6",
+            dateSubmitted: new Date().toISOString().split('T')[0]
+          },
+          confidence: 89.5
+        },
+        english: {
+          ocrText: "FOREST RIGHTS ACT CLAIM FORM\nClaimant Name: Sunita Devi\nVillage: Kheragarh\nDistrict: Balaghat\nState: Madhya Pradesh\nLand Area: 8.25 hectares\nFamily Members: 4\nClaim Type: Individual Forest Rights",
+          extractedData: {
+            claimId: `FRA-MP-${Date.now()}`,
+            claimantName: "Sunita Devi",
+            location: "Kheragarh, Balaghat",
+            area: "8.25 hectares",
+            landType: "Individual",
+            familyMembers: "4",
+            dateSubmitted: new Date().toISOString().split('T')[0]
+          },
+          confidence: 92.8
+        }
+      };
+
+      // Randomly select between Hindi and English for demo
+      const results = Math.random() > 0.5 ? mockOCRResults.hindi : mockOCRResults.english;
+
+      // Update document with OCR results
+      await storage.updateDocument(documentId, {
+        ocrStatus: 'completed',
+        ocrText: results.ocrText,
+        extractedData: results.extractedData,
+        confidence: results.confidence.toString()
+      });
+
+      console.log(`OCR processing completed for document ${documentId}`);
+    } catch (error) {
+      console.error(`OCR processing failed for document ${documentId}:`, error);
+      await storage.updateDocument(documentId, {
+        ocrStatus: 'failed'
+      });
+    }
+  }
+
+  // Document file upload endpoint
+  app.post("/api/documents/upload", requireAuth, requireRole("ministry", "state", "district", "village"), upload.single("document"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const user = (req as any).user;
+      const file = req.file;
+      
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: "Only PDF, JPEG, PNG, and TIFF files are allowed" });
+      }
+
+      // Create document record
+      const documentData = {
+        filename: `${randomUUID()}_${file.originalname}`,
+        originalFilename: file.originalname,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        uploadPath: `/uploads/${randomUUID()}_${file.originalname}`, // In production, save to actual storage
+        ocrStatus: 'pending' as const,
+        reviewStatus: 'pending' as const,
+        uploadedBy: user.id,
+        claimId: req.body.claimId || null
+      };
+
+      const document = await storage.createDocument(documentData);
+      
+      // Start OCR processing asynchronously
+      setImmediate(() => processDocumentOCR(document.id).catch(console.error));
+      
+      res.status(201).json({
+        id: document.id,
+        filename: document.filename,
+        originalFilename: document.originalFilename,
+        status: 'uploaded',
+        message: 'Document uploaded successfully, OCR processing started'
+      });
+    } catch (error) {
+      console.error('Document upload error:', error);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
   app.post("/api/documents", requireAuth, requireRole("ministry", "state", "district", "village"), async (req, res) => {
     try {
       const documentData = insertDocumentSchema.parse(req.body);
@@ -468,6 +576,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(document);
     } catch (error) {
       res.status(400).json({ error: "Failed to update OCR data" });
+    }
+  });
+
+  // Get documents for OCR review
+  app.get("/api/ocr-review", requireAuth, async (req, res) => {
+    try {
+      const documents = await storage.getDocumentsByStatus('completed');
+      const pendingReview = documents.filter(doc => doc.reviewStatus === 'pending');
+      res.json(pendingReview);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch documents for review" });
     }
   });
 
