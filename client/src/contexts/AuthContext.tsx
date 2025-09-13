@@ -34,15 +34,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     queryKey: ['/api/auth/me'],
     retry: false, // Don't retry on 401
     staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
   useEffect(() => {
+    console.log('Auth data changed:', { data, error, isLoading, hasUser: !!user });
     if (data && typeof data === 'object' && 'user' in data) {
+      console.log('Setting user:', data.user);
       setUser(data.user as User);
     } else if (error) {
+      console.log('Auth error, clearing user:', error);
       setUser(null);
     }
-  }, [data, error]);
+  }, [data, error, isLoading, user]);
 
   const logout = async () => {
     try {

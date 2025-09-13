@@ -102,9 +102,10 @@ export default function LoginPage() {
         description: `Welcome to FRA Atlas Platform, ${user.fullName}`,
       });
 
-      // No need to store anything in localStorage - using secure HTTP-only cookies
-      // Simply redirect to dashboard
-      window.location.href = "/";
+      // Force a hard refresh to ensure the auth context picks up the new session
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
       
     } catch (error) {
       console.error('Login error:', error);

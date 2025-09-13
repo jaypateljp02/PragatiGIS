@@ -92,6 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "logout",
         resourceType: "session",
         resourceId: req.session.id,
+        changes: null,
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null
       });

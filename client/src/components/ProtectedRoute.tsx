@@ -13,12 +13,15 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
+  console.log('ProtectedRoute render:', { user: !!user, isLoading, isAuthenticated });
+
   useEffect(() => {
     // Only redirect if not loading and not authenticated
     if (!isLoading && !isAuthenticated) {
+      console.log('Redirecting to login - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
       setLocation('/login');
     }
-  }, [isLoading, isAuthenticated, setLocation]);
+  }, [isLoading, isAuthenticated, user, setLocation]);
 
   // Show loading while checking authentication
   if (isLoading) {
