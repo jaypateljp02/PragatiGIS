@@ -4,7 +4,8 @@ import { useLocation } from "wouter";
 import ClaimsTable, { type Claim } from "@/components/ClaimsTable";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Upload } from "lucide-react";
+import { Link } from "wouter";
 
 export default function ClaimsPage() {
   const [, setLocation] = useLocation();
@@ -74,7 +75,20 @@ export default function ClaimsPage() {
   }
 
   return (
-    <div data-testid="claims-page">
+    <div data-testid="claims-page" className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Claims Management</h1>
+          <p className="text-muted-foreground">Manage and review FRA claims across states</p>
+        </div>
+        <Link href="/bulk-upload">
+          <Button data-testid="button-bulk-upload">
+            <Upload className="h-4 w-4 mr-2" />
+            Bulk Upload
+          </Button>
+        </Link>
+      </div>
+      
       <ClaimsTable 
         claims={claims}
         onViewClaim={handleViewClaim}

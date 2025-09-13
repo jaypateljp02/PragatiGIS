@@ -8,6 +8,9 @@ import {
   insertDocumentSchema 
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import multer from "multer";
+import csv from "csv-parser";
+import { Readable } from "stream";
 
 // Authentication middleware
 async function requireAuth(req: any, res: any, next: any) {
@@ -455,6 +458,247 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(bottlenecks);
     } catch (error) {
       res.status(500).json({ error: "Failed to get bottleneck analysis" });
+    }
+  });
+
+  // Bulk Claims Import/Export Routes
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  });
+
+  // Data standardization utilities
+  function standardizeClaimData(rawData: any) {
+    const standardized = {
+      claimId: rawData.claim_id || rawData.claimId || `FRA-${rawData.state}-${Date.now()}`,
+      claimantName: rawData.claimant_name || rawData.claimantName || rawData.name,
+      location: rawData.location || rawData.village || rawData.village_name,
+      district: rawData.district || rawData.district_name,
+      state: rawData.state || rawData.state_name,
+      area: (rawData.area || rawData.area_hectares || rawData.land_area || '0').toString(),
+      landType: (rawData.land_type || rawData.landType || 'individual').toLowerCase(),
+      status: (rawData.status || 'pending').toLowerCase(),
+      dateSubmitted: rawData.date_submitted ? new Date(rawData.date_submitted) : new Date(),
+      familyMembers: parseInt(rawData.family_members || rawData.familyMembers || 0) || null,
+      coordinates: rawData.coordinates ? JSON.parse(rawData.coordinates) : null,
+      notes: rawData.notes || rawData.remarks || null
+    };
+
+    // Validate with proper schema
+    try {
+      const validatedData = insertClaimSchema.parse(standardized);
+      return validatedData;
+    } catch (error) {
+      throw new Error(`Invalid claim data: ${error instanceof Error ? error.message : 'Unknown validation error'}`);
+    }
+  }
+
+  // Bulk claims import from CSV/Excel
+  app.post("/api/claims/bulk-import", requireAuth, requireRole("ministry", "state", "district"), upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      // Validate file type
+      if (req.file.mimetype !== 'text/csv' && !req.file.originalname?.toLowerCase().endsWith('.csv')) {
+        return res.status(400).json({ error: "Only CSV files are allowed" });
+      }
+
+      const user = (req as any).user;
+      const results: any[] = [];
+      const errors: string[] = [];
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Parse CSV data
+      const csvData: any[] = [];
+      const readable = Readable.from(req.file.buffer.toString());
+      
+      await new Promise((resolve, reject) => {
+        readable
+          .pipe(csv())
+          .on('data', (data) => csvData.push(data))
+          .on('end', resolve)
+          .on('error', reject);
+      });
+
+      // Process each row
+      for (const row of csvData) {
+        try {
+          const standardizedData = standardizeClaimData(row);
+          
+          // Role-based filtering: users can only import data for their jurisdiction
+          if (user.role === 'state' && user.stateId) {
+            const userState = await storage.getState(user.stateId);
+            if (userState && standardizedData.state !== userState.name) {
+              errors.push(`Row ${csvData.indexOf(row) + 1}: Cannot import claim for ${standardizedData.state} - outside jurisdiction`);
+              errorCount++;
+              continue;
+            }
+          } else if (user.role === 'district' && user.districtId) {
+            const userDistrict = await storage.getDistrict(user.districtId);
+            if (userDistrict && standardizedData.district !== userDistrict.name) {
+              errors.push(`Row ${csvData.indexOf(row) + 1}: Cannot import claim for ${standardizedData.district} - outside jurisdiction`);
+              errorCount++;
+              continue;
+            }
+          }
+
+          const claim = await storage.createClaim(standardizedData);
+          results.push({ row: csvData.indexOf(row) + 1, status: 'success', claimId: claim.id });
+          successCount++;
+
+          // Log the import
+          await storage.logAudit({
+            userId: user.id,
+            action: "bulk_import_claim",
+            resourceType: "claim",
+            resourceId: claim.id,
+            changes: { imported: true, source: 'csv' },
+            ipAddress: req.ip || null,
+            userAgent: req.get('User-Agent') || null
+          });
+        } catch (error) {
+          const errorMsg = `Row ${csvData.indexOf(row) + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          errors.push(errorMsg);
+          errorCount++;
+        }
+      }
+
+      res.json({
+        message: `Import completed: ${successCount} successful, ${errorCount} failed`,
+        summary: { total: csvData.length, successful: successCount, failed: errorCount },
+        results,
+        errors: errors.slice(0, 50) // Limit error details
+      });
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      res.status(500).json({ error: "Failed to import claims data" });
+    }
+  });
+
+  // Export claims to CSV
+  app.get("/api/claims/export", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let claims = await storage.getAllClaims();
+      
+      // Role-based filtering
+      if (user.role === 'state' && user.stateId) {
+        const userState = await storage.getState(user.stateId);
+        if (userState) {
+          claims = claims.filter(claim => claim.state === userState.name);
+        }
+      } else if (user.role === 'district' && user.districtId) {
+        const userDistrict = await storage.getDistrict(user.districtId);
+        if (userDistrict) {
+          claims = claims.filter(claim => claim.district === userDistrict.name);
+        }
+      }
+
+      // Convert to CSV format
+      const csvHeader = 'ID,Claim ID,Claimant Name,Location,District,State,Area (hectares),Land Type,Status,Date Submitted,Date Processed,Family Members,Notes\n';
+      const csvRows = claims.map(claim => [
+        claim.id,
+        claim.claimId,
+        claim.claimantName,
+        claim.location,
+        claim.district,
+        claim.state,
+        claim.area,
+        claim.landType,
+        claim.status,
+        claim.dateSubmitted.toISOString().split('T')[0],
+        claim.dateProcessed ? claim.dateProcessed.toISOString().split('T')[0] : '',
+        claim.familyMembers || '',
+        (claim.notes || '').replace(/"/g, '""') // Escape quotes
+      ].map(field => `"${field}"`).join(','));
+
+      const csvContent = csvHeader + csvRows.join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="fra-claims-${new Date().toISOString().split('T')[0]}.csv"`);
+      res.send(csvContent);
+
+      // Log the export
+      await storage.logAudit({
+        userId: user.id,
+        action: "export_claims",
+        resourceType: "claims",
+        resourceId: "bulk",
+        changes: { exported_count: claims.length },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({ error: "Failed to export claims data" });
+    }
+  });
+
+  // Bulk claims status update
+  app.post("/api/claims/bulk-action", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+    try {
+      const { claimIds, action, reason } = req.body;
+      const user = (req as any).user;
+      
+      if (!claimIds || !Array.isArray(claimIds) || claimIds.length === 0) {
+        return res.status(400).json({ error: "No claim IDs provided" });
+      }
+
+      if (!['approve', 'reject', 'under-review'].includes(action)) {
+        return res.status(400).json({ error: "Invalid action" });
+      }
+
+      const results = [];
+      const errors = [];
+
+      for (const claimId of claimIds) {
+        try {
+          const updates: any = {
+            status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'under-review',
+            assignedOfficer: user.id
+          };
+
+          if (action === 'approve' || action === 'reject') {
+            updates.dateProcessed = new Date();
+          }
+
+          if (action === 'reject' && reason) {
+            updates.notes = reason;
+          }
+
+          const claim = await storage.updateClaim(claimId, updates);
+          if (claim) {
+            results.push({ claimId, status: 'success' });
+            
+            // Log the bulk action
+            await storage.logAudit({
+              userId: user.id,
+              action: `bulk_${action}_claim`,
+              resourceType: "claim",
+              resourceId: claimId,
+              changes: { status: updates.status, reason },
+              ipAddress: req.ip || null,
+              userAgent: req.get('User-Agent') || null
+            });
+          } else {
+            errors.push({ claimId, error: 'Claim not found' });
+          }
+        } catch (error) {
+          errors.push({ claimId, error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      }
+
+      res.json({
+        message: `Bulk action completed: ${results.length} successful, ${errors.length} failed`,
+        results,
+        errors
+      });
+    } catch (error) {
+      console.error('Bulk action error:', error);
+      res.status(500).json({ error: "Failed to perform bulk action" });
     }
   });
 

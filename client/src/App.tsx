@@ -15,6 +15,7 @@ import ClaimDetailPage from "@/pages/ClaimDetailPage";
 import OCRReviewPage from "@/pages/OCRReviewPage";
 import StateDashboard from "@/pages/StateDashboard";
 import SettingsPage from "@/pages/SettingsPage";
+import BulkUploadPage from "@/pages/BulkUploadPage";
 import NotFound from "@/pages/not-found";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/state-dashboard" component={StateDashboard} />
       <Route path="/claims/:id" component={ClaimDetailPage} />
       <Route path="/claims" component={ClaimsPage} />
+      <Route path="/bulk-upload" component={BulkUploadPage} />
       <Route path="/ocr-review" component={OCRReviewPage} />
       <Route path="/maps" component={MapPage} />
       <Route path="/upload" component={UploadPage} />
