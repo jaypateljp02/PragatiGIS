@@ -1,7 +1,24 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, decimal, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, decimal, boolean, customType } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Custom bytea type for binary file storage
+const bytea = customType<{ 
+  data: Buffer; 
+  notNull: false; 
+  default: false 
+}>({
+  dataType() {
+    return 'bytea';
+  },
+  toDriver(value: Buffer) {
+    return value;
+  },
+  fromDriver(value: unknown) {
+    return value as Buffer;
+  },
+});
 
 // States and Districts
 export const states = pgTable("states", {
@@ -72,7 +89,8 @@ export const documents = pgTable("documents", {
   originalFilename: text("original_filename").notNull(),
   fileType: text("file_type").notNull(),
   fileSize: integer("file_size").notNull(),
-  uploadPath: text("upload_path").notNull(),
+  uploadPath: text("upload_path"), // Made nullable since files are stored in database now
+  fileContent: bytea(), // Binary file content stored directly in database
   ocrStatus: text("ocr_status").notNull(), // 'pending', 'processing', 'completed', 'failed'
   ocrText: text("ocr_text"),
   extractedData: jsonb("extracted_data"),
