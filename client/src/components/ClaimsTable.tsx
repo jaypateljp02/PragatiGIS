@@ -162,7 +162,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {claim.area.toFixed(2)}
+                      {parseFloat(claim.area.toString()).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusColors[claim.status]} data-testid={`badge-status-${claim.status}`}>
