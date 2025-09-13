@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Shield, TreePine, Users, MapPin, Building } from "lucide-react";
+import { Shield, TreePine, Users, MapPin, Building, Moon, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState as useThemeState, useEffect } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -18,6 +19,37 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
+
+function ThemeToggle() {
+  const [isDark, setIsDark] = useThemeState(false);
+
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialDark = theme === 'dark' || (!theme && systemPrefersDark);
+    
+    setIsDark(initialDark);
+    document.documentElement.classList.toggle('dark', initialDark);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newTheme);
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggleTheme}
+      data-testid="button-theme-toggle"
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -127,6 +159,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-chart-3/5 flex items-center justify-center p-4">
+      {/* Theme Toggle Button - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <div className="w-full max-w-6xl grid gap-8 lg:grid-cols-2">
         {/* Left side - Branding and Info */}
         <div className="flex flex-col justify-center space-y-6">
