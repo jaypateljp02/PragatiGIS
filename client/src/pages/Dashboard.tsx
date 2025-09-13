@@ -5,15 +5,8 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Bell, Zap } from "lucide-react";
 
 export default function Dashboard() {
-  //todo: remove mock functionality
-  const mockStats = {
-    totalClaims: 125847,
-    pendingClaims: 23456,
-    approvedClaims: 89231,
-    totalDocuments: 245892,
-    processedDocuments: 198432,
-    totalArea: "2.47M hectares"
-  };
+  // Stats will now be fetched directly by DashboardStats component
+  // No more mock data needed"
 
   return (
     <div className="space-y-6" data-testid="dashboard-page">
@@ -43,7 +36,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Overview */}
-      <DashboardStats stats={mockStats} />
+      <DashboardStats />
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-4">

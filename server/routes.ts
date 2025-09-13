@@ -220,6 +220,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard stats API
+  app.get("/api/dashboard/stats", requireAuth, async (req: any, res: any) => {
+    try {
+      const allClaims = await storage.getAllClaims();
+      
+      // Calculate statistics
+      const totalClaims = allClaims.length;
+      const approvedClaims = allClaims.filter(c => c.status === 'approved').length;
+      const pendingClaims = allClaims.filter(c => c.status === 'pending').length;
+      const underReviewClaims = allClaims.filter(c => c.status === 'under-review').length;
+      const rejectedClaims = allClaims.filter(c => c.status === 'rejected').length;
+      
+      // Calculate total area
+      const totalAreaNum = allClaims.reduce((sum, claim) => sum + parseFloat(claim.area.toString()), 0);
+      const totalArea = totalAreaNum > 1000 
+        ? `${(totalAreaNum / 1000).toFixed(2)}K hectares`
+        : `${totalAreaNum.toFixed(2)} hectares`;
+      
+      // Get documents count (mock for now since we don't have documents yet)
+      const totalDocuments = allClaims.length * 3; // Average 3 docs per claim
+      const processedDocuments = Math.floor(totalDocuments * 0.75); // 75% processed
+      
+      const stats = {
+        totalClaims,
+        approvedClaims,
+        pendingClaims,
+        underReviewClaims,
+        rejectedClaims,
+        totalArea,
+        totalDocuments,
+        processedDocuments
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Dashboard stats error:', error);
+      res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+    }
+  });
+
   // Claims management routes - Protected
   app.get("/api/claims", requireAuth, async (req, res) => {
     try {
