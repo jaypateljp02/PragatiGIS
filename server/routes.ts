@@ -94,6 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "login",
         resourceType: "user",
         resourceId: user.id,
+        changes: null,
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null
       });
@@ -255,7 +256,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "approve_claim",
         resourceType: "claim",
         resourceId: req.params.id,
-        changes: { status: "approved" }
+        changes: { status: "approved" },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
       });
 
       res.json(claim);
@@ -277,11 +280,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { reason } = req.body;
+      const existingClaim = await storage.getClaim(req.params.id);
       const claim = await storage.updateClaim(req.params.id, {
         status: "rejected",
         dateProcessed: new Date(),
         assignedOfficer: session.userId,
-        notes: reason || claim?.notes
+        notes: reason || existingClaim?.notes
       });
 
       if (!claim) {
@@ -294,7 +298,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "reject_claim",
         resourceType: "claim",
         resourceId: req.params.id,
-        changes: { status: "rejected", reason }
+        changes: { status: "rejected", reason },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
       });
 
       res.json(claim);
@@ -356,8 +362,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { ocrText, extractedData, reviewStatus } = req.body;
       // User is already authenticated via middleware
-      const user = req.user;
-      const session = req.session;
+      const user = (req as any).user;
+      const session = (req as any).session;
 
       const document = await storage.updateDocument(req.params.id, {
         ocrText,
