@@ -1,50 +1,48 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Map, Layers, ZoomIn, ZoomOut, Maximize, Filter } from "lucide-react";
+import LeafletMap from "@/components/LeafletMap";
+import { type Claim } from "@/components/ClaimsTable";
 
-interface MapCluster {
-  id: string;
-  lat: number;
-  lng: number;
-  count: number;
-  status: 'approved' | 'pending' | 'rejected';
-}
+// Convert Claim to ClaimData format for map component
+const convertClaimToMapData = (claim: Claim) => ({
+  ...claim,
+  claimId: claim.id, // Use id as claimId since it's not in the Claim type
+  area: claim.area.toString(), // Convert number to string
+  dateSubmitted: new Date(claim.dateSubmitted),
+  coordinates: undefined // Will be populated from backend in future
+});
 
 interface MapViewProps {
-  clusters?: MapCluster[];
-  onClusterClick?: (clusterId: string) => void;
+  onClaimClick?: (claim: Claim) => void;
 }
 
-export default function MapView({ clusters = [], onClusterClick }: MapViewProps) {
+export default function MapView({ onClaimClick }: MapViewProps) {
   const [selectedLayer, setSelectedLayer] = useState('satellite');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Mock clusters for demonstration //todo: remove mock functionality
-  const defaultClusters: MapCluster[] = [
-    { id: '1', lat: 20.5937, lng: 78.9629, count: 45, status: 'approved' },
-    { id: '2', lat: 19.0760, lng: 72.8777, count: 23, status: 'pending' },
-    { id: '3', lat: 28.7041, lng: 77.1025, count: 67, status: 'approved' },
-    { id: '4', lat: 22.5726, lng: 88.3639, count: 12, status: 'rejected' },
-    { id: '5', lat: 13.0827, lng: 80.2707, count: 34, status: 'pending' },
-  ];
+  // Fetch claims data for mapping
+  const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
+    queryKey: ['/api/claims'],
+    enabled: true,
+  });
 
-  const mapClusters = clusters.length > 0 ? clusters : defaultClusters;
-
-  const filteredClusters = mapClusters.filter(cluster => 
-    statusFilter === 'all' || cluster.status === statusFilter
+  const filteredClaims = claims.filter(claim => 
+    statusFilter === 'all' || claim.status === statusFilter
   );
 
-  const getClusterColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-chart-3';
-      case 'pending': return 'bg-chart-4';
-      case 'rejected': return 'bg-destructive';
-      default: return 'bg-muted';
-    }
+  const getStatusCounts = () => {
+    const approved = filteredClaims.filter(c => c.status === 'approved').length;
+    const pending = filteredClaims.filter(c => c.status === 'pending').length;
+    const rejected = filteredClaims.filter(c => c.status === 'rejected').length;
+    return { approved, pending, rejected };
   };
+
+  const statusCounts = getStatusCounts();
 
   return (
     <div className="space-y-4">
@@ -119,63 +117,52 @@ export default function MapView({ clusters = [], onClusterClick }: MapViewProps)
         </CardHeader>
         
         <CardContent>
-          {/* Mock Map Area */}
-          <div 
-            className="relative w-full h-96 bg-muted rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/20"
-            data-testid="map-placeholder"
-          >
-            {/* India Map Background Placeholder */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-chart-3/5"></div>
-            
-            {/* Claim Clusters */}
-            {filteredClusters.map((cluster) => (
-              <button
-                key={cluster.id}
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 rounded-full text-white text-xs font-bold hover-elevate active-elevate-2 transition-transform ${getClusterColor(cluster.status)}`}
-                style={{
-                  left: `${((cluster.lng + 180) / 360) * 100}%`,
-                  top: `${((90 - cluster.lat) / 180) * 100}%`,
-                  width: Math.max(24, Math.min(48, cluster.count * 0.8)) + 'px',
-                  height: Math.max(24, Math.min(48, cluster.count * 0.8)) + 'px',
-                }}
-                onClick={() => {
-                  console.log(`Cluster ${cluster.id} clicked`);
-                  onClusterClick?.(cluster.id);
-                }}
-                data-testid={`cluster-${cluster.id}`}
-              >
-                {cluster.count}
-              </button>
-            ))}
-
-            {/* Map Center Text */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center p-4 bg-background/90 rounded-lg border shadow-sm">
-                <Map className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm font-medium">Interactive Map View</p>
-                <p className="text-xs text-muted-foreground">
-                  Click clusters to view claim details
-                </p>
+          {isLoading ? (
+            <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground">Loading map data...</p>
               </div>
             </div>
-          </div>
+          ) : error ? (
+            <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <Map className="h-8 w-8 mx-auto text-muted-foreground" />
+                <p className="text-muted-foreground">Failed to load map data</p>
+              </div>
+            </div>
+          ) : (
+            <LeafletMap 
+              claims={filteredClaims.map(convertClaimToMapData)}
+              selectedLayer={selectedLayer}
+              statusFilter={statusFilter}
+              onClaimClick={(claimData) => {
+                // Find original claim by id and call the handler
+                const originalClaim = claims.find(c => c.id === claimData.id);
+                if (originalClaim) {
+                  onClaimClick?.(originalClaim);
+                }
+              }}
+              height="400px"
+            />
+          )}
 
           {/* Map Legend */}
           <div className="flex flex-wrap gap-4 mt-4 p-4 bg-muted/30 rounded">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-chart-3"></div>
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: '#10b981'}}></div>
               <span className="text-sm">Approved Claims</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-chart-4"></div>
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: '#f59e0b'}}></div>
               <span className="text-sm">Pending Review</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-destructive"></div>
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: '#ef4444'}}></div>
               <span className="text-sm">Rejected Claims</span>
             </div>
             <div className="ml-auto text-sm text-muted-foreground">
-              Showing {filteredClusters.length} cluster(s) • {selectedLayer} layer
+              Showing {filteredClaims.length} claim(s) • {selectedLayer} layer
             </div>
           </div>
         </CardContent>
@@ -185,8 +172,8 @@ export default function MapView({ clusters = [], onClusterClick }: MapViewProps)
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-chart-3">
-              {filteredClusters.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.count, 0)}
+            <div className="text-2xl font-bold" style={{color: '#10b981'}}>
+              {statusCounts.approved}
             </div>
             <div className="text-sm text-muted-foreground">Approved Claims</div>
           </CardContent>
@@ -194,8 +181,8 @@ export default function MapView({ clusters = [], onClusterClick }: MapViewProps)
         
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-chart-4">
-              {filteredClusters.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.count, 0)}
+            <div className="text-2xl font-bold" style={{color: '#f59e0b'}}>
+              {statusCounts.pending}
             </div>
             <div className="text-sm text-muted-foreground">Pending Review</div>
           </CardContent>
@@ -203,8 +190,8 @@ export default function MapView({ clusters = [], onClusterClick }: MapViewProps)
         
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-destructive">
-              {filteredClusters.filter(c => c.status === 'rejected').reduce((sum, c) => sum + c.count, 0)}
+            <div className="text-2xl font-bold" style={{color: '#ef4444'}}>
+              {statusCounts.rejected}
             </div>
             <div className="text-sm text-muted-foreground">Rejected Claims</div>
           </CardContent>
