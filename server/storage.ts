@@ -238,7 +238,7 @@ export class DatabaseStorage implements IStorage {
       .from(userSessions)
       .where(and(
         eq(userSessions.token, token),
-        sql`${userSessions.expiresAt} > NOW()`
+        sql`${userSessions.expiresAt} > unixepoch()`
       ));
     return session || undefined;
   }
