@@ -115,6 +115,54 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").default(sql`NOW()`),
 });
 
+// Workflow Instances - Track individual workflow runs
+export const workflowInstances = pgTable("workflow_instances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // User-friendly name for the workflow
+  description: text("description"),
+  status: text("status").notNull().default('active'), // 'active', 'completed', 'cancelled', 'paused'
+  currentStep: text("current_step").notNull().default('upload'), // 'upload', 'process', 'review', 'claims', 'map', 'dss', 'reports'
+  totalSteps: integer("total_steps").notNull().default(7),
+  completedSteps: integer("completed_steps").notNull().default(0),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  metadata: jsonb("metadata"), // Flexible storage for workflow-specific data
+  startedAt: timestamp("started_at").default(sql`NOW()`),
+  completedAt: timestamp("completed_at"),
+  lastActiveAt: timestamp("last_active_at").default(sql`NOW()`),
+  createdAt: timestamp("created_at").default(sql`NOW()`),
+  updatedAt: timestamp("updated_at").default(sql`NOW()`),
+});
+
+// Workflow Steps - Track step completion and data flow
+export const workflowSteps = pgTable("workflow_steps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  workflowId: varchar("workflow_id").references(() => workflowInstances.id).notNull(),
+  stepName: text("step_name").notNull(), // 'upload', 'process', 'review', 'claims', 'map', 'dss', 'reports'
+  stepOrder: integer("step_order").notNull(),
+  status: text("status").notNull().default('pending'), // 'pending', 'in_progress', 'completed', 'failed', 'skipped'
+  progress: integer("progress").default(0), // 0-100 percentage
+  resourceId: varchar("resource_id"), // ID of document, claim, etc. associated with this step
+  resourceType: text("resource_type"), // 'document', 'claim', 'report', etc.
+  data: jsonb("data"), // Step-specific data (OCR results, claim data, analysis results, etc.)
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`NOW()`),
+  updatedAt: timestamp("updated_at").default(sql`NOW()`),
+});
+
+// Workflow Transitions - Track data flow between steps
+export const workflowTransitions = pgTable("workflow_transitions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  workflowId: varchar("workflow_id").references(() => workflowInstances.id).notNull(),
+  fromStepId: varchar("from_step_id").references(() => workflowSteps.id),
+  toStepId: varchar("to_step_id").references(() => workflowSteps.id).notNull(),
+  transitionType: text("transition_type").notNull(), // 'auto', 'manual', 'conditional'
+  data: jsonb("data"), // Data passed between steps
+  triggeredBy: varchar("triggered_by").references(() => users.id),
+  createdAt: timestamp("created_at").default(sql`NOW()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -139,6 +187,23 @@ export const insertSessionSchema = createInsertSchema(userSessions).omit({
   createdAt: true,
 });
 
+export const insertWorkflowInstanceSchema = createInsertSchema(workflowInstances).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWorkflowStepSchema = createInsertSchema(workflowSteps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWorkflowTransitionSchema = createInsertSchema(workflowTransitions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Login schema
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -154,6 +219,12 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
+export type InsertWorkflowInstance = z.infer<typeof insertWorkflowInstanceSchema>;
+export type WorkflowInstance = typeof workflowInstances.$inferSelect;
+export type InsertWorkflowStep = z.infer<typeof insertWorkflowStepSchema>;
+export type WorkflowStep = typeof workflowSteps.$inferSelect;
+export type InsertWorkflowTransition = z.infer<typeof insertWorkflowTransitionSchema>;
+export type WorkflowTransition = typeof workflowTransitions.$inferSelect;
 export type LoginRequest = z.infer<typeof loginSchema>;
 export type State = typeof states.$inferSelect;
 export type District = typeof districts.$inferSelect;

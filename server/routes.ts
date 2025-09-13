@@ -5,7 +5,10 @@ import {
   loginSchema, 
   insertUserSchema, 
   insertClaimSchema,
-  insertDocumentSchema 
+  insertDocumentSchema,
+  insertWorkflowInstanceSchema,
+  insertWorkflowStepSchema,
+  insertWorkflowTransitionSchema 
 } from "@shared/schema-sqlite";
 import { randomUUID } from "crypto";
 import multer from "multer";
@@ -1075,6 +1078,277 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Bulk action error:', error);
       res.status(500).json({ error: "Failed to perform bulk action" });
+    }
+  });
+
+  // Workflow Management API
+  
+  // Create new workflow instance
+  app.post("/api/workflows", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const workflowData = insertWorkflowInstanceSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+      
+      const workflow = await storage.createWorkflowInstance(workflowData);
+      
+      // Create initial steps
+      const stepOrder = [
+        'upload', 'process', 'review', 'claims', 'map', 'dss', 'reports'
+      ];
+      
+      for (let i = 0; i < stepOrder.length; i++) {
+        await storage.createWorkflowStep({
+          workflowId: workflow.id,
+          stepName: stepOrder[i],
+          stepOrder: i + 1,
+          status: i === 0 ? 'in_progress' : 'pending'
+        });
+      }
+      
+      res.status(201).json(workflow);
+    } catch (error) {
+      console.error('Create workflow error:', error);
+      res.status(400).json({ error: "Failed to create workflow" });
+    }
+  });
+
+  // Get workflow instances for user
+  app.get("/api/workflows", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { status } = req.query;
+      
+      let workflows = await storage.getWorkflowsByUser(user.id);
+      
+      if (status) {
+        workflows = workflows.filter(w => w.status === status);
+      }
+      
+      res.json(workflows);
+    } catch (error) {
+      console.error('Get workflows error:', error);
+      res.status(500).json({ error: "Failed to fetch workflows" });
+    }
+  });
+
+  // Get workflow with steps
+  app.get("/api/workflows/:id", requireAuth, async (req, res) => {
+    try {
+      const workflow = await storage.getWorkflowInstance(req.params.id);
+      if (!workflow) {
+        return res.status(404).json({ error: "Workflow not found" });
+      }
+      
+      const steps = await storage.getWorkflowSteps(req.params.id);
+      const transitions = await storage.getWorkflowTransitions(req.params.id);
+      
+      res.json({
+        ...workflow,
+        steps,
+        transitions
+      });
+    } catch (error) {
+      console.error('Get workflow error:', error);
+      res.status(500).json({ error: "Failed to fetch workflow" });
+    }
+  });
+
+  // Update workflow status and current step
+  app.patch("/api/workflows/:id", requireAuth, async (req, res) => {
+    try {
+      const { status, currentStep, completedSteps, metadata } = req.body;
+      const user = (req as any).user;
+      
+      const updates: any = {
+        lastActiveAt: new Date()
+      };
+      
+      if (status) updates.status = status;
+      if (currentStep) updates.currentStep = currentStep;
+      if (completedSteps !== undefined) updates.completedSteps = completedSteps;
+      if (metadata) updates.metadata = metadata;
+      if (status === 'completed') updates.completedAt = new Date();
+      
+      const workflow = await storage.updateWorkflowInstance(req.params.id, updates);
+      if (!workflow) {
+        return res.status(404).json({ error: "Workflow not found" });
+      }
+      
+      // Log workflow update
+      await storage.logAudit({
+        userId: user.id,
+        action: "update_workflow",
+        resourceType: "workflow",
+        resourceId: req.params.id,
+        changes: updates,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+      
+      res.json(workflow);
+    } catch (error) {
+      console.error('Update workflow error:', error);
+      res.status(400).json({ error: "Failed to update workflow" });
+    }
+  });
+
+  // Update workflow step
+  app.patch("/api/workflows/:workflowId/steps/:stepId", requireAuth, async (req, res) => {
+    try {
+      const { status, progress, data, notes, resourceId, resourceType } = req.body;
+      const user = (req as any).user;
+      
+      const updates: any = {};
+      
+      if (status) {
+        updates.status = status;
+        if (status === 'in_progress' && !updates.startedAt) {
+          updates.startedAt = new Date();
+        }
+        if (status === 'completed') {
+          updates.completedAt = new Date();
+          updates.progress = 100;
+        }
+      }
+      
+      if (progress !== undefined) updates.progress = progress;
+      if (data) updates.data = data;
+      if (notes) updates.notes = notes;
+      if (resourceId) updates.resourceId = resourceId;
+      if (resourceType) updates.resourceType = resourceType;
+      
+      const step = await storage.updateWorkflowStep(req.params.stepId, updates);
+      if (!step) {
+        return res.status(404).json({ error: "Workflow step not found" });
+      }
+      
+      // Update parent workflow progress
+      const allSteps = await storage.getWorkflowSteps(req.params.workflowId);
+      const completedSteps = allSteps.filter(s => s.status === 'completed').length;
+      const currentStep = allSteps.find(s => s.status === 'in_progress')?.stepName || 
+                         allSteps.find(s => s.status === 'pending')?.stepName;
+      
+      await storage.updateWorkflowInstance(req.params.workflowId, {
+        completedSteps,
+        currentStep: currentStep || 'completed',
+        lastActiveAt: new Date()
+      });
+      
+      // Log step update
+      await storage.logAudit({
+        userId: user.id,
+        action: "update_workflow_step",
+        resourceType: "workflow_step",
+        resourceId: req.params.stepId,
+        changes: updates,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+      
+      res.json(step);
+    } catch (error) {
+      console.error('Update workflow step error:', error);
+      res.status(400).json({ error: "Failed to update workflow step" });
+    }
+  });
+
+  // Create workflow transition (auto or manual)
+  app.post("/api/workflows/:workflowId/transitions", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const transitionData = insertWorkflowTransitionSchema.parse({
+        ...req.body,
+        workflowId: req.params.workflowId,
+        triggeredBy: user.id
+      });
+      
+      const transition = await storage.createWorkflowTransition(transitionData);
+      
+      res.status(201).json(transition);
+    } catch (error) {
+      console.error('Create transition error:', error);
+      res.status(400).json({ error: "Failed to create transition" });
+    }
+  });
+
+  // Continue workflow from specific step
+  app.post("/api/workflows/:id/continue", requireAuth, async (req, res) => {
+    try {
+      const { fromStep } = req.body;
+      const user = (req as any).user;
+      
+      // Update workflow to active and set current step
+      const workflow = await storage.updateWorkflowInstance(req.params.id, {
+        status: 'active',
+        currentStep: fromStep,
+        lastActiveAt: new Date()
+      });
+      
+      if (!workflow) {
+        return res.status(404).json({ error: "Workflow not found" });
+      }
+      
+      // Update step status
+      const steps = await storage.getWorkflowSteps(req.params.id);
+      const currentStepRecord = steps.find(s => s.stepName === fromStep);
+      
+      if (currentStepRecord) {
+        await storage.updateWorkflowStep(currentStepRecord.id, {
+          status: 'in_progress',
+          startedAt: new Date()
+        });
+      }
+      
+      // Log continue action
+      await storage.logAudit({
+        userId: user.id,
+        action: "continue_workflow",
+        resourceType: "workflow",
+        resourceId: req.params.id,
+        changes: { fromStep },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+      
+      res.json({ message: "Workflow continued", workflow });
+    } catch (error) {
+      console.error('Continue workflow error:', error);
+      res.status(500).json({ error: "Failed to continue workflow" });
+    }
+  });
+
+  // Get workflow analytics
+  app.get("/api/workflows/analytics", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const workflows = await storage.getWorkflowsByUser(user.id);
+      
+      const analytics = {
+        total: workflows.length,
+        active: workflows.filter(w => w.status === 'active').length,
+        completed: workflows.filter(w => w.status === 'completed').length,
+        paused: workflows.filter(w => w.status === 'paused').length,
+        avgCompletionTime: 0,
+        stepStats: {}
+      };
+      
+      // Calculate average completion time for completed workflows
+      const completed = workflows.filter(w => w.status === 'completed' && w.completedAt);
+      if (completed.length > 0) {
+        const totalTime = completed.reduce((sum, w) => {
+          const duration = new Date(w.completedAt!).getTime() - new Date(w.startedAt).getTime();
+          return sum + duration;
+        }, 0);
+        analytics.avgCompletionTime = Math.round(totalTime / completed.length / (1000 * 60 * 60)); // hours
+      }
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error('Workflow analytics error:', error);
+      res.status(500).json({ error: "Failed to fetch workflow analytics" });
     }
   });
 
