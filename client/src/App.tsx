@@ -11,10 +11,9 @@ import AppSidebar from "@/components/AppSidebar";
 import Dashboard from "@/pages/Dashboard";
 import ClaimsPage from "@/pages/ClaimsPage";
 import MapPage from "@/pages/MapPage";
-import UploadPage from "@/pages/UploadPage";
 import LoginPage from "@/pages/LoginPage";
 import ClaimDetailPage from "@/pages/ClaimDetailPage";
-import OCRReviewPage from "@/pages/OCRReviewPage";
+import DocumentWorkflowPage from "@/pages/DocumentWorkflowPage";
 import StateDashboard from "@/pages/StateDashboard";
 import SettingsPage from "@/pages/SettingsPage";
 import BulkUploadPage from "@/pages/BulkUploadPage";
@@ -63,9 +62,8 @@ function Router() {
       <Route path="/claims/:id" component={() => <ProtectedRoute><ClaimDetailPage /></ProtectedRoute>} />
       <Route path="/claims" component={() => <ProtectedRoute><ClaimsPage /></ProtectedRoute>} />
       <Route path="/bulk-upload" component={() => <ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
-      <Route path="/ocr-review" component={() => <ProtectedRoute><OCRReviewPage /></ProtectedRoute>} />
+      <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
-      <Route path="/upload" component={() => <ProtectedRoute><UploadPage /></ProtectedRoute>} />
       <Route path="/settings" component={() => <ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route component={NotFound} />
     </Switch>

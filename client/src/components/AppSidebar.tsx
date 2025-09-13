@@ -21,16 +21,10 @@ const navigation = [
     icon: BarChart3,
   },
   {
-    title: "Document Upload",
-    url: "/upload",
+    title: "Document Workflow",
+    url: "/documents",
     icon: Upload,
     badge: "New"
-  },
-  {
-    title: "OCR Review",
-    url: "/ocr-review",
-    icon: Eye,
-    badge: "0"
   },
   {
     title: "State Analytics",

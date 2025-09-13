@@ -372,7 +372,7 @@ export default function DocumentWorkflowPage() {
                                 <Input
                                   id="area"
                                   value={editedData.area || ""}
-                                  onChange={(e) => setEditedData((prev: any) => ({ ...prev, area: e.target.value })))
+                                  onChange={(e) => setEditedData((prev: any) => ({ ...prev, area: e.target.value }))}
                                   placeholder="e.g., 2.5"
                                   className="mt-1"
                                   data-testid="input-area"
