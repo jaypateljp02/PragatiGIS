@@ -17,6 +17,10 @@ export interface Claim {
   status: 'pending' | 'approved' | 'rejected' | 'under-review';
   dateSubmitted: string;
   landType: 'individual' | 'community';
+  coordinates?: {
+    type: 'Point' | 'Polygon';
+    coordinates: number[] | number[][][];
+  };
 }
 
 interface ClaimsTableProps {

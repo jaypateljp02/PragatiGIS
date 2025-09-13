@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Map, Layers, ZoomIn, ZoomOut, Maximize, Filter } from "lucide-react";
 import LeafletMap from "@/components/LeafletMap";
 import { type Claim } from "@/components/ClaimsTable";
+import { useRef } from "react";
 
 // Convert Claim to ClaimData format for map component
 const convertClaimToMapData = (claim: Claim) => ({
@@ -14,7 +15,8 @@ const convertClaimToMapData = (claim: Claim) => ({
   claimId: claim.id, // Use id as claimId since it's not in the Claim type
   area: claim.area.toString(), // Convert number to string
   dateSubmitted: new Date(claim.dateSubmitted),
-  coordinates: undefined // Will be populated from backend in future
+  // Keep real coordinates from claim data if available
+  coordinates: claim.coordinates || undefined
 });
 
 interface MapViewProps {
@@ -24,6 +26,7 @@ interface MapViewProps {
 export default function MapView({ onClaimClick }: MapViewProps) {
   const [selectedLayer, setSelectedLayer] = useState('satellite');
   const [statusFilter, setStatusFilter] = useState('all');
+  const mapRef = useRef<any>(null);
 
   // Fetch claims data for mapping
   const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
@@ -80,7 +83,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => console.log('Zoom in triggered')}
+            onClick={() => mapRef.current?.zoomIn()}
             data-testid="button-zoom-in"
           >
             <ZoomIn className="h-4 w-4" />
@@ -88,7 +91,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => console.log('Zoom out triggered')}
+            onClick={() => mapRef.current?.zoomOut()}
             data-testid="button-zoom-out"
           >
             <ZoomOut className="h-4 w-4" />
@@ -96,7 +99,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => console.log('Fullscreen triggered')}
+            onClick={() => mapRef.current?.toggleFullscreen()}
             data-testid="button-fullscreen"
           >
             <Maximize className="h-4 w-4" />
@@ -133,6 +136,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
             </div>
           ) : (
             <LeafletMap 
+              ref={mapRef}
               claims={filteredClaims.map(convertClaimToMapData)}
               selectedLayer={selectedLayer}
               statusFilter={statusFilter}

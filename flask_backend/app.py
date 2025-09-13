@@ -93,7 +93,7 @@ def login():
         
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT id, username, email, fullName, role, stateId, districtId, isActive, passwordHash FROM users WHERE username = ?',
+            'SELECT id, username, email, full_name, role, state_id, district_id, is_active, password FROM users WHERE username = ?',
             (username,)
         ).fetchone()
         conn.close()
@@ -101,11 +101,14 @@ def login():
         if not user:
             return jsonify({'error': 'Invalid credentials'}), 401
         
-        if not user['isActive']:
+        if not user['is_active']:
             return jsonify({'error': 'Account is disabled'}), 401
         
         # Verify password
-        if not bcrypt.checkpw(password.encode('utf-8'), user['passwordHash']):
+        stored_password = user['password']
+        if isinstance(stored_password, str):
+            stored_password = stored_password.encode('utf-8')
+        if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
             return jsonify({'error': 'Invalid credentials'}), 401
         
         # Create session
@@ -117,11 +120,12 @@ def login():
         # Create session token in database
         session_token = secrets.token_urlsafe(32)
         expires_at = datetime.now() + timedelta(days=30)
+        session['session_token'] = session_token
         
         conn = get_db_connection()
         conn.execute(
-            'INSERT INTO sessions (token, userId, expiresAt) VALUES (?, ?, ?)',
-            (session_token, user['id'], expires_at.isoformat())
+            'INSERT INTO user_sessions (token, user_id, expires_at) VALUES (?, ?, ?)',
+            (session_token, user['id'], int(expires_at.timestamp()))
         )
         conn.commit()
         conn.close()
@@ -130,11 +134,11 @@ def login():
             'id': user['id'],
             'username': user['username'],
             'email': user['email'],
-            'fullName': user['fullName'],
+            'fullName': user['full_name'],
             'role': user['role'],
-            'stateId': user['stateId'],
-            'districtId': user['districtId'],
-            'isActive': user['isActive']
+            'stateId': user['state_id'],
+            'districtId': user['district_id'],
+            'isActive': user['is_active']
         }
         
         return jsonify({'user': user_data, 'token': session_token})
@@ -151,7 +155,7 @@ def logout():
         # Clear session from database if token exists
         if 'session_token' in session:
             conn = get_db_connection()
-            conn.execute('DELETE FROM sessions WHERE token = ?', (session['session_token'],))
+            conn.execute('DELETE FROM user_sessions WHERE token = ?', (session['session_token'],))
             conn.commit()
             conn.close()
         
@@ -170,7 +174,7 @@ def get_current_user():
     try:
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT id, username, email, fullName, role, stateId, districtId, isActive FROM users WHERE id = ?',
+            'SELECT id, username, email, full_name, role, state_id, district_id, is_active FROM users WHERE id = ?',
             (session['user_id'],)
         ).fetchone()
         conn.close()
@@ -182,11 +186,11 @@ def get_current_user():
             'id': user['id'],
             'username': user['username'],
             'email': user['email'],
-            'fullName': user['fullName'],
+            'fullName': user['full_name'],
             'role': user['role'],
-            'stateId': user['stateId'],
-            'districtId': user['districtId'],
-            'isActive': user['isActive']
+            'stateId': user['state_id'],
+            'districtId': user['district_id'],
+            'isActive': user['is_active']
         }
         
         return jsonify({'user': user_data})

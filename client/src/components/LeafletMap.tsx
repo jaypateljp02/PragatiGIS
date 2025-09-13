@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -39,16 +39,62 @@ interface LeafletMapProps {
   height?: string;
 }
 
-export default function LeafletMap({ 
+interface LeafletMapRef {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  toggleFullscreen: () => void;
+}
+
+const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({ 
   claims, 
   selectedLayer, 
   statusFilter, 
   onClaimClick,
   height = '400px' 
-}: LeafletMapProps) {
+}, ref) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
+  const isFullscreenRef = useRef<boolean>(false);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => {
+      if (mapRef.current) {
+        mapRef.current.zoomIn();
+      }
+    },
+    zoomOut: () => {
+      if (mapRef.current) {
+        mapRef.current.zoomOut();
+      }
+    },
+    toggleFullscreen: () => {
+      if (!mapContainerRef.current) return;
+      
+      if (!isFullscreenRef.current) {
+        // Enter fullscreen
+        if (mapContainerRef.current.requestFullscreen) {
+          mapContainerRef.current.requestFullscreen();
+        } else if ((mapContainerRef.current as any).webkitRequestFullscreen) {
+          (mapContainerRef.current as any).webkitRequestFullscreen();
+        } else if ((mapContainerRef.current as any).msRequestFullscreen) {
+          (mapContainerRef.current as any).msRequestFullscreen();
+        }
+        isFullscreenRef.current = true;
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        } else if ((document as any).msExitFullscreen) {
+          (document as any).msExitFullscreen();
+        }
+        isFullscreenRef.current = false;
+      }
+    }
+  }), []);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -213,20 +259,41 @@ export default function LeafletMap({
         marker = L.marker([mockLat, mockLng], { icon: customIcon });
       }
 
-      // Add popup with claim information
-      const popupContent = `
-        <div style="min-width: 200px;">
-          <h4 style="margin: 0 0 8px 0; font-weight: bold;">${claim.claimId}</h4>
-          <p style="margin: 4px 0;"><strong>Claimant:</strong> ${claim.claimantName}</p>
-          <p style="margin: 4px 0;"><strong>Location:</strong> ${claim.location}</p>
-          <p style="margin: 4px 0;"><strong>District:</strong> ${claim.district}</p>
-          <p style="margin: 4px 0;"><strong>State:</strong> ${claim.state}</p>
-          <p style="margin: 4px 0;"><strong>Area:</strong> ${claim.area} hectares</p>
-          <p style="margin: 4px 0;"><strong>Status:</strong> <span style="text-transform: capitalize; font-weight: bold;">${claim.status}</span></p>
-        </div>
-      `;
+      // Create popup content safely to prevent XSS
+      const popupContainer = L.DomUtil.create('div');
+      popupContainer.style.minWidth = '200px';
 
-      marker.bindPopup(popupContent);
+      const title = L.DomUtil.create('h4', '', popupContainer);
+      title.style.margin = '0 0 8px 0';
+      title.style.fontWeight = 'bold';
+      title.textContent = claim.claimId;
+
+      const createField = (label: string, value: string) => {
+        const p = L.DomUtil.create('p', '', popupContainer);
+        p.style.margin = '4px 0';
+        const strong = L.DomUtil.create('strong', '', p);
+        strong.textContent = label + ': ';
+        const span = L.DomUtil.create('span', '', p);
+        span.textContent = value;
+        return p;
+      };
+
+      createField('Claimant', claim.claimantName);
+      createField('Location', claim.location);
+      createField('District', claim.district);
+      createField('State', claim.state);
+      createField('Area', claim.area + ' hectares');
+      
+      const statusP = L.DomUtil.create('p', '', popupContainer);
+      statusP.style.margin = '4px 0';
+      const statusLabel = L.DomUtil.create('strong', '', statusP);
+      statusLabel.textContent = 'Status: ';
+      const statusSpan = L.DomUtil.create('span', '', statusP);
+      statusSpan.style.textTransform = 'capitalize';
+      statusSpan.style.fontWeight = 'bold';
+      statusSpan.textContent = claim.status;
+
+      marker.bindPopup(popupContainer);
 
       // Add click handler
       marker.on('click', () => {
@@ -251,4 +318,8 @@ export default function LeafletMap({
       data-testid="leaflet-map"
     />
   );
-}
+});
+
+LeafletMap.displayName = 'LeafletMap';
+
+export default LeafletMap;
