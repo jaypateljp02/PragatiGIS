@@ -21,16 +21,10 @@ const navigation = [
     icon: BarChart3,
   },
   {
-    title: "State Analytics",
-    url: "/state-dashboard",
-    icon: CheckSquare,
-    badge: "MH"
-  },
-  {
-    title: "Claims Management",
-    url: "/claims",
-    icon: FileText,
-    badge: "0"
+    title: "Document Upload",
+    url: "/upload",
+    icon: Upload,
+    badge: "New"
   },
   {
     title: "OCR Review",
@@ -39,15 +33,21 @@ const navigation = [
     badge: "0"
   },
   {
+    title: "State Analytics",
+    url: "/state-dashboard",
+    icon: CheckSquare,
+    badge: "MH"
+  },
+  {
     title: "Interactive Maps",
     url: "/maps",
     icon: Map,
   },
   {
-    title: "Document Upload",
-    url: "/upload",
-    icon: Upload,
-    badge: "New"
+    title: "Claims Management",
+    url: "/claims",
+    icon: FileText,
+    badge: "0"
   },
   {
     title: "Settings",
