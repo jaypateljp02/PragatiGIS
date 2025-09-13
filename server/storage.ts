@@ -17,12 +17,12 @@ import {
   auditLog,
   states,
   districts
-} from "@shared/schema";
+} from "@shared/schema-sqlite";
 
 // Import the destructured schema objects based on database type
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
-import { db } from "./db";
+import { db } from "./db-local";
 import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -85,10 +85,7 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeDatabase() {
     try {
-      // Enable PostGIS extension for PostgreSQL
-      await db.execute(sql`CREATE EXTENSION IF NOT EXISTS postgis;`);
-      
-      // Create tables if they don't exist (run db:push will handle this)
+      // For SQLite, no extensions needed
       // Seed initial data
       await this.seedInitialData();
       console.log('Database initialized successfully');
@@ -200,7 +197,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<boolean> {
     const result = await db.delete(users).where(eq(users.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return (result.changes ?? 0) > 0;
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
@@ -248,12 +245,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSession(token: string): Promise<boolean> {
     const result = await db.delete(userSessions).where(eq(userSessions.token, token));
-    return (result.rowCount ?? 0) > 0;
+    return (result.changes ?? 0) > 0;
   }
 
   async deleteUserSessions(userId: string): Promise<boolean> {
     const result = await db.delete(userSessions).where(eq(userSessions.userId, userId));
-    return (result.rowCount ?? 0) > 0;
+    return (result.changes ?? 0) > 0;
   }
 
   // Claims management
@@ -297,7 +294,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClaim(id: string): Promise<boolean> {
     const result = await db.delete(claims).where(eq(claims.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return (result.changes ?? 0) > 0;
   }
 
   async getClaimsByStatus(status: string): Promise<Claim[]> {
@@ -341,7 +338,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<boolean> {
     const result = await db.delete(documents).where(eq(documents.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return (result.changes ?? 0) > 0;
   }
 
   // States and Districts
