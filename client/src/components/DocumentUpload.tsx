@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, Image, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface UploadedFile {
   id: string;
@@ -37,69 +38,171 @@ export default function DocumentUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = (selectedFiles: FileList | null) => {
+  const handleFileSelect = async (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
 
-    const newFiles: UploadedFile[] = Array.from(selectedFiles).map(file => ({
+    // Process files one by one
+    for (const file of Array.from(selectedFiles)) {
+      const fileId = Math.random().toString(36).substr(2, 9);
+      const newFile: UploadedFile = {
+        id: fileId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        status: 'uploading',
+        progress: 0
+      };
+
+      // Add file to state
+      setFiles(prev => [...prev, newFile]);
+
+      try {
+        // Upload file to backend
+        await uploadFileToBackend(file, fileId);
+      } catch (error) {
+        console.error('File upload failed:', error);
+        setFiles(prev => prev.map(f => 
+          f.id === fileId 
+            ? { ...f, status: 'error', progress: 0 }
+            : f
+        ));
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive"
+        });
+      }
+    }
+
+    toast({
+      title: "Files uploaded",
+      description: `${selectedFiles.length} file(s) are being processed`,
+    });
+
+    onFilesUploaded?.(Array.from(selectedFiles).map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
       type: file.type,
       status: 'uploading',
       progress: 0
-    }));
-
-    setFiles(prev => [...prev, ...newFiles]);
-
-    // Simulate upload and OCR processing
-    newFiles.forEach(file => {
-      simulateFileProcessing(file.id);
-    });
-
-    toast({
-      title: "Files uploaded",
-      description: `${newFiles.length} file(s) are being processed`,
-    });
-
-    onFilesUploaded?.(newFiles);
+    })));
   };
 
-  const simulateFileProcessing = (fileId: string) => {
-    const updateProgress = (progress: number, status?: UploadedFile['status']) => {
-      setFiles(prev => prev.map(file => 
-        file.id === fileId 
-          ? { ...file, progress, ...(status && { status }) }
-          : file
+  const uploadFileToBackend = async (file: File, fileId: string) => {
+    // Update progress to show upload starting
+    setFiles(prev => prev.map(f => 
+      f.id === fileId 
+        ? { ...f, progress: 10, status: 'uploading' }
+        : f
+    ));
+
+    try {
+      // Create form data for file upload
+      const formData = new FormData();
+      formData.append('document', file);
+
+      // Upload the file using fetch directly since apiRequest may not handle FormData
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include' // Include cookies for authentication
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const uploadResponse = await response.json();
+
+      // Update progress to show upload complete
+      setFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, progress: 50, status: 'processing' }
+          : f
       ));
+
+      // Start polling for OCR completion
+      const documentId = uploadResponse.id;
+      pollForOCRCompletion(documentId, fileId);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+  };
+
+  const pollForOCRCompletion = async (documentId: string, fileId: string) => {
+    const maxAttempts = 30; // 30 seconds max
+    let attempts = 0;
+
+    const checkOCRStatus = async () => {
+      try {
+        const response = await fetch(`/api/documents/${documentId}/ocr-results`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to check OCR status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.ocrStatus === 'completed') {
+          // OCR is complete, update the file with extracted data
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { 
+                  ...f, 
+                  progress: 100, 
+                  status: 'completed',
+                  extractedData: result.extractedData
+                }
+              : f
+          ));
+          return;
+        } else if (result.ocrStatus === 'failed') {
+          // OCR failed
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { ...f, status: 'error' }
+              : f
+          ));
+          return;
+        } else if (result.ocrStatus === 'processing') {
+          // Still processing, update progress
+          const progress = Math.min(50 + (attempts * 2), 90);
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { ...f, progress }
+              : f
+          ));
+        }
+
+        // Continue polling if not complete and haven't exceeded max attempts
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkOCRStatus, 1000); // Check every second
+        } else {
+          // Timeout
+          setFiles(prev => prev.map(f => 
+            f.id === fileId 
+              ? { ...f, status: 'error' }
+              : f
+          ));
+        }
+      } catch (error) {
+        console.error('Error checking OCR status:', error);
+        setFiles(prev => prev.map(f => 
+          f.id === fileId 
+            ? { ...f, status: 'error' }
+            : f
+        ));
+      }
     };
 
-    // Simulate upload progress
-    let progress = 0;
-    const uploadInterval = setInterval(() => {
-      progress += Math.random() * 20;
-      if (progress >= 100) {
-        updateProgress(100, 'processing');
-        clearInterval(uploadInterval);
-        
-        // Simulate OCR processing
-        setTimeout(() => {
-          const mockExtractedData = {
-            claimId: `FRA-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-            claimantName: "Sample Claimant Name",
-            location: "Forest Block Area",
-            area: `${(Math.random() * 50 + 1).toFixed(2)} hectares`
-          };
-          
-          setFiles(prev => prev.map(file => 
-            file.id === fileId 
-              ? { ...file, status: 'completed', extractedData: mockExtractedData }
-              : file
-          ));
-        }, 2000);
-      } else {
-        updateProgress(progress);
-      }
-    }, 500);
+    // Start the polling
+    setTimeout(checkOCRStatus, 1000);
   };
 
   const removeFile = (fileId: string) => {
