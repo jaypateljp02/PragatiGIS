@@ -12,6 +12,18 @@ import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
 import { createWorker } from "tesseract.js";
+import type { Document } from "@shared/schema";
+
+// Utility function to sanitize document objects by removing fileContent
+function sanitizeDocument<T extends Document>(document: T): Omit<T, 'fileContent'> {
+  const { fileContent, ...sanitizedDoc } = document;
+  return sanitizedDoc;
+}
+
+// Utility function to sanitize arrays of documents
+function sanitizeDocuments<T extends Document>(documents: T[]): Omit<T, 'fileContent'>[] {
+  return documents.map(doc => sanitizeDocument(doc));
+}
 
 // Authentication middleware
 async function requireAuth(req: any, res: any, next: any) {
@@ -417,14 +429,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documents = await storage.getDocumentsByStatus(status as string);
       }
 
-      res.json(documents);
+      // Sanitize documents to exclude fileContent from response
+      res.json(sanitizeDocuments(documents));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch documents" });
     }
   });
 
-  // Store for uploaded file buffers temporarily
-  const fileBufferStore = new Map<string, Buffer>();
+  // File content is now stored directly in database, no temporary storage needed
 
   // Real OCR Processing function
   async function processDocumentOCR(documentId: string) {
@@ -440,10 +452,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error('Document not found');
       }
 
-      // Get the file buffer
-      const fileBuffer = fileBufferStore.get(documentId);
+      // Get the file buffer from database
+      const fileBuffer = document.fileContent;
       if (!fileBuffer) {
-        throw new Error('File buffer not found - file may have been cleaned up');
+        throw new Error('File content not found in database');
       }
 
       console.log(`Starting real OCR processing for ${document.originalFilename} (${document.fileType})`);
@@ -453,8 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const extractedData = await extractStructuredData(ocrText, document);
       const confidence = calculateConfidence(ocrText, document);
 
-      // Clean up the buffer after processing
-      fileBufferStore.delete(documentId);
+      // File content is stored permanently in database, no cleanup needed
 
       // Update document with OCR results
       await storage.updateDocument(documentId, {
@@ -467,8 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Real OCR processing completed for document ${documentId}`);
     } catch (error) {
       console.error(`OCR processing failed for document ${documentId}:`, error);
-      // Clean up the buffer on error
-      fileBufferStore.delete(documentId);
+      // File content remains in database for potential retry
       await storage.updateDocument(documentId, {
         ocrStatus: 'failed'
       });
@@ -614,13 +624,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Only PDF, JPEG, PNG, and TIFF files are allowed" });
       }
 
-      // Create document record
+      // Create document record with file content stored in database
       const documentData = {
         filename: `${randomUUID()}_${file.originalname}`,
         originalFilename: file.originalname,
         fileType: file.mimetype,
         fileSize: file.size,
-        uploadPath: `/uploads/${randomUUID()}_${file.originalname}`, // In production, save to actual storage
+        uploadPath: null, // No longer needed since file is stored in database
+        fileContent: file.buffer, // Store file content directly in database
         ocrStatus: 'pending' as const,
         reviewStatus: 'pending' as const,
         uploadedBy: user.id,
@@ -629,8 +640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const document = await storage.createDocument(documentData);
       
-      // Store the file buffer temporarily for OCR processing
-      fileBufferStore.set(document.id, file.buffer);
+      // File is now stored in database, no need for temporary buffer storage
       
       // Start real OCR processing asynchronously
       setImmediate(() => processDocumentOCR(document.id).catch(console.error));
@@ -652,7 +662,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const documentData = insertDocumentSchema.parse(req.body);
       const document = await storage.createDocument(documentData);
-      res.status(201).json(document);
+      // Sanitize document to exclude fileContent from response
+      res.status(201).json(sanitizeDocument(document));
     } catch (error) {
       res.status(400).json({ error: "Invalid document data" });
     }
@@ -679,6 +690,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve files from database
+  app.get("/api/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      const document = await storage.getDocument(req.params.id);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+      
+      if (!document.fileContent) {
+        return res.status(404).json({ error: "File content not found" });
+      }
+      
+      // Set appropriate headers for file download
+      res.set({
+        'Content-Type': document.fileType,
+        'Content-Length': document.fileSize.toString(),
+        'Content-Disposition': `attachment; filename="${document.originalFilename}"`,
+        'Cache-Control': 'private, no-cache'
+      });
+      
+      // Send the file content
+      res.send(document.fileContent);
+    } catch (error) {
+      console.error('File download error:', error);
+      res.status(500).json({ error: "Failed to download file" });
+    }
+  });
+
   app.post("/api/documents/:id/correct-ocr", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
     try {
       const { ocrText, extractedData, reviewStatus } = req.body;
@@ -697,7 +736,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Document not found" });
       }
 
-      res.json(document);
+      // Sanitize document to exclude fileContent from response
+      res.json(sanitizeDocument(document));
     } catch (error) {
       res.status(400).json({ error: "Failed to update OCR data" });
     }
@@ -708,7 +748,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const documents = await storage.getDocumentsByStatus('completed');
       const pendingReview = documents.filter(doc => doc.reviewStatus === 'pending');
-      res.json(pendingReview);
+      // Sanitize documents to exclude fileContent from response
+      res.json(sanitizeDocuments(pendingReview));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch documents for review" });
     }
