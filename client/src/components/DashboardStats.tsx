@@ -122,21 +122,18 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
         value={stats.totalClaims.toLocaleString()}
         subtitle="Across all states"
         icon={<FileText className="h-4 w-4" />}
-        trend={{ value: 12, isPositive: true }}
       />
       <StatCard
         title="Approved Claims"
         value={stats.approvedClaims.toLocaleString()}
         subtitle={`${approvalRate}% approval rate`}
         icon={<CheckCircle2 className="h-4 w-4" />}
-        trend={{ value: 15, isPositive: true }}
       />
       <StatCard
         title="Pending Review"
         value={pendingTotal.toLocaleString()}
         subtitle={`${stats.pendingClaims} pending, ${stats.underReviewClaims} under review`}
         icon={<Clock className="h-4 w-4" />}
-        trend={{ value: -8, isPositive: false }}
       />
       <StatCard
         title="Rejected Claims"
@@ -149,7 +146,6 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
         value={stats.totalArea}
         subtitle="Under FRA claims"
         icon={<MapPin className="h-4 w-4" />}
-        trend={{ value: 5, isPositive: true }}
       />
       <StatCard
         title="Documents"

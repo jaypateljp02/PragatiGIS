@@ -71,82 +71,39 @@ export default function StateDashboard() {
     enabled: true,
   });
 
-  // Mock data for demonstration - in production this would come from the API
+  // Empty data - will be replaced with real data from API
   const mockStateStats: StateStats = {
-    totalClaims: 12847,
-    approvedClaims: 8923,
-    pendingClaims: 2156,
-    rejectedClaims: 1768,
-    totalArea: 185432,
-    districts: 36,
-    villages: 1453,
-    processing: 567
+    totalClaims: 0,
+    approvedClaims: 0,
+    pendingClaims: 0,
+    rejectedClaims: 0,
+    totalArea: 0,
+    districts: 0,
+    villages: 0,
+    processing: 0
   };
 
-  const mockDistricts: DistrictData[] = [
-    {
-      id: "dist-1",
-      name: "Gadchiroli",
-      totalClaims: 1547,
-      approvedClaims: 1123,
-      pendingClaims: 289,
-      area: 14563,
-      population: 1072942
-    },
-    {
-      id: "dist-2", 
-      name: "Chandrapur",
-      totalClaims: 1289,
-      approvedClaims: 934,
-      pendingClaims: 245,
-      area: 11443,
-      population: 2204307
-    },
-    {
-      id: "dist-3",
-      name: "Gondia",
-      totalClaims: 987,
-      approvedClaims: 756,
-      pendingClaims: 156,
-      area: 5234,
-      population: 1322507
-    }
-  ];
+  const mockDistricts: DistrictData[] = [];
 
   const mockStateInfo: StateSpecificInfo = {
     state: "Maharashtra",
     stateCode: "MH",
     demographics: {
-      tribalPopulation: 10510213,
-      forestCover: 61939,
-      tribalDistricts: 12
+      tribalPopulation: 0,
+      forestCover: 0,
+      tribalDistricts: 0
     },
-    keyInitiatives: [
-      "Digital FRA Processing System launched in 15 districts",
-      "Joint Forest Management Committees established in 450+ villages",
-      "Tribal livelihood enhancement program covering 25,000 families",
-      "GIS mapping of forest boundaries completed in 8 districts"
-    ],
-    challenges: [
-      "Pending title verification in remote areas",
-      "Lack of adequate survey staff in tribal districts",
-      "Coordination between Forest and Revenue departments",
-      "Language barriers in documentation process"
-    ],
-    recentUpdates: [
-      "New guidelines for Community Forest Resource claims issued",
-      "Training program for 150+ village officials completed",
-      "Mobile app for claim status tracking launched",
-      "Monthly review meetings with district collectors initiated"
-    ]
+    keyInitiatives: [],
+    challenges: [],
+    recentUpdates: []
   };
 
   const stats = stateStats || mockStateStats;
   const districtData = districts.length > 0 ? districts : mockDistricts;
   const stateData = stateInfo || mockStateInfo;
   
-  const approvalRate = Math.round((stats.approvedClaims / stats.totalClaims) * 100);
-  const avgProcessingTime = 45; // days - would come from API
+  const approvalRate = stats.totalClaims > 0 ? Math.round((stats.approvedClaims / stats.totalClaims) * 100) : 0;
+  const avgProcessingTime = 0; // days - will come from API
 
   if (statsLoading) {
     return (
@@ -191,7 +148,7 @@ export default function StateDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClaims.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +2.5% from last month
+              0% change from last month
             </p>
           </CardContent>
         </Card>
