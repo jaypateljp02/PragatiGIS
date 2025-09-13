@@ -30,13 +30,13 @@ const navigation = [
     title: "Claims Management",
     url: "/claims",
     icon: FileText,
-    badge: "1,234"
+    badge: "0"
   },
   {
     title: "OCR Review",
     url: "/ocr-review",
     icon: Eye,
-    badge: "3"
+    badge: "0"
   },
   {
     title: "Interactive Maps",
@@ -112,15 +112,15 @@ export default function AppSidebar() {
             <div className="px-3 py-2 text-sm space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Pending Review</span>
-                <Badge variant="outline">23,456</Badge>
+                <Badge variant="outline">0</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Processing</span>
-                <Badge variant="outline">1,892</Badge>
+                <Badge variant="outline">0</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Approved Today</span>
-                <Badge variant="default" className="bg-chart-3">+156</Badge>
+                <Badge variant="default" className="bg-chart-3">0</Badge>
               </div>
             </div>
           </SidebarGroupContent>
