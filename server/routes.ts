@@ -57,6 +57,12 @@ function requireRole(...allowedRoles: string[]) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Configure multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  });
+  
   // Authentication routes
   app.get("/api/auth/me", requireAuth, async (req: any, res: any) => {
     try {
@@ -667,10 +673,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bulk Claims Import/Export Routes
-  const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
-  });
 
   // Data standardization utilities
   function standardizeClaimData(rawData: any) {
