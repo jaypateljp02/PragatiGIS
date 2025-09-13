@@ -746,12 +746,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get documents for OCR review
   app.get("/api/ocr-review", requireAuth, async (req, res) => {
     try {
+      console.log('Fetching documents for OCR review...');
       const documents = await storage.getDocumentsByStatus('completed');
+      console.log(`Found ${documents.length} completed documents`);
+      
       const pendingReview = documents.filter(doc => doc.reviewStatus === 'pending');
+      console.log(`Found ${pendingReview.length} documents pending review`);
+      
       // Sanitize documents to exclude fileContent from response
-      res.json(sanitizeDocuments(pendingReview));
+      const sanitizedDocs = sanitizeDocuments(pendingReview);
+      res.json(sanitizedDocs);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch documents for review" });
+      console.error('OCR review endpoint error:', error);
+      res.status(500).json({ 
+        error: "Failed to fetch documents for review", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 
