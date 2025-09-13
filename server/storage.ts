@@ -18,6 +18,8 @@ import {
   states,
   districts
 } from "@shared/schema";
+
+// Import the destructured schema objects based on database type
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import { db } from "./db";
@@ -83,7 +85,7 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeDatabase() {
     try {
-      // Enable PostGIS extension
+      // Enable PostGIS extension for PostgreSQL
       await db.execute(sql`CREATE EXTENSION IF NOT EXISTS postgis;`);
       
       // Create tables if they don't exist (run db:push will handle this)
