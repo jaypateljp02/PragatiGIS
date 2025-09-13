@@ -6,13 +6,13 @@ import {
   insertUserSchema, 
   insertClaimSchema,
   insertDocumentSchema 
-} from "@shared/schema";
+} from "@shared/schema-sqlite";
 import { randomUUID } from "crypto";
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
 import { createWorker } from "tesseract.js";
-import type { Document } from "@shared/schema";
+import type { Document } from "@shared/schema-sqlite";
 
 // Utility function to sanitize document objects by removing fileContent
 function sanitizeDocument<T extends Document>(document: T): Omit<T, 'fileContent'> {
@@ -453,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get the file buffer from database
-      const fileBuffer = document.fileContent;
+      const fileBuffer = document.fileContent as Buffer | null;
       if (!fileBuffer) {
         throw new Error('File content not found in database');
       }
@@ -472,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ocrStatus: 'completed',
         ocrText: ocrText,
         extractedData: extractedData,
-        confidence: confidence.toString()
+        confidence: confidence
       });
 
       console.log(`Real OCR processing completed for document ${documentId}`);
@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Send the file content
-      res.send(document.fileContent);
+      res.send(document.fileContent as Buffer);
     } catch (error) {
       console.error('File download error:', error);
       res.status(500).json({ error: "Failed to download file" });
