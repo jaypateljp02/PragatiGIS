@@ -17,7 +17,7 @@ export default function Dashboard() {
         navigate('/reports');
         break;
       case 'ocr-processing':
-        navigate('/bulk-upload');
+        navigate('/dss');
         break;
       default:
         break;
