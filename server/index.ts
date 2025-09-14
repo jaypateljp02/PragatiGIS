@@ -65,12 +65,15 @@ process.on("SIGINT", () => {
 });
 
 // Add Flask proxy middleware BEFORE other middleware
-// Use context-based middleware to preserve /api prefix
+// Proxy all /api requests to Flask backend
 app.use('/api', createProxyMiddleware({
   target: 'http://127.0.0.1:5050',
   changeOrigin: true,
-  logLevel: 'warn',
-  pathRewrite: (path) => '/api' + path  // Re-add /api prefix
+  // Flask backend expects /api prefix, but express strips it when matching /api
+  // So we need to add it back
+  pathRewrite: {
+    '^/': '/api/'  // Add /api prefix back
+  }
 }));
 
 app.use(express.json());

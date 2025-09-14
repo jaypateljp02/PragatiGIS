@@ -32,8 +32,9 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'fra_atlas:'
+app.config['SESSION_KEY_PREFIX'] = 'fra_atlas'  # Removed colon to avoid encoding issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Add for better security
 
 # Initialize extensions
 CORS(app, supports_credentials=True, origins=['http://localhost:5000', 'https://*.replit.app'])
@@ -111,16 +112,16 @@ def login():
         if not bcrypt.checkpw(password.encode('utf-8'), stored_password):
             return jsonify({'error': 'Invalid credentials'}), 401
         
-        # Create session
-        session['user_id'] = user['id']
-        session['username'] = user['username']
-        session['role'] = user['role']
+        # Create session - ensure all values are strings
+        session['user_id'] = str(user['id'])
+        session['username'] = str(user['username'])
+        session['role'] = str(user['role'])
         session.permanent = True
         
         # Create session token in database
         session_token = secrets.token_urlsafe(32)
         expires_at = datetime.now() + timedelta(days=30)
-        session['session_token'] = session_token
+        session['session_token'] = str(session_token)
         
         conn = get_db_connection()
         conn.execute(
