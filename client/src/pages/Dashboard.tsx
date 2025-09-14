@@ -6,8 +6,23 @@ import { FileText, Download, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Dashboard() {
-  // Stats will now be fetched directly by DashboardStats component
-  // No more mock data needed"
+  const [, navigate] = useLocation();
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'new-claims':
+        navigate('/documents');
+        break;
+      case 'export-data':
+        navigate('/reports');
+        break;
+      case 'ocr-processing':
+        navigate('/documents');
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <div className="space-y-6" data-testid="dashboard-page">
@@ -37,7 +52,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover-elevate">
+        <Card className="hover-elevate cursor-pointer" onClick={() => handleQuickAction('new-claims')} data-testid="card-new-claims">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-primary/10">
@@ -51,7 +66,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover-elevate">
+        <Card className="hover-elevate cursor-pointer" onClick={() => handleQuickAction('export-data')} data-testid="card-export-data">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-chart-3/10">
@@ -66,7 +81,7 @@ export default function Dashboard() {
         </Card>
 
 
-        <Card className="hover-elevate">
+        <Card className="hover-elevate cursor-pointer" onClick={() => handleQuickAction('ocr-processing')} data-testid="card-ocr-processing">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-chart-2/10">
