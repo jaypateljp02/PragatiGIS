@@ -6,29 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, 
-  Bell, 
   Shield, 
-  Database,
-  Globe,
-  Settings as SettingsIcon,
   Save,
-  Key,
-  MapPin
+  Key
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    claimUpdates: true,
-    systemNotifications: false,
-    weeklyReports: true
-  });
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const [userSettings, setUserSettings] = useState({
     displayName: "Admin User",
@@ -45,6 +36,69 @@ export default function SettingsPage() {
     });
   };
 
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Please select an image smaller than 2MB.",
+      });
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please select a valid image file (JPG, PNG, or GIF).",
+      });
+      return;
+    }
+
+    // Create preview
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+
+    // Upload to server
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload avatar');
+      }
+
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Avatar upload failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "Failed to update your profile picture. Please try again.",
+      });
+      // Reset preview on error
+      setAvatarPreview(null);
+      URL.revokeObjectURL(previewUrl);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className="space-y-6" data-testid="settings-page">
       {/* Header */}
@@ -58,9 +112,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
         </TabsList>
 
         {/* Profile Settings */}
@@ -78,13 +130,28 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
+                  {avatarPreview && <AvatarImage src={avatarPreview} alt="Avatar preview" />}
                   <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                     AU
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <Button variant="outline" size="sm" data-testid="button-upload-avatar">
-                    Change Avatar
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    id="avatar-upload"
+                    disabled={isUploadingAvatar}
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                    disabled={isUploadingAvatar}
+                    data-testid="button-upload-avatar"
+                  >
+                    {isUploadingAvatar ? "Uploading..." : "Change Avatar"}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1">
                     JPG, PNG or GIF. Max size 2MB.
@@ -158,91 +225,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Notifications */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notification Preferences
-              </CardTitle>
-              <CardDescription>
-                Choose what notifications you want to receive
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Email Alerts</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified about important updates via email
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.emailAlerts}
-                  onCheckedChange={(checked) => 
-                    setNotifications(prev => ({ ...prev, emailAlerts: checked }))
-                  }
-                  data-testid="switch-email-alerts"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Claim Status Updates</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Notifications when claims are approved, rejected, or require action
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.claimUpdates}
-                  onCheckedChange={(checked) => 
-                    setNotifications(prev => ({ ...prev, claimUpdates: checked }))
-                  }
-                  data-testid="switch-claim-updates"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">System Notifications</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Updates about system maintenance and new features
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.systemNotifications}
-                  onCheckedChange={(checked) => 
-                    setNotifications(prev => ({ ...prev, systemNotifications: checked }))
-                  }
-                  data-testid="switch-system-notifications"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Weekly Reports</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Receive weekly summary reports of platform activity
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications.weeklyReports}
-                  onCheckedChange={(checked) => 
-                    setNotifications(prev => ({ ...prev, weeklyReports: checked }))
-                  }
-                  data-testid="switch-weekly-reports"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Security */}
         <TabsContent value="security" className="space-y-6">
@@ -271,21 +253,6 @@ export default function SettingsPage() {
               <Separator />
 
               <div>
-                <h4 className="font-medium mb-2">Two-Factor Authentication</h4>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Disabled</Badge>
-                  <Button variant="outline" size="sm" data-testid="button-enable-2fa">
-                    Enable 2FA
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Add an extra layer of security to your account
-                </p>
-              </div>
-
-              <Separator />
-
-              <div>
                 <h4 className="font-medium mb-2">Active Sessions</h4>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-md">
@@ -306,76 +273,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* System */}
-        <TabsContent value="system" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                System Information
-              </CardTitle>
-              <CardDescription>
-                Platform details and administrative settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label className="text-sm font-medium">Platform Version</Label>
-                  <p className="text-sm text-muted-foreground">v2.1.0 (Build 2024.09.12)</p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Last Updated</Label>
-                  <p className="text-sm text-muted-foreground">September 12, 2024</p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Database Status</Label>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-chart-3"></div>
-                    <p className="text-sm text-muted-foreground">Connected</p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">API Status</Label>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-chart-3"></div>
-                    <p className="text-sm text-muted-foreground">Operational</p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-2">Regional Settings</h4>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">Time Zone</Label>
-                    <Input
-                      id="timezone"
-                      value="Asia/Kolkata (IST)"
-                      disabled
-                      data-testid="input-timezone"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Display Language</Label>
-                    <Input
-                      id="language"
-                      value="English (India)"
-                      disabled
-                      data-testid="input-language"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );

@@ -123,6 +123,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Avatar upload route
+  app.post("/api/user/avatar", requireAuth, upload.single('avatar'), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: "File must be an image" });
+      }
+
+      // Validate file size (2MB max)
+      if (req.file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ error: "File size must be less than 2MB" });
+      }
+
+      // For now, just return success - in a full implementation, 
+      // you would save the file to storage and update the user record
+      res.json({ 
+        message: "Avatar uploaded successfully",
+        avatarUrl: `/api/user/avatar/${req.user.id}` // Placeholder URL
+      });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      res.status(500).json({ error: "Failed to upload avatar" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);

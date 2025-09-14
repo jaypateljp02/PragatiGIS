@@ -7,9 +7,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Upload, Eye, CheckCircle2, Zap, RefreshCw, ArrowRight, Workflow, MapPin, Brain, Download, Info } from "lucide-react";
 import DocumentUpload from "@/components/DocumentUpload";
 import WorkflowOrchestrator from "@/components/WorkflowOrchestrator";
+import ClaimsTable, { type Claim } from "@/components/ClaimsTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useWorkflow, useWorkflowStep } from "@/contexts/WorkflowContext";
+import { useLocation } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +47,7 @@ export default function DocumentWorkflowPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showWorkflowIntegration, setShowWorkflowIntegration] = useState(true);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Workflow integration
   const {
@@ -65,6 +68,12 @@ export default function DocumentWorkflowPage() {
   const { data: documents = [], isLoading, refetch } = useQuery<OCRDocument[]>({
     queryKey: ['/api/ocr-review'],
     refetchInterval: 5000, // Auto-refresh every 5 seconds
+  });
+
+  // Fetch claims data for claims management
+  const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
+    queryKey: ['/api/claims'],
+    enabled: true,
   });
 
   // Update OCR results mutation
@@ -90,6 +99,36 @@ export default function DocumentWorkflowPage() {
     setSelectedDoc(doc);
     setEditedText(doc.ocrText || "");
     setEditedData(doc.extractedData || {});
+  };
+
+  // Claims management functions
+  const handleViewClaim = (id: string) => {
+    setLocation(`/claims/${id}`);
+  };
+
+  const handleExportData = async () => {
+    try {
+      const response = await fetch('/api/claims/export', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `fra-claims-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
   };
 
   // Auto-create claim mutation
@@ -293,9 +332,9 @@ export default function DocumentWorkflowPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Document Upload & OCR Workflow</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Documents & Claims Management</h1>
           <p className="text-muted-foreground">
-            Upload FRA documents and review automated text extraction results
+            Upload FRA documents, review OCR results, and manage claims in one unified workflow
           </p>
         </div>
         
@@ -401,7 +440,7 @@ export default function DocumentWorkflowPage() {
 
       {/* Main Workflow Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
             Upload Documents
@@ -409,6 +448,10 @@ export default function DocumentWorkflowPage() {
           <TabsTrigger value="review" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
             OCR Review ({pendingReviewCount})
+          </TabsTrigger>
+          <TabsTrigger value="claims" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Claims Management
           </TabsTrigger>
         </TabsList>
 
@@ -681,6 +724,51 @@ export default function DocumentWorkflowPage() {
                   </Card>
                 )}
               </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Claims Management Tab */}
+        <TabsContent value="claims" className="space-y-6">
+          {claimsLoading ? (
+            <div className="flex items-center justify-center min-h-96" data-testid="claims-loading">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground">Loading claims data...</p>
+              </div>
+            </div>
+          ) : claimsError ? (
+            <div className="space-y-4" data-testid="claims-error">
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Failed to load claims data. Please check your authentication and try again.
+                </AlertDescription>
+              </Alert>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <div data-testid="claims-page" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Claims Management</h2>
+                  <p className="text-muted-foreground">Manage and review FRA claims across states</p>
+                </div>
+                <Button onClick={() => setLocation('/bulk-upload')} data-testid="button-bulk-upload">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Upload
+                </Button>
+              </div>
+              
+              <ClaimsTable 
+                claims={claims}
+                onViewClaim={handleViewClaim}
+                onExportData={handleExportData}
+              />
             </div>
           )}
         </TabsContent>

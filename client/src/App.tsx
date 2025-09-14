@@ -10,7 +10,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import AppSidebar from "@/components/AppSidebar";
 import Dashboard from "@/pages/Dashboard";
-import ClaimsPage from "@/pages/ClaimsPage";
 import MapPage from "@/pages/MapPage";
 import DSSPage from "@/pages/DSSPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -63,7 +62,7 @@ function Router() {
       <Route path="/" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/state-dashboard" component={() => <ProtectedRoute><StateDashboard /></ProtectedRoute>} />
       <Route path="/claims/:id" component={() => <ProtectedRoute><ClaimDetailPage /></ProtectedRoute>} />
-      <Route path="/claims" component={() => <ProtectedRoute><ClaimsPage /></ProtectedRoute>} />
+      <Route path="/claims" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/bulk-upload" component={() => <ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
       <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
