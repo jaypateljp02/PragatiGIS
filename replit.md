@@ -25,34 +25,36 @@ Key architectural decisions:
 
 ## Backend Architecture
 
-The server follows a **Node.js/Express** architecture with TypeScript:
+The server follows a **unified Node.js/Express** architecture with TypeScript (consolidated from dual Flask/Express backends):
 
 - **Server Framework**: Express.js with custom middleware for authentication and error handling
 - **Database ORM**: Drizzle ORM for type-safe database operations
 - **Session Management**: Cookie-based sessions with secure token storage
 - **Authentication**: Role-based access control with bcrypt password hashing
-- **File Storage**: Cloudinary integration for document storage and processing
+- **File Storage**: Direct database storage for document files with OCR processing
+- **API Consolidation**: Single /api/claims endpoint with aggregated state/district statistics
 
 Key architectural decisions:
-- **Problem**: Need for type safety across database operations and API endpoints
-- **Solution**: Drizzle ORM with TypeScript provides compile-time safety
-- **Rationale**: Government data requires high reliability and error prevention
+- **Problem**: Dual Flask/Express backends created complexity and redundancy
+- **Solution**: Consolidated into single Express backend with unified API endpoints
+- **Rationale**: Simplified architecture reduces maintenance overhead while preserving all functionality
 
 ## Data Storage Solutions
 
-**Primary Database**: PostgreSQL with PostGIS extension for geospatial data
+**Primary Database**: SQLite with unified schema (consolidated from dual backend architecture)
 
-Database schema includes:
+Unified database schema includes:
 - **User Management**: Multi-tenant user system with role-based permissions (ministry, state, district, village)
-- **Claims Processing**: Comprehensive FRA claim tracking with status management
-- **Document Management**: File metadata and OCR processing status tracking
-- **Geospatial Data**: PostGIS integration for mapping forest areas and claim boundaries
+- **Claims Processing**: Comprehensive FRA claim tracking with status management and aggregated analytics
+- **Document Management**: File metadata, binary content storage, and OCR processing status tracking
+- **Workflow Management**: Data processing pipeline with step tracking and transitions
+- **Geospatial Data**: JSON coordinate storage for mapping forest areas and claim boundaries
 - **Audit Logging**: Complete audit trail for compliance and monitoring
 
 Key architectural decisions:
-- **Problem**: Need to handle both structured claim data and geospatial information
-- **Solution**: PostgreSQL with PostGIS extension provides both relational and spatial capabilities
-- **Rationale**: Government applications require audit trails and geospatial analysis is core to FRA claims
+- **Problem**: Need unified schema supporting both Flask and Express data models
+- **Solution**: SQLite schema with Drizzle ORM provides type safety and includes workflow tables
+- **Rationale**: Single database eliminates data synchronization issues and supports government compliance requirements
 
 ## Authentication and Authorization
 
