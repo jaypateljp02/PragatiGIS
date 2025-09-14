@@ -135,11 +135,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   // Create workflow mutation
   const createWorkflowMutation = useMutation({
     mutationFn: async ({ name, description }: { name: string; description?: string }) => {
-      const response = await apiRequest('/api/workflows', {
-        method: 'POST',
-        body: JSON.stringify({ name, description }),
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/workflows', { name, description });
+      return response.json();
     },
     onSuccess: (workflow) => {
       queryClient.invalidateQueries({ queryKey: ['/api/workflows'] });
@@ -161,11 +158,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   // Update workflow mutation
   const updateWorkflowMutation = useMutation({
     mutationFn: async ({ workflowId, updates }: { workflowId: string; updates: any }) => {
-      const response = await apiRequest(`/api/workflows/${workflowId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      });
-      return response;
+      const response = await apiRequest('PATCH', `/api/workflows/${workflowId}`, updates);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/workflows'] });
@@ -176,11 +170,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   // Update step mutation
   const updateStepMutation = useMutation({
     mutationFn: async ({ workflowId, stepId, updates }: { workflowId: string; stepId: string; updates: any }) => {
-      const response = await apiRequest(`/api/workflows/${workflowId}/steps/${stepId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      });
-      return response;
+      const response = await apiRequest('PATCH', `/api/workflows/${workflowId}/steps/${stepId}`, updates);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/workflows', currentWorkflow?.id] });
@@ -190,11 +181,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   // Continue workflow mutation
   const continueWorkflowMutation = useMutation({
     mutationFn: async ({ workflowId, fromStep }: { workflowId: string; fromStep: string }) => {
-      const response = await apiRequest(`/api/workflows/${workflowId}/continue`, {
-        method: 'POST',
-        body: JSON.stringify({ fromStep }),
-      });
-      return response;
+      const response = await apiRequest('POST', `/api/workflows/${workflowId}/continue`, { fromStep });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/workflows'] });

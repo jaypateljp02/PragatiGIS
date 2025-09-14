@@ -95,11 +95,8 @@ export default function DocumentWorkflowPage() {
   // Auto-create claim mutation
   const createClaimMutation = useMutation({
     mutationFn: async (claimData: any) => {
-      const response = await apiRequest('/api/claims', {
-        method: 'POST',
-        body: JSON.stringify(claimData),
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/claims', claimData);
+      return response.json();
     },
     onSuccess: (claim) => {
       toast({
