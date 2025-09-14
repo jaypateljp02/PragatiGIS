@@ -279,27 +279,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Claims management routes - Protected
+  // UNIFIED Claims API - Returns aggregated statistics by state/district/year/month
   app.get("/api/claims", requireAuth, async (req, res) => {
     try {
-      const { state, district, status, officer } = req.query;
-      let claims = await storage.getAllClaims();
-
-      if (state) {
-        claims = await storage.getClaimsByState(state as string);
-      } else if (district) {
-        claims = await storage.getClaimsByDistrict(district as string);
-      } else if (status) {
-        claims = await storage.getClaimsByStatus(status as string);
-      } else if (officer) {
-        claims = await storage.getClaimsByOfficer(officer as string);
+      const { state, district, year, month, format, status, officer } = req.query;
+      
+      // Parse query parameters safely
+      const qYear = req.query.year ? Number(req.query.year) : undefined;
+      const qMonth = req.query.month ? Number(req.query.month) : undefined;
+      
+      // If format=detailed, return individual claims (legacy support with all filters)
+      if (format === 'detailed') {
+        let claims = await storage.getAllClaims();
+        
+        // Apply all legacy filters
+        if (state) {
+          claims = await storage.getClaimsByState(state as string);
+        } else if (district) {
+          claims = await storage.getClaimsByDistrict(district as string);
+        } else if (status) {
+          claims = await storage.getClaimsByStatus(status as string);
+        } else if (officer) {
+          claims = await storage.getClaimsByOfficer(officer as string);
+        }
+        
+        return res.json(claims);
       }
-
-      res.json(claims);
+      
+      // Default: Return unified aggregated data
+      const allClaims = await storage.getAllClaims();
+      const aggregatedData: any[] = [];
+      
+      // Group claims by state, district, year, month
+      const groupedClaims = groupClaimsByLocation(allClaims);
+      
+      // Convert Map to Array to avoid iterator issues
+      for (const [locationKey, claims] of Array.from(groupedClaims.entries())) {
+        const [stateName, districtName, yearMonth] = locationKey.split('|');
+        const [grpYear, grpMonth] = yearMonth.split('-').map(Number);
+        
+        // Filter by query parameters (fixed variable shadowing)
+        if (state && stateName !== state) continue;
+        if (district && districtName !== district) continue;
+        if (qYear && grpYear !== qYear) continue;
+        if (qMonth && grpMonth !== qMonth) continue;
+        
+        // Categorize claims by land type and status
+        const ifrClaims = claims.filter((c: any) => c.landType === 'individual');
+        const cfrClaims = claims.filter((c: any) => c.landType === 'community');
+        
+        const ifrReceived = ifrClaims.length;
+        const cfrReceived = cfrClaims.length;
+        const ifrTitles = ifrClaims.filter((c: any) => c.status === 'approved').length;
+        const cfrTitles = cfrClaims.filter((c: any) => c.status === 'approved').length;
+        const ifrRejected = ifrClaims.filter((c: any) => c.status === 'rejected').length;
+        const cfrRejected = cfrClaims.filter((c: any) => c.status === 'rejected').length;
+        
+        // Calculate average processing time (only for claims with valid dates)
+        const processedClaims = claims.filter((c: any) => {
+          const hasProcessed = c.dateProcessed;
+          const hasSubmitted = c.dateSubmitted || c.createdAt;
+          return hasProcessed && hasSubmitted;
+        });
+        
+        const processingTimes = processedClaims.map((c: any) => {
+          const submitted = new Date(c.dateSubmitted || c.createdAt);
+          const processed = new Date(c.dateProcessed);
+          
+          // Validate both dates to prevent NaN
+          if (isNaN(submitted.getTime()) || isNaN(processed.getTime())) {
+            return 0; // Safe fallback
+          }
+          
+          return Math.round((processed.getTime() - submitted.getTime()) / (1000 * 60 * 60 * 24));
+        }).filter((days: number) => days >= 0); // Filter out negative/invalid times
+        
+        const avgProcessingTime = processingTimes.length > 0 
+          ? Math.round(processingTimes.reduce((a: number, b: number) => a + b, 0) / processingTimes.length)
+          : 0;
+        
+        aggregatedData.push({
+          state: stateName,
+          district: districtName,
+          year: grpYear,
+          month: grpMonth,
+          ifr_received: ifrReceived,
+          cfr_received: cfrReceived,
+          ifr_titles: ifrTitles,
+          cfr_titles: cfrTitles,
+          ifr_rejected: ifrRejected,
+          cfr_rejected: cfrRejected,
+          processing_time_days: avgProcessingTime,
+          total_claims: claims.length
+        });
+      }
+      
+      res.json(aggregatedData);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch claims" });
+      console.error('Unified claims API error:', error);
+      res.status(500).json({ error: "Failed to fetch claims data" });
     }
   });
+  
+  // Helper function to group claims by location and time with safe date handling
+  function groupClaimsByLocation(claims: any[]): Map<string, any[]> {
+    const grouped = new Map<string, any[]>();
+    
+    for (const claim of claims) {
+      // Safely handle date with fallbacks
+      const dateField = claim.dateSubmitted || claim.createdAt;
+      if (!dateField) {
+        console.warn(`Skipping claim ${claim.id}: no valid date field`);
+        continue;
+      }
+      
+      const date = new Date(dateField);
+      if (isNaN(date.getTime())) {
+        console.warn(`Skipping claim ${claim.id}: invalid date ${dateField}`);
+        continue;
+      }
+      
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // 1-based month
+      const locationKey = `${claim.state || 'Unknown'}|${claim.district || 'Unknown'}|${year}-${month}`;
+      
+      if (!grouped.has(locationKey)) {
+        grouped.set(locationKey, []);
+      }
+      grouped.get(locationKey)!.push(claim);
+    }
+    
+    return grouped;
+  }
 
   app.get("/api/claims/:id", requireAuth, async (req, res) => {
     try {

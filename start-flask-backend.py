@@ -50,15 +50,13 @@ def main():
     print("Press Ctrl+C to stop the server")
     print("=" * 50)
     
-    try:
-        # Start Flask application
-        subprocess.run([sys.executable, 'app.py'], check=True)
-    except KeyboardInterrupt:
-        print("\n👋 Flask server stopped by user")
-    except subprocess.CalledProcessError as e:
-        print(f"\n❌ Flask server failed to start: {e}")
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+    print("🔄 CONSOLIDATION: Flask backend has been consolidated into Express")
+    print("🚀 The Express server (npm run dev) now handles all API endpoints")
+    print("📱 Use the main Express server instead:")
+    print("   npm run dev")
+    print("")
+    print("❌ Flask backend is disabled as part of API consolidation")
+    return
 
 if __name__ == '__main__':
     main()
