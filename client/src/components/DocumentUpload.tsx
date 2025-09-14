@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -37,6 +38,7 @@ export default function DocumentUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleFileSelect = async (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
@@ -256,9 +258,9 @@ export default function DocumentUpload({
               <Upload className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Upload FRA Documents</h3>
+              <h3 className="text-lg font-semibold">Bulk Claims Management</h3>
               <p className="text-muted-foreground">
-                Drag and drop files here, or click to select
+                Import and manage large volumes of FRA claims data
               </p>
               <p className="text-sm text-muted-foreground mt-2">
                 Supports PDF, JPEG, PNG, TIFF • Max {maxFiles} files
@@ -273,9 +275,7 @@ export default function DocumentUpload({
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => {
-                  console.log('Bulk upload triggered');
-                }}
+                onClick={() => setLocation('/bulk-upload')}
                 data-testid="button-bulk-upload"
               >
                 Bulk Upload
