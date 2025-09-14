@@ -2,7 +2,7 @@ import DashboardStats from "@/components/DashboardStats";
 import AnalyticsCharts from "@/components/AnalyticsCharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Bell, Zap } from "lucide-react";
+import { FileText, Download, Zap } from "lucide-react";
 
 export default function Dashboard() {
   // Stats will now be fetched directly by DashboardStats component
@@ -20,10 +20,6 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" data-testid="button-notifications">
-            <Bell className="h-4 w-4 mr-2" />
-            Alerts
-          </Button>
           <Button variant="outline" size="sm" data-testid="button-reports">
             <Download className="h-4 w-4 mr-2" />
             Reports
@@ -39,7 +35,7 @@ export default function Dashboard() {
       <DashboardStats />
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card className="hover-elevate">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -68,19 +64,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover-elevate">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-chart-4/10">
-                <Bell className="h-6 w-6 text-chart-4" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Notifications</h3>
-                <p className="text-sm text-muted-foreground">System alerts</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card className="hover-elevate">
           <CardContent className="p-6">
