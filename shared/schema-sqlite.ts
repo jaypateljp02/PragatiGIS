@@ -29,6 +29,7 @@ export const users = sqliteTable("users", {
   role: text("role").notNull(), // 'ministry', 'state', 'district', 'village'
   stateId: integer("state_id").references(() => states.id),
   districtId: integer("district_id").references(() => districts.id),
+  avatar: text("avatar"), // Path to avatar image file
   isActive: integer("is_active", { mode: 'boolean' }).default(true),
   createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),

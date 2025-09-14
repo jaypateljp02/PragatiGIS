@@ -13,6 +13,8 @@ import csv from "csv-parser";
 import { Readable } from "stream";
 import { createWorker } from "tesseract.js";
 import type { Document } from "@shared/schema-sqlite";
+import fs from "fs";
+import path from "path";
 
 // Utility function to sanitize document objects by removing fileContent
 function sanitizeDocument<T extends Document>(document: T): Omit<T, 'fileContent'> {
@@ -140,15 +142,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "File size must be less than 2MB" });
       }
 
-      // For now, just return success - in a full implementation, 
-      // you would save the file to storage and update the user record
+      // Generate unique filename
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `${req.user.id}_${Date.now()}${fileExtension}`;
+      const filePath = path.join('uploads', 'avatars', fileName);
+
+      // Ensure uploads/avatars directory exists
+      const uploadsDir = path.join('uploads', 'avatars');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Save file to disk
+      fs.writeFileSync(filePath, req.file.buffer);
+
+      // Update user record with avatar path
+      const updatedUser = await storage.updateUser(req.user.id, { avatar: filePath });
+      
+      if (!updatedUser) {
+        // Clean up file if user update failed
+        fs.unlinkSync(filePath);
+        return res.status(500).json({ error: "Failed to update user record" });
+      }
+
       res.json({ 
         message: "Avatar uploaded successfully",
-        avatarUrl: `/api/user/avatar/${req.user.id}` // Placeholder URL
+        avatarUrl: `/api/user/avatar/${req.user.id}`
       });
     } catch (error) {
       console.error('Avatar upload error:', error);
       res.status(500).json({ error: "Failed to upload avatar" });
+    }
+  });
+
+  // Avatar retrieval route
+  app.get("/api/user/avatar/:userId", async (req: any, res: any) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user to find avatar path
+      const user = await storage.getUser(userId);
+      if (!user || !user.avatar) {
+        return res.status(404).json({ error: "Avatar not found" });
+      }
+
+      // Check if file exists
+      if (!fs.existsSync(user.avatar)) {
+        return res.status(404).json({ error: "Avatar file not found" });
+      }
+
+      // Get file extension to set correct content type
+      const fileExtension = path.extname(user.avatar).toLowerCase();
+      const contentType = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg', 
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp'
+      }[fileExtension] || 'image/jpeg';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.sendFile(path.resolve(user.avatar));
+    } catch (error) {
+      console.error('Avatar retrieval error:', error);
+      res.status(500).json({ error: "Failed to retrieve avatar" });
     }
   });
 
