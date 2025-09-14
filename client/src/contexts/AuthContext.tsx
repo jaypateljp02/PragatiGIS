@@ -1,19 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  onAuthStateChanged, 
-  signInWithRedirect, 
-  getRedirectResult,
-  signOut,
-  User as FirebaseUser
-} from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
 
 interface User {
   id: string;
   email: string;
   fullName: string;
-  role: string; // Default role, can be customized later
-  photoURL?: string;
+  role: string;
+  username: string;
+  stateId?: number;
+  districtId?: number;
   isActive: boolean;
 }
 
@@ -21,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: () => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refetch: () => void;
 }
@@ -36,64 +30,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check for existing session on mount
   useEffect(() => {
-    // Handle redirect result when user comes back from Google sign-in
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          console.log('Redirect result:', result.user);
-        }
-      } catch (error) {
-        console.error('Redirect error:', error);
-      }
-    };
+    checkAuthStatus();
+  }, []);
 
-    handleRedirectResult();
-
-    // Listen for authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
-      console.log('Firebase auth state changed:', firebaseUser);
+  const checkAuthStatus = async () => {
+    try {
       setIsLoading(true);
-
-      if (firebaseUser) {
-        // Convert Firebase user to our User interface
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          fullName: firebaseUser.displayName || 'User',
-          role: 'ministry', // Default role - can be customized based on email domain or other logic
-          photoURL: firebaseUser.photoURL || undefined,
-          isActive: true
-        };
-        
-        setUser(userData);
-        console.log('User authenticated:', userData);
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user || data);
+        console.log('User authenticated:', data.user || data);
       } else {
         setUser(null);
         console.log('User not authenticated');
       }
-      
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setUser(null);
+    } finally {
       setIsLoading(false);
-    });
+    }
+  };
 
-    return () => unsubscribe();
-  }, []);
-
-  const login = async () => {
+  const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
-      console.log('Starting Google sign-in redirect...');
-      await signInWithRedirect(auth, googleProvider);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        console.log('Login successful:', data.user);
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
     } catch (error) {
       console.error('Login error:', error);
+      throw error;
+    } finally {
       setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
       setUser(null);
       console.log('User signed out');
     } catch (error) {
@@ -102,8 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const refetch = () => {
-    // For Firebase, we don't need manual refetch as onAuthStateChanged handles this
-    console.log('Firebase auth state is automatically managed');
+    checkAuthStatus();
   };
 
   const isAuthenticated = !!user;
