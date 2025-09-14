@@ -30,7 +30,7 @@ const navigation = [
     title: "State Analytics",
     url: "/state-dashboard",
     icon: CheckSquare,
-    badge: "MH"
+    badge: "OR"
   },
   {
     title: "Interactive Maps",
