@@ -5,7 +5,9 @@ import {
   loginSchema, 
   insertUserSchema, 
   insertClaimSchema,
-  insertDocumentSchema
+  insertDocumentSchema,
+  insertWorkflowInstanceSchema,
+  insertWorkflowTransitionSchema
 } from "@shared/schema-sqlite";
 import { randomUUID } from "crypto";
 import multer from "multer";
@@ -726,7 +728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                  'అआইईউేైొౌకఃగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరలవశషసహ' + // Telugu
                                  'অআইঈউঊএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ' + // Bengali
                                  'અઆઇઈઉઊએઐઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલવશષસહ', // Gujarati
-        tessedit_pageseg_mode: '6', // Uniform block of text
+        tessedit_pageseg_mode: '6', // Uniform block of text (as string for Tesseract.js)
         preserve_interword_spaces: '1',
         user_defined_dpi: '300'
       });
@@ -1415,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id
       });
       
-      const workflow = await storage.createWorkflowInstance(workflowData);
+      const workflow = await storage.createWorkflow(workflowData);
       
       // Create initial steps
       const stepOrder = [
@@ -1460,13 +1462,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get workflow with steps
   app.get("/api/workflows/:id", requireAuth, async (req, res) => {
     try {
-      const workflow = await storage.getWorkflowInstance(req.params.id);
+      const workflow = await storage.getWorkflow(req.params.id);
       if (!workflow) {
         return res.status(404).json({ error: "Workflow not found" });
       }
       
       const steps = await storage.getWorkflowSteps(req.params.id);
-      const transitions = await storage.getWorkflowTransitions(req.params.id);
+      const transitions: any[] = []; // No workflow transitions implementation yet
       
       res.json({
         ...workflow,
@@ -1495,7 +1497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (metadata) updates.metadata = metadata;
       if (status === 'completed') updates.completedAt = new Date();
       
-      const workflow = await storage.updateWorkflowInstance(req.params.id, updates);
+      const workflow = await storage.updateWorkflow(req.params.id, updates);
       if (!workflow) {
         return res.status(404).json({ error: "Workflow not found" });
       }
@@ -1554,7 +1556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentStep = allSteps.find(s => s.status === 'in_progress')?.stepName || 
                          allSteps.find(s => s.status === 'pending')?.stepName;
       
-      await storage.updateWorkflowInstance(req.params.workflowId, {
+      await storage.updateWorkflow(req.params.workflowId, {
         completedSteps,
         currentStep: currentStep || 'completed',
         lastActiveAt: new Date()
@@ -1604,7 +1606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = (req as any).user;
       
       // Update workflow to active and set current step
-      const workflow = await storage.updateWorkflowInstance(req.params.id, {
+      const workflow = await storage.updateWorkflow(req.params.id, {
         status: 'active',
         currentStep: fromStep,
         lastActiveAt: new Date()
@@ -1662,7 +1664,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completed = workflows.filter(w => w.status === 'completed' && w.completedAt);
       if (completed.length > 0) {
         const totalTime = completed.reduce((sum, w) => {
-          const duration = new Date(w.completedAt!).getTime() - new Date(w.startedAt).getTime();
+          const completedTime = w.completedAt ? new Date(w.completedAt).getTime() : Date.now();
+          const duration = completedTime - new Date(w.startedAt).getTime();
           return sum + duration;
         }, 0);
         analytics.avgCompletionTime = Math.round(totalTime / completed.length / (1000 * 60 * 60)); // hours
