@@ -1,0 +1,41 @@
+Analysis Complete! Here's what I found:
+Functions & Components Not in Use (Can be removed):
+Duplicate Pages that overlap existing functionality:
+OCRReviewPage.tsx - This duplicates OCR review features already built into DocumentWorkflowPage.tsx
+UploadPage.tsx - Simple wrapper that just shows the DocumentUpload component already used elsewhere
+WorkflowPage.tsx - Overlaps heavily with DocumentWorkflowPage functionality
+Duplicate Functions:
+ThemeToggle function appears in both App.tsx and LoginPage.tsx - can be moved to a shared component
+Pages That Can Be Merged:
+Main consolidation opportunity: Combine document workflow pages
+Merge DocumentWorkflowPage + OCRReviewPage + UploadPage + WorkflowPage
+DocumentWorkflowPage already handles most functionality
+OCR review is already integrated as tabs
+Upload functionality is already there
+Workflow orchestration is already present
+Consider merging reporting pages:
+ReportsPage and parts of DSSPage have overlapping analytics features
+Backend Redundancy:
+Duplicate Flask backends:
+flask-backend/ directory (appears unused)
+flask_backend/ directory (appears unused)
+Currently using Express.js backend - Flask backends can be removed
+Duplicate Schema files:
+shared/schema.ts (PostgreSQL version - unused)
+shared/schema-sqlite.ts (Currently used SQLite version)
+What I'll do to simplify:
+Remove unused pages (3 files): OCRReviewPage.tsx, UploadPage.tsx, WorkflowPage.tsx
+Remove duplicate backends (2 directories): flask-backend/, flask_backend/
+Remove unused schema (1 file): shared/schema.ts
+Create shared ThemeToggle component instead of duplicating
+Update routing to remove references to deleted pages
+This will reduce your codebase by 7 files/directories and make the application much simpler to maintain. The main workflow will be handled entirely through DocumentWorkflowPage.tsx which already has all the necessary functionality.
+Should I proceed with these cleanup changes?
+Plan to simplify the code
+Analyzed codebase for simplification (4 seconds)
+3 minutes of work
+ok
+and i wanto make merge claims management and document flow as has same functions make it togther
+in seeting remove system in security remove 2 factor remove notigication
+change avatar not working
+in report remove recent report and live analytics
