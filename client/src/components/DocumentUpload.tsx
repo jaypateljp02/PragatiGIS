@@ -258,7 +258,7 @@ export default function DocumentUpload({
               <Upload className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Bulk Claims Management</h3>
+              <h3 className="text-lg font-semibold">Claims Management</h3>
               <p className="text-muted-foreground">
                 Import and manage large volumes of FRA claims data
               </p>

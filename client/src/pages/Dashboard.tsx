@@ -3,6 +3,7 @@ import AnalyticsCharts from "@/components/AnalyticsCharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Zap } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
   // Stats will now be fetched directly by DashboardStats component
