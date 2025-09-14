@@ -54,7 +54,7 @@ interface StateSpecificInfo {
 
 export default function StateDashboard() {
   // Get state from user context or URL params - for now using Maharashtra as example
-  const stateCode = "OR"; // This would come from user authentication context
+  const stateCode = "OD"; // This would come from user authentication context
 
   const { data: stateStats, isLoading: statsLoading } = useQuery<StateStats>({
     queryKey: ['/api/dashboard/state', stateCode],
@@ -87,7 +87,7 @@ export default function StateDashboard() {
 
   const mockStateInfo: StateSpecificInfo = {
     state: "Odisha",
-    stateCode: "OR",
+    stateCode: "OD",
     demographics: {
       tribalPopulation: 0,
       forestCover: 0,

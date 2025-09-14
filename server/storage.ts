@@ -130,7 +130,7 @@ export class DatabaseStorage implements IStorage {
       // Seed states
       const statesData = [
         { id: 1, name: "Madhya Pradesh", code: "MP", language: "Hindi" },
-        { id: 2, name: "Odisha", code: "OR", language: "Odia" },
+        { id: 2, name: "Odisha", code: "OD", language: "Odia" },
         { id: 3, name: "Telangana", code: "TG", language: "Telugu" },
         { id: 4, name: "Tripura", code: "TR", language: "Bengali" },
         { id: 5, name: "Maharashtra", code: "MH", language: "Marathi" },
