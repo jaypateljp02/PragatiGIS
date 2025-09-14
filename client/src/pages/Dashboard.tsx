@@ -88,8 +88,8 @@ export default function Dashboard() {
                 <Zap className="h-6 w-6 text-chart-2" />
               </div>
               <div>
-                <h3 className="font-semibold">OCR Processing</h3>
-                <p className="text-sm text-muted-foreground">Auto-extract data</p>
+                <h3 className="font-semibold">AI Analysis</h3>
+                <p className="text-sm text-muted-foreground">Decision support system</p>
               </div>
             </div>
           </CardContent>
