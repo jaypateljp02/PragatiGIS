@@ -21,10 +21,10 @@ const navigation = [
     icon: BarChart3,
   },
   {
-    title: "Document Workflow",
+    title: "Claims & Documents",
     url: "/documents",
-    icon: Upload,
-    badge: "New"
+    icon: FileText,
+    badge: "0"
   },
   {
     title: "State Analytics",
@@ -48,12 +48,6 @@ const navigation = [
     url: "/reports",
     icon: Download,
     badge: "PDF"
-  },
-  {
-    title: "Claims Management",
-    url: "/claims",
-    icon: FileText,
-    badge: "0"
   },
   {
     title: "Settings",
