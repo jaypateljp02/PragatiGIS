@@ -1,0 +1,52 @@
+Below is a **prioritized, step-by-step backend work plan** based on your workflow diagram and the goal of a streamlined, fully functional FRA Atlas platform.
+
+# 1. **Consolidate & Simplify API**  
+1.1 Merge Flask OCR endpoints into Express  
+1.2 Expose single `/api/claims` endpoint returning JSON: state, district, year, month, IFR/CFR claims/titles/rejections, processing time  
+1.3 Remove redundant endpoints (e.g., separate Flask and Express routes)  
+
+# 2. **Unify Database & Schema**  
+2.1 Define single “claims” table:  
+-  id, state, district, village, year, month  
+-  ifr_received, cfr_received, ifr_titles, cfr_titles, ifr_rejected, cfr_rejected  
+-  filing_date, decision_date, processing_time_days  
+-  officer_id, rejection_reason_code, scheme_flag  
+2.2 Define “villages” table: village_id, name, block, coords, forest_shapefile  
+2.3 Remove old SQLite instances; migrate data to new schema  
+
+# 3. **Implement Core Data Pipelines**  
+3.1 Monthly FRA API Jobs:  
+-  Fetch data.gov.in monthly state stats → insert into claims table  
+3.2 GIS Loader:  
+-  Bulk-load Village_GIS.csv into villages table  
+3.3 OCR Processor:  
+-  Accept scanned PDFs → Tesseract + NER → extract fields → insert new claim records  
+
+# 4. **API Enhancements for Workflow**  
+4.1 `/api/claims?state=X&year=Y&month=Z` for dashboard  
+4.2 `/api/villages?state=X` for GIS map  
+4.3 `/api/notifications` endpoints for email/SMS triggers  
+4.4 Remove legacy document upload pages; replace with single unified upload  
+
+# 5. **Sequence Everything (1→2→3)**  
+1. **Database & Schema**  
+2. **Data Ingestion Jobs**  
+3. **API Layer**  
+
+# 6. **Remove & Merge Pages**  
+- **Remove**: BulkUploadPage (merge into UploadPage)  
+- **Merge**: DocumentWorkflowPage + OCRReviewPage → single “Review” page  
+- **Simplify**: Upload → Review → Approve/Reject sequence  
+
+***
+
+## 📋 **Data You’ll Need (later for AI/ML Training)**  
+- Master claim records with filing & decision dates  
+- Village coordinates & shapefiles  
+- OCR-extracted text labels + ground truth  
+- Rejection reason categories  
+- Officer workload logs  
+
+This priority list (1→6) can be handed off to your dev agent to implement the backend refactor. Once complete, feed in your master data to unlock full analytics and AI/ML model training.
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/107717483/f1ec747c-9215-41f2-ae7a-268c83e196b2/flowchart.jpg?AWSAccessKeyId=ASIA2F3EMEYE3X2GYCMB&Signature=GQguPW7NuZeqhJVT6izQbpOP77c%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEOD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIFA9DBrjgbU1RHj8WJkfaH%2BfvIf%2BupFQuK9S26DimzgyAiEA%2BZEZX5rdjIA3XkD3azFz0J8Z%2FAfVn%2Fvn8aP381M5fbkq8QQIWBABGgw2OTk3NTMzMDk3MDUiDF4sOOq8GSc7XKuO3CrOBOREUsfxjgp2gOr0sXWGxn5uUWcATqbRaiYZpGp4eksop%2BCwpFUb1%2BgKljBjiLGT2puoabiR0OhHcOithdGxAzQ05SNAe0cAYMSh7YBafscAbbpaJM0r4YEvhlmdbZTcCEoxKgGLL45CbRAGtxJjhqF%2FfgTozn4CTds6x3k%2BV1DRWN8RHuBDWHgV97ZpgQ5pvB8b6JIW49ETFBLgObZMwcbrCfpkGrW9jeWYb0RL3M8MI12qm6NksSnhp2ynqIuobXUqvRdlcxk6l2BX8tH6W3zxM31NtqUMmYKKAEHQBTRgbXgBOYO3qWJ9rXM%2F0dFZjMHUS8qH1%2FhbQbD%2Bdz7e0vuN3bSx6NnB8nweyzgER3xQqyeH1t%2FdP5ZmDuh%2FFPXhWkmryI6zIK7dn78tVbtkoNZBMWWlOG%2FxkIEuK5R%2FaYNaCyGO1jo30yI7zZ9cvTFuZOmozm%2B4KsCyt05AYtrwOK929h%2Fle66zkYUNs%2FA%2FBTLi%2FiWGYobdJakRvnw7w5eUwYlbvIqBY7%2Fm45k0BtVFHctPt4cusbiYkiyPCQHha167QlGBN9GFZurupzHCTKMyBfK9WbFEtQa6HuIUtF9Q1EVobvmO%2BZ1LptjiG%2BKNQjvkevy%2BXvHHKYPeVHSxRdHehSM%2BvUSr90sQ84mzbbDh%2BYT5SPQMIwxkfkIkFoegwcmznR4Tho5Xy%2BOpoZI%2BTMPJYTKd0HBtbm9P5THIJzsutLO4A7eDgP12PardpSAX%2Bgo21qscjil3bBb9ywrKzMB3lHNrBkA%2FVFpGTs1yCxk3MKrVmcYGOpoBYi11pYhSm8nIaYtknlvXZbLqGb2i55GvYzSh3BTZYQo1G2UGEXMPJ8bTqCSm3MMIc9lPecal34HXdXjSkXbP4eFQYKKo1hYTV3Rn3geqZR766cMzdUFKA30gWGh4hp2IgKcI4JUr8Cr0LxoAOTSa4ctvlMb9cPC6NQNspH1QSnm61%2Bs00sJD6niSlfTGZjWV%2BVmAtuO4m59x%2Fw%3D%3D&Expires=1757835732)
