@@ -85,6 +85,54 @@ export const documents = sqliteTable("documents", {
   updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });
 
+// Workflow Instances - Track individual workflow runs
+export const workflowInstances = sqliteTable("workflow_instances", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(), // User-friendly name for the workflow
+  description: text("description"),
+  status: text("status").notNull().default('active'), // 'active', 'completed', 'cancelled', 'paused'
+  currentStep: text("current_step").notNull().default('upload'), // 'upload', 'process', 'review', 'claims', 'map', 'dss', 'reports'
+  totalSteps: integer("total_steps").notNull().default(7),
+  completedSteps: integer("completed_steps").notNull().default(0),
+  userId: text("user_id").references(() => users.id).notNull(),
+  metadata: text("metadata", { mode: 'json' }), // Flexible storage for workflow-specific data
+  startedAt: integer("started_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+  completedAt: integer("completed_at", { mode: 'timestamp' }),
+  lastActiveAt: integer("last_active_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
+// Workflow Steps - Track step completion and data flow
+export const workflowSteps = sqliteTable("workflow_steps", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workflowId: text("workflow_id").references(() => workflowInstances.id).notNull(),
+  stepName: text("step_name").notNull(), // 'upload', 'process', 'review', 'claims', 'map', 'dss', 'reports'
+  stepOrder: integer("step_order").notNull(),
+  status: text("status").notNull().default('pending'), // 'pending', 'in_progress', 'completed', 'failed', 'skipped'
+  progress: integer("progress").default(0), // 0-100 percentage
+  resourceId: text("resource_id"), // ID of document, claim, etc. associated with this step
+  resourceType: text("resource_type"), // 'document', 'claim', 'report', etc.
+  data: text("data", { mode: 'json' }), // Step-specific data (OCR results, claim data, analysis results, etc.)
+  startedAt: integer("started_at", { mode: 'timestamp' }),
+  completedAt: integer("completed_at", { mode: 'timestamp' }),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
+// Workflow Transitions - Track data flow between steps
+export const workflowTransitions = sqliteTable("workflow_transitions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workflowId: text("workflow_id").references(() => workflowInstances.id).notNull(),
+  fromStepId: text("from_step_id").references(() => workflowSteps.id),
+  toStepId: text("to_step_id").references(() => workflowSteps.id).notNull(),
+  transitionType: text("transition_type").notNull(), // 'auto', 'manual', 'conditional'
+  data: text("data", { mode: 'json' }), // Data passed between steps
+  triggeredBy: text("triggered_by").references(() => users.id),
+  createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
 // Audit Log
 export const auditLog = sqliteTable("audit_log", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -122,6 +170,23 @@ export const insertSessionSchema = createInsertSchema(userSessions).omit({
   createdAt: true,
 });
 
+export const insertWorkflowInstanceSchema = createInsertSchema(workflowInstances).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWorkflowStepSchema = createInsertSchema(workflowSteps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWorkflowTransitionSchema = createInsertSchema(workflowTransitions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Login schema
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -141,3 +206,9 @@ export type LoginRequest = z.infer<typeof loginSchema>;
 export type State = typeof states.$inferSelect;
 export type District = typeof districts.$inferSelect;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
+export type InsertWorkflowInstance = z.infer<typeof insertWorkflowInstanceSchema>;
+export type WorkflowInstance = typeof workflowInstances.$inferSelect;
+export type InsertWorkflowStep = z.infer<typeof insertWorkflowStepSchema>;
+export type WorkflowStep = typeof workflowSteps.$inferSelect;
+export type InsertWorkflowTransition = z.infer<typeof insertWorkflowTransitionSchema>;
+export type WorkflowTransition = typeof workflowTransitions.$inferSelect;

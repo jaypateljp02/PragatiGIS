@@ -10,13 +10,22 @@ import {
   type State,
   type District,
   type AuditLogEntry,
+  type WorkflowInstance,
+  type InsertWorkflowInstance,
+  type WorkflowStep,
+  type InsertWorkflowStep,
+  type WorkflowTransition,
+  type InsertWorkflowTransition,
   users,
   claims, 
   documents,
   userSessions,
   auditLog,
   states,
-  districts
+  districts,
+  workflowInstances,
+  workflowSteps,
+  workflowTransitions
 } from "@shared/schema-sqlite";
 
 // Import the destructured schema objects based on database type
@@ -73,6 +82,17 @@ export interface IStorage {
   // Audit logging
   logAudit(entry: Omit<AuditLogEntry, 'id' | 'createdAt'>): Promise<AuditLogEntry>;
   getAuditLog(resourceType?: string, resourceId?: string): Promise<AuditLogEntry[]>;
+
+  // Workflow management
+  getWorkflowsByUser(userId: string): Promise<WorkflowInstance[]>;
+  getWorkflow(id: string): Promise<WorkflowInstance | undefined>;
+  createWorkflow(workflow: InsertWorkflowInstance): Promise<WorkflowInstance>;
+  updateWorkflow(id: string, updates: Partial<WorkflowInstance>): Promise<WorkflowInstance | undefined>;
+  deleteWorkflow(id: string): Promise<boolean>;
+  getWorkflowSteps(workflowId: string): Promise<WorkflowStep[]>;
+  createWorkflowStep(step: InsertWorkflowStep): Promise<WorkflowStep>;
+  updateWorkflowStep(id: string, updates: Partial<WorkflowStep>): Promise<WorkflowStep | undefined>;
+  createWorkflowTransition(transition: InsertWorkflowTransition): Promise<WorkflowTransition>;
 }
 
 
@@ -87,7 +107,11 @@ export class DatabaseStorage implements IStorage {
   private async initializeDatabase() {
     try {
       // For SQLite, no extensions needed
-      // Seed initial data
+      // First run migration to ensure all tables exist
+      const { migrateSQLite } = await import('./migrate-sqlite');
+      await migrateSQLite();
+      
+      // Then seed initial data
       await this.seedInitialData();
       console.log('Database initialized successfully');
     } catch (error) {
@@ -384,6 +408,67 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await db.select().from(auditLog).orderBy(sql`${auditLog.createdAt} DESC`);
+  }
+
+  // Workflow management
+  async getWorkflowsByUser(userId: string): Promise<WorkflowInstance[]> {
+    return await db.select().from(workflowInstances).where(eq(workflowInstances.userId, userId));
+  }
+
+  async getWorkflow(id: string): Promise<WorkflowInstance | undefined> {
+    const [workflow] = await db.select().from(workflowInstances).where(eq(workflowInstances.id, id));
+    return workflow || undefined;
+  }
+
+  async createWorkflow(insertWorkflow: InsertWorkflowInstance): Promise<WorkflowInstance> {
+    const [workflow] = await db
+      .insert(workflowInstances)
+      .values(insertWorkflow)
+      .returning();
+    return workflow;
+  }
+
+  async updateWorkflow(id: string, updates: Partial<WorkflowInstance>): Promise<WorkflowInstance | undefined> {
+    const [workflow] = await db
+      .update(workflowInstances)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(workflowInstances.id, id))
+      .returning();
+    return workflow || undefined;
+  }
+
+  async deleteWorkflow(id: string): Promise<boolean> {
+    const result = await db.delete(workflowInstances).where(eq(workflowInstances.id, id));
+    return (result.changes ?? 0) > 0;
+  }
+
+  async getWorkflowSteps(workflowId: string): Promise<WorkflowStep[]> {
+    return await db.select().from(workflowSteps).where(eq(workflowSteps.workflowId, workflowId));
+  }
+
+  async createWorkflowStep(insertStep: InsertWorkflowStep): Promise<WorkflowStep> {
+    const [step] = await db
+      .insert(workflowSteps)
+      .values(insertStep)
+      .returning();
+    return step;
+  }
+
+  async updateWorkflowStep(id: string, updates: Partial<WorkflowStep>): Promise<WorkflowStep | undefined> {
+    const [step] = await db
+      .update(workflowSteps)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(workflowSteps.id, id))
+      .returning();
+    return step || undefined;
+  }
+
+  async createWorkflowTransition(insertTransition: InsertWorkflowTransition): Promise<WorkflowTransition> {
+    const [transition] = await db
+      .insert(workflowTransitions)
+      .values(insertTransition)
+      .returning();
+    return transition;
   }
 }
 

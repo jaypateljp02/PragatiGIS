@@ -7,7 +7,10 @@ import {
   claims, 
   documents, 
   userSessions, 
-  auditLog 
+  auditLog,
+  workflowInstances,
+  workflowSteps,
+  workflowTransitions
 } from "../shared/schema-sqlite";
 import bcrypt from "bcrypt";
 import { sql } from 'drizzle-orm';
@@ -121,6 +124,57 @@ export async function migrateSQLite() {
       changes TEXT,
       ip_address TEXT,
       user_agent TEXT,
+      created_at INTEGER DEFAULT (unixepoch())
+    )
+  `);
+
+  db.run(sql`
+    CREATE TABLE IF NOT EXISTS workflow_instances (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      current_step TEXT NOT NULL DEFAULT 'upload',
+      total_steps INTEGER NOT NULL DEFAULT 7,
+      completed_steps INTEGER NOT NULL DEFAULT 0,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      metadata TEXT,
+      started_at INTEGER DEFAULT (unixepoch()),
+      completed_at INTEGER,
+      last_active_at INTEGER DEFAULT (unixepoch()),
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch())
+    )
+  `);
+
+  db.run(sql`
+    CREATE TABLE IF NOT EXISTS workflow_steps (
+      id TEXT PRIMARY KEY,
+      workflow_id TEXT NOT NULL REFERENCES workflow_instances(id),
+      step_name TEXT NOT NULL,
+      step_order INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      progress INTEGER DEFAULT 0,
+      resource_id TEXT,
+      resource_type TEXT,
+      data TEXT,
+      started_at INTEGER,
+      completed_at INTEGER,
+      notes TEXT,
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch())
+    )
+  `);
+
+  db.run(sql`
+    CREATE TABLE IF NOT EXISTS workflow_transitions (
+      id TEXT PRIMARY KEY,
+      workflow_id TEXT NOT NULL REFERENCES workflow_instances(id),
+      from_step_id TEXT REFERENCES workflow_steps(id),
+      to_step_id TEXT NOT NULL REFERENCES workflow_steps(id),
+      transition_type TEXT NOT NULL,
+      data TEXT,
+      triggered_by TEXT REFERENCES users(id),
       created_at INTEGER DEFAULT (unixepoch())
     )
   `);
