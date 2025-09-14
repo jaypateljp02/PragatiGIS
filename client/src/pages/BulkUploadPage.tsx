@@ -55,7 +55,7 @@ Jane Smith,Village C,District 1,Telangana,1.8,individual,pending,3,Agricultural 
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Bulk Claims Management</h1>
+            <h1 className="text-2xl font-bold">Claims Management</h1>
             <p className="text-muted-foreground">Import and manage large volumes of FRA claims data</p>
           </div>
         </div>
