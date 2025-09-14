@@ -4,41 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, TreePine, Moon, Sun, LogIn, Eye, EyeOff } from "lucide-react";
+import { Shield, TreePine, LogIn, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
+import ThemeToggle from "@/components/ThemeToggle";
 
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialDark = theme === 'dark' || (!theme && systemPrefersDark);
-    
-    setIsDark(initialDark);
-    document.documentElement.classList.toggle('dark', initialDark);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newTheme);
-  };
-
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggleTheme}
-      data-testid="button-theme-toggle"
-    >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
-  );
-}
 
 export default function LoginPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
