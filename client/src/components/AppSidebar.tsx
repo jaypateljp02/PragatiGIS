@@ -81,24 +81,22 @@ export default function AppSidebar() {
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.title} data-testid={`sidebar-item-${item.title.toLowerCase().replace(' ', '-')}`}>
                   <SidebarMenuButton 
-                    asChild 
                     isActive={location === item.url}
                     onClick={() => {
                       console.log(`Navigating to ${item.title}`);
                       navigate(item.url);
                     }}
+                    className="flex items-center justify-between w-full"
                   >
-                    <a href={item.url} className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </div>
-                      {item.badge && (
-                        <Badge variant="secondary" className="text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </div>
+                    {item.badge && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
