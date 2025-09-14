@@ -44,7 +44,7 @@ const navigation = [
     badge: "AI"
   },
   {
-    title: "Reports & Analytics",
+    title: "Reports",
     url: "/reports",
     icon: Download,
     badge: "PDF"

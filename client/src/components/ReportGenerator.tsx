@@ -13,12 +13,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { Claim } from "./ClaimsTable";
-import AnalyticsCharts from "./AnalyticsCharts";
-import DSSAnalytics from "./DSSAnalytics";
-import { createRoot } from 'react-dom/client';
 
 interface DashboardStats {
   totalClaims: number;
@@ -44,8 +40,6 @@ interface ReportOptions {
   template: string;
   format: 'pdf' | 'csv' | 'excel';
   dateRange: 'week' | 'month' | 'quarter' | 'year' | 'custom';
-  includeCharts: boolean;
-  includeDSS: boolean;
   stateFilter?: string;
   districtFilter?: string;
 }
@@ -58,17 +52,14 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [reportOptions, setReportOptions] = useState<ReportOptions>({
-    template: 'analytics',
+    template: 'claims-summary',
     format: 'pdf',
     dateRange: 'month',
-    includeCharts: true,
-    includeDSS: false,
     stateFilter: 'all',
     districtFilter: 'all'
   });
   
   const reportRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Fetch dashboard stats for reports
@@ -78,14 +69,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   });
 
   const reportTemplates: ReportTemplate[] = [
-    {
-      id: 'analytics',
-      name: 'Analytics Report',
-      description: 'Comprehensive analytics with charts and statistics',
-      icon: <BarChart3 className="h-5 w-5" />,
-      type: 'analytics',
-      format: 'pdf'
-    },
     {
       id: 'claims-summary',
       name: 'Claims Summary',
@@ -189,51 +172,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     };
   };
   
-  // Helper function to capture chart as image
-  const captureChartAsImage = async (): Promise<string | null> => {
-    if (!chartRef.current || !reportOptions.includeCharts) return null;
-    
-    try {
-      const canvas = await html2canvas(chartRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        logging: false,
-        useCORS: true
-      });
-      return canvas.toDataURL('image/png');
-    } catch (error) {
-      console.error('Chart capture failed:', error);
-      return null;
-    }
-  };
   
-  // Helper function to get analytics data for charts
-  const getAnalyticsData = (filteredClaims: Claim[]) => {
-    // Group claims by state
-    const stateGroups = filteredClaims.reduce((acc, claim) => {
-      const state = claim.state || 'Unknown';
-      if (!acc[state]) {
-        acc[state] = { name: state, claims: 0, approved: 0, pending: 0, rejected: 0 };
-      }
-      acc[state].claims++;
-      if (claim.status === 'approved') acc[state].approved++;
-      else if (claim.status === 'pending') acc[state].pending++;
-      else if (claim.status === 'rejected') acc[state].rejected++;
-      return acc;
-    }, {} as Record<string, any>);
-    
-    const claimsByState = Object.values(stateGroups);
-    
-    // Status distribution
-    const statusDistribution = [
-      { name: 'Approved', value: filteredClaims.filter(c => c.status === 'approved').length, color: '#10b981' },
-      { name: 'Pending', value: filteredClaims.filter(c => c.status === 'pending').length, color: '#f59e0b' },
-      { name: 'Under Review', value: filteredClaims.filter(c => c.status === 'under-review').length, color: '#6b7280' },
-      { name: 'Rejected', value: filteredClaims.filter(c => c.status === 'rejected').length, color: '#ef4444' },
-    ];
-    
-    return { claimsByState, statusDistribution };
-  };
   
   const generatePDFReport = async () => {
     setIsGenerating(true);
@@ -303,9 +242,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       
       // Template-specific content
       switch (reportOptions.template) {
-        case 'analytics':
-          currentY = await addAnalyticsContent(pdf, filteredClaims, currentY, pageHeight);
-          break;
         case 'dss-analysis':
           currentY = await addDSSContent(pdf, filteredClaims, currentY, pageHeight);
           break;
@@ -322,26 +258,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       
       setGenerationProgress(80);
       
-      // Add chart if enabled
-      if (reportOptions.includeCharts && reportOptions.template === 'analytics') {
-        const chartImage = await captureChartAsImage();
-        if (chartImage) {
-          if (currentY > pageHeight - 100) {
-            pdf.addPage();
-            currentY = 30;
-          }
-          
-          pdf.setFontSize(16);
-          pdf.text('Analytics Charts', 20, currentY);
-          currentY += 15;
-          
-          try {
-            pdf.addImage(chartImage, 'PNG', 20, currentY, 170, 100);
-          } catch (error) {
-            console.error('Failed to add chart to PDF:', error);
-          }
-        }
-      }
       
       setGenerationProgress(90);
       
@@ -381,51 +297,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   };
 
   // Template-specific content functions
-  const addAnalyticsContent = async (pdf: jsPDF, filteredClaims: Claim[], startY: number, pageHeight: number): Promise<number> => {
-    let currentY = startY;
-    
-    // Analytics section header
-    pdf.setFontSize(16);
-    pdf.setTextColor(75, 85, 99);
-    pdf.text('Analytics Overview', 20, currentY);
-    currentY += 15;
-    
-    pdf.setFontSize(11);
-    pdf.setTextColor(0, 0, 0);
-    
-    // Key metrics
-    const approvalRate = filteredClaims.length > 0 ? 
-      (filteredClaims.filter(c => c.status === 'approved').length / filteredClaims.length * 100).toFixed(1) : '0';
-    const avgArea = filteredClaims.length > 0 ? 
-      (filteredClaims.reduce((sum, c) => sum + (c.area || 0), 0) / filteredClaims.length).toFixed(1) : '0';
-    
-    pdf.text(`Approval Rate: ${approvalRate}%`, 20, currentY);
-    currentY += 7;
-    pdf.text(`Average Claim Area: ${avgArea} hectares`, 20, currentY);
-    currentY += 7;
-    
-    // State-wise breakdown
-    const stateBreakdown = filteredClaims.reduce((acc, claim) => {
-      const state = claim.state || 'Unknown';
-      acc[state] = (acc[state] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    currentY += 5;
-    pdf.text('State-wise Distribution:', 20, currentY);
-    currentY += 7;
-    
-    Object.entries(stateBreakdown).slice(0, 10).forEach(([state, count]) => {
-      if (currentY > pageHeight - 40) {
-        pdf.addPage();
-        currentY = 30;
-      }
-      pdf.text(`  ${state}: ${count.toLocaleString()} claims`, 25, currentY);
-      currentY += 6;
-    });
-    
-    return currentY + 10;
-  };
   
   const addDSSContent = async (pdf: jsPDF, filteredClaims: Claim[], startY: number, pageHeight: number): Promise<number> => {
     let currentY = startY;
@@ -697,20 +568,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       const ws2 = XLSX.utils.json_to_sheet(statsData);
       XLSX.utils.book_append_sheet(wb, ws2, 'Report Statistics');
       
-      // Add analytics sheet if analytics template
-      if (reportOptions.template === 'analytics') {
-        const analyticsData = getAnalyticsData(filteredClaims);
-        
-        // State-wise data sheet
-        if (analyticsData.claimsByState.length > 0) {
-          const ws3 = XLSX.utils.json_to_sheet(analyticsData.claimsByState);
-          XLSX.utils.book_append_sheet(wb, ws3, 'Claims by State');
-        }
-        
-        // Status distribution sheet
-        const ws4 = XLSX.utils.json_to_sheet(analyticsData.statusDistribution);
-        XLSX.utils.book_append_sheet(wb, ws4, 'Status Distribution');
-      }
       
       setGenerationProgress(80);
       
@@ -976,39 +833,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                 </Select>
               </div>
 
-              {reportOptions.template === 'analytics' && (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="include-charts"
-                    checked={reportOptions.includeCharts}
-                    onChange={(e) => 
-                      setReportOptions(prev => ({ ...prev, includeCharts: e.target.checked }))
-                    }
-                    data-testid="checkbox-include-charts"
-                  />
-                  <label htmlFor="include-charts" className="text-sm font-medium">
-                    Include Charts in PDF
-                  </label>
-                </div>
-              )}
               
-              {reportOptions.template === 'dss-analysis' && (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="include-dss"
-                    checked={reportOptions.includeDSS}
-                    onChange={(e) => 
-                      setReportOptions(prev => ({ ...prev, includeDSS: e.target.checked }))
-                    }
-                    data-testid="checkbox-include-dss"
-                  />
-                  <label htmlFor="include-dss" className="text-sm font-medium">
-                    Include Detailed DSS Analysis
-                  </label>
-                </div>
-              )}
 
               {selectedTemplate && (
                 <div className="p-3 rounded-lg bg-muted">
@@ -1085,14 +910,6 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
         {/* This div can be used for more complex PDF layouts */}
       </div>
       
-      {/* Hidden chart component for capturing images */}
-      {reportOptions.includeCharts && reportOptions.template === 'analytics' && (
-        <div ref={chartRef} className="absolute -left-[9999px] w-[800px] h-[600px] bg-white p-4">
-          <AnalyticsCharts 
-            {...getAnalyticsData(getFilteredClaims())}
-          />
-        </div>
-      )}
     </div>
   );
 }

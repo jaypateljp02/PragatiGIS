@@ -43,7 +43,7 @@ export default function ReportsPage() {
     <div className="space-y-6" data-testid="reports-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reports & Analytics</h1>
+          <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">
             Generate comprehensive reports and export data from the FRA Atlas Platform
           </p>
