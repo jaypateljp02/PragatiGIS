@@ -1,0 +1,26 @@
+// Firebase configuration based on Firebase integration blueprint
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
+  messagingSenderId: "879880180310",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: "G-3P9JJQEYVH"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
+
+// Configure Google Auth Provider
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+export default app;

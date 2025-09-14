@@ -1,14 +1,19 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { 
+  onAuthStateChanged, 
+  signInWithRedirect, 
+  getRedirectResult,
+  signOut,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
 
 interface User {
   id: string;
-  username: string;
   email: string;
   fullName: string;
-  role: string;
-  stateId?: number;
-  districtId?: number;
+  role: string; // Default role, can be customized later
+  photoURL?: string;
   isActive: boolean;
 }
 
@@ -16,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
   refetch: () => void;
 }
@@ -28,42 +34,76 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-
-  // Check authentication status
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/auth/me'],
-    retry: false, // Don't retry on 401
-    staleTime: 10 * 60 * 1000, // Consider fresh for 10 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnMount: false, // Don't refetch when component mounts if data is fresh
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Auth data changed:', { data, error, isLoading, hasUser: !!user });
-    if (data && typeof data === 'object' && 'user' in data) {
-      console.log('Setting user:', data.user);
-      setUser(data.user as User);
-    } else if (error && !isLoading) {
-      console.log('Auth error, clearing user:', error);
-      setUser(null);
+    // Handle redirect result when user comes back from Google sign-in
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('Redirect result:', result.user);
+        }
+      } catch (error) {
+        console.error('Redirect error:', error);
+      }
+    };
+
+    handleRedirectResult();
+
+    // Listen for authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      console.log('Firebase auth state changed:', firebaseUser);
+      setIsLoading(true);
+
+      if (firebaseUser) {
+        // Convert Firebase user to our User interface
+        const userData: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          fullName: firebaseUser.displayName || 'User',
+          role: 'ministry', // Default role - can be customized based on email domain or other logic
+          photoURL: firebaseUser.photoURL || undefined,
+          isActive: true
+        };
+        
+        setUser(userData);
+        console.log('User authenticated:', userData);
+      } else {
+        setUser(null);
+        console.log('User not authenticated');
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const login = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Starting Google sign-in redirect...');
+      await signInWithRedirect(auth, googleProvider);
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
     }
-  }, [data, error, isLoading]);
+  };
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await signOut(auth);
       setUser(null);
-      // Redirect to login
-      window.location.href = '/login';
+      console.log('User signed out');
     } catch (error) {
       console.error('Logout error:', error);
-      // Force redirect even if logout call fails
-      window.location.href = '/login';
     }
+  };
+
+  const refetch = () => {
+    // For Firebase, we don't need manual refetch as onAuthStateChanged handles this
+    console.log('Firebase auth state is automatically managed');
   };
 
   const isAuthenticated = !!user;
@@ -74,6 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isLoading,
         isAuthenticated,
+        login,
         logout,
         refetch,
       }}
