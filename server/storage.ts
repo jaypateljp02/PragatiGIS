@@ -7,12 +7,6 @@ import {
   type InsertDocument,
   type UserSession,
   type InsertSession,
-  type WorkflowInstance,
-  type InsertWorkflowInstance,
-  type WorkflowStep,
-  type InsertWorkflowStep,
-  type WorkflowTransition,
-  type InsertWorkflowTransition,
   type State,
   type District,
   type AuditLogEntry,
@@ -20,9 +14,6 @@ import {
   claims, 
   documents,
   userSessions,
-  workflowInstances,
-  workflowSteps,
-  workflowTransitions,
   auditLog,
   states,
   districts
@@ -78,21 +69,6 @@ export interface IStorage {
   getDistrictsByState(stateId: number): Promise<District[]>;
   getDistrict(id: number): Promise<District | undefined>;
 
-  // Workflow management
-  createWorkflowInstance(workflow: InsertWorkflowInstance): Promise<WorkflowInstance>;
-  getWorkflowInstance(id: string): Promise<WorkflowInstance | undefined>;
-  updateWorkflowInstance(id: string, updates: Partial<WorkflowInstance>): Promise<WorkflowInstance | undefined>;
-  deleteWorkflowInstance(id: string): Promise<boolean>;
-  getWorkflowsByUser(userId: string): Promise<WorkflowInstance[]>;
-  
-  createWorkflowStep(step: InsertWorkflowStep): Promise<WorkflowStep>;
-  getWorkflowStep(id: string): Promise<WorkflowStep | undefined>;
-  updateWorkflowStep(id: string, updates: Partial<WorkflowStep>): Promise<WorkflowStep | undefined>;
-  deleteWorkflowStep(id: string): Promise<boolean>;
-  getWorkflowSteps(workflowId: string): Promise<WorkflowStep[]>;
-  
-  createWorkflowTransition(transition: InsertWorkflowTransition): Promise<WorkflowTransition>;
-  getWorkflowTransitions(workflowId: string): Promise<WorkflowTransition[]>;
 
   // Audit logging
   logAudit(entry: Omit<AuditLogEntry, 'id' | 'createdAt'>): Promise<AuditLogEntry>;
@@ -385,98 +361,6 @@ export class DatabaseStorage implements IStorage {
     return district || undefined;
   }
 
-  // Workflow management
-  async createWorkflowInstance(workflow: InsertWorkflowInstance): Promise<WorkflowInstance> {
-    const [workflowInstance] = await db
-      .insert(workflowInstances)
-      .values({
-        ...workflow,
-        id: workflow.id || randomUUID(),
-        startedAt: new Date(),
-        lastActiveAt: new Date()
-      })
-      .returning();
-    return workflowInstance;
-  }
-
-  async getWorkflowInstance(id: string): Promise<WorkflowInstance | undefined> {
-    const [workflow] = await db.select().from(workflowInstances).where(eq(workflowInstances.id, id));
-    return workflow || undefined;
-  }
-
-  async updateWorkflowInstance(id: string, updates: Partial<WorkflowInstance>): Promise<WorkflowInstance | undefined> {
-    const [workflow] = await db
-      .update(workflowInstances)
-      .set({ ...updates, lastActiveAt: new Date() })
-      .where(eq(workflowInstances.id, id))
-      .returning();
-    return workflow || undefined;
-  }
-
-  async deleteWorkflowInstance(id: string): Promise<boolean> {
-    const result = await db.delete(workflowInstances).where(eq(workflowInstances.id, id));
-    return (result.changes ?? 0) > 0;
-  }
-
-  async getWorkflowsByUser(userId: string): Promise<WorkflowInstance[]> {
-    return await db.select().from(workflowInstances)
-      .where(eq(workflowInstances.userId, userId))
-      .orderBy(sql`${workflowInstances.lastActiveAt} DESC`);
-  }
-
-  async createWorkflowStep(step: InsertWorkflowStep): Promise<WorkflowStep> {
-    const [workflowStep] = await db
-      .insert(workflowSteps)
-      .values({
-        ...step,
-        id: step.id || randomUUID()
-      })
-      .returning();
-    return workflowStep;
-  }
-
-  async getWorkflowStep(id: string): Promise<WorkflowStep | undefined> {
-    const [step] = await db.select().from(workflowSteps).where(eq(workflowSteps.id, id));
-    return step || undefined;
-  }
-
-  async updateWorkflowStep(id: string, updates: Partial<WorkflowStep>): Promise<WorkflowStep | undefined> {
-    const [step] = await db
-      .update(workflowSteps)
-      .set(updates)
-      .where(eq(workflowSteps.id, id))
-      .returning();
-    return step || undefined;
-  }
-
-  async deleteWorkflowStep(id: string): Promise<boolean> {
-    const result = await db.delete(workflowSteps).where(eq(workflowSteps.id, id));
-    return (result.changes ?? 0) > 0;
-  }
-
-  async getWorkflowSteps(workflowId: string): Promise<WorkflowStep[]> {
-    return await db.select().from(workflowSteps)
-      .where(eq(workflowSteps.workflowId, workflowId))
-      .orderBy(workflowSteps.stepOrder);
-  }
-
-  async createWorkflowTransition(transition: InsertWorkflowTransition): Promise<WorkflowTransition> {
-    const [workflowTransition] = await db
-      .insert(workflowTransitions)
-      .values({
-        ...transition,
-        id: transition.id || randomUUID(),
-        createdAt: new Date()
-      })
-      .returning();
-    return workflowTransition;
-  }
-
-  async getWorkflowTransitions(workflowId: string): Promise<WorkflowTransition[]> {
-    return await db.select().from(workflowTransitions)
-      .where(eq(workflowTransitions.workflowId, workflowId))
-      .orderBy(sql`${workflowTransitions.createdAt} DESC`);
-  }
 
   // Audit logging
   async logAudit(entry: Omit<AuditLogEntry, 'id' | 'createdAt'>): Promise<AuditLogEntry> {

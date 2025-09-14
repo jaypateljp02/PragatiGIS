@@ -5,10 +5,7 @@ import {
   loginSchema, 
   insertUserSchema, 
   insertClaimSchema,
-  insertDocumentSchema,
-  insertWorkflowInstanceSchema,
-  insertWorkflowStepSchema,
-  insertWorkflowTransitionSchema 
+  insertDocumentSchema
 } from "@shared/schema-sqlite";
 import { randomUUID } from "crypto";
 import multer from "multer";
