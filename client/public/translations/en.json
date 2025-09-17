@@ -18,7 +18,8 @@
     "success": "Success",
     "error": "Error",
     "warning": "Warning",
-    "info": "Information"
+    "info": "Information",
+    "reports": "Reports"
   },
   "header": {
     "title": "FRA Atlas",
@@ -70,5 +71,47 @@
     "feature5": "Analytics and reporting dashboard",
     "footerText1": "Serving Madhya Pradesh, Odisha, Telangana, and Tripura",
     "footerText2": "Ministry of Tribal Affairs, Government of India"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "FRA Atlas Dashboard",
+      "subtitle": "Monitor Forest Rights Act claims and document processing across India",
+      "processDocuments": "Process Documents",
+      "newClaims": "New Claims",
+      "reviewPending": "Review pending submissions",
+      "exportData": "Export Data",
+      "downloadReports": "Download reports",
+      "aiAnalysis": "AI Analysis",
+      "decisionSupport": "Decision support system",
+      "recentActivity": "Recent Activity",
+      "latestUpdates": "Latest updates on claim processing and document uploads"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Generate comprehensive reports and export data from the FRA Atlas Platform",
+      "loadingData": "Loading report data...",
+      "loadError": "Failed to load claims data for reports. Please check your authentication and try again.",
+      "claimsAvailable": "Claims Available",
+      "multipleFormats": "Multiple Formats",
+      "generateReports": "Generate Reports"
+    }
+  },
+  "components": {
+    "dashboardStats": {
+      "loadError": "Unable to load dashboard statistics",
+      "totalClaims": "Total Claims",
+      "acrossStates": "Across all states",
+      "approvedClaims": "Approved Claims",
+      "approvalRate": "approval rate",
+      "pendingReview": "Pending Review",
+      "pending": "pending",
+      "underReview": "under review",
+      "rejectedClaims": "Rejected Claims",
+      "rejectionRate": "rejection rate",
+      "forestArea": "Forest Area",
+      "underFRAClaims": "Under FRA claims",
+      "documents": "Documents",
+      "processed": "processed"
+    }
   }
 }
