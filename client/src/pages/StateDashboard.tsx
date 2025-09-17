@@ -17,6 +17,7 @@ import {
   Clock,
   Download
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StateStats {
   totalClaims: number;
@@ -53,6 +54,7 @@ interface StateSpecificInfo {
 }
 
 export default function StateDashboard() {
+  const { t } = useLanguage();
   // Get state from user context or URL params - for now using Maharashtra as example
   const stateCode = "OD"; // This would come from user authentication context
 
@@ -110,7 +112,7 @@ export default function StateDashboard() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading state dashboard...</p>
+          <p className="text-muted-foreground">{t("pages.stateDashboard.loading", "Loading state dashboard...")}</p>
         </div>
       </div>
     );
@@ -121,19 +123,19 @@ export default function StateDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{stateData.state} Forest Rights Dashboard</h1>
+          <h1 className="text-3xl font-bold">{stateData.state} {t("pages.stateDashboard.title", "Forest Rights Dashboard")}</h1>
           <p className="text-muted-foreground">
-            Comprehensive overview of Forest Rights Act implementation across the state
+            {t("pages.stateDashboard.subtitle", "Comprehensive overview of Forest Rights Act implementation across the state")}
           </p>
         </div>
         
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-primary/10">
-            State Code: {stateData.stateCode}
+            {t("pages.stateDashboard.stateCode", "State Code")}: {stateData.stateCode}
           </Badge>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            {t("pages.stateDashboard.exportReport", "Export Report")}
           </Button>
         </div>
       </div>

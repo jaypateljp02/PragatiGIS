@@ -94,9 +94,68 @@
       "claimsAvailable": "Claims Available",
       "multipleFormats": "Multiple Formats",
       "generateReports": "Generate Reports"
+    },
+    "dss": {
+      "title": "Decision Support System",
+      "subtitle": "AI-powered analysis and recommendations for FRA claim processing",
+      "loading": "Loading DSS analysis...",
+      "error": "DSS Analysis Error",
+      "errorDescription": "Failed to load decision support data",
+      "aiPowered": "AI-Powered Analysis",
+      "systemOverview": "System Overview",
+      "aiRecommendations": "AI Recommendations",
+      "detailedAnalysis": "Detailed Analysis",
+      "totalRecommendations": "Total Recommendations",
+      "claimsAnalyzed": "Claims analyzed"
+    },
+    "stateDashboard": {
+      "title": "Forest Rights Dashboard",
+      "subtitle": "Comprehensive overview of Forest Rights Act implementation across the state",
+      "loading": "Loading state dashboard...",
+      "stateCode": "State Code",
+      "exportReport": "Export Report"
+    },
+    "maps": {
+      "title": "Interactive Maps",
+      "subtitle": "Geospatial visualization and analysis of Forest Rights Act claims"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Manage your account preferences and system configurations",
+      "profile": "Profile",
+    },
+    "bulkUpload": {
+      "backToClaims": "Back to Claims",
+      "title": "Claims Management",
+      "subtitle": "Import and manage large volumes of FRA claims data",
+      "downloadTemplate": "Download Template",
+      "uploadClaims": "Upload Claims",
+      "importHistory": "Import History",
+      "guidelines": "Guidelines",
+      "recentImportHistory": "Recent Import History",
+      "viewRecentImports": "View recent bulk import operations and their status"
+    },
+    "security": {
+      "security": "Security",
+      "profileInformation": "Profile Information",
+      "updatePersonalInfo": "Update your personal information and contact details",
+      "uploading": "Uploading...",
+      "changeAvatar": "Change Avatar"
     }
   },
   "components": {
+    "claimsTable": {
+      "title": "Forest Rights Claims",
+      "description": "Manage and review FRA claims across states",
+      "searchPlaceholder": "Search claims, names, or locations...",
+      "statusPending": "Pending",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected",
+      "statusUnderReview": "Under Review",
+      "individual": "Individual",
+      "community": "Community",
+      "noClaims": "No claims found matching your criteria"
+    },
     "dashboardStats": {
       "loadError": "Unable to load dashboard statistics",
       "totalClaims": "Total Claims",

@@ -15,8 +15,10 @@ import {
   Key
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -103,16 +105,16 @@ export default function SettingsPage() {
     <div className="space-y-6" data-testid="settings-page">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t("pages.settings.title", "Settings")}</h1>
         <p className="text-muted-foreground">
-          Manage your account preferences and system configurations
+          {t("pages.settings.subtitle", "Manage your account preferences and system configurations")}
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="profile">{t("pages.settings.profile", "Profile")}</TabsTrigger>
+          <TabsTrigger value="security">{t("pages.settings.security", "Security")}</TabsTrigger>
         </TabsList>
 
         {/* Profile Settings */}
@@ -121,10 +123,10 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Profile Information
+                {t("pages.settings.profileInformation", "Profile Information")}
               </CardTitle>
               <CardDescription>
-                Update your personal information and contact details
+                {t("pages.settings.updatePersonalInfo", "Update your personal information and contact details")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -151,7 +153,7 @@ export default function SettingsPage() {
                     disabled={isUploadingAvatar}
                     data-testid="button-upload-avatar"
                   >
-                    {isUploadingAvatar ? "Uploading..." : "Change Avatar"}
+                    {isUploadingAvatar ? t("pages.settings.uploading", "Uploading...") : t("pages.settings.changeAvatar", "Change Avatar")}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1">
                     JPG, PNG or GIF. Max size 2MB.

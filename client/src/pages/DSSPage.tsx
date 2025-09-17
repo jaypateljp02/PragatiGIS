@@ -14,6 +14,7 @@ import { Claim } from "@/components/ClaimsTable";
 import DSSAnalytics from "@/components/DSSAnalytics";
 import AnalyticsCharts from "@/components/AnalyticsCharts";
 import DashboardStats from "@/components/DashboardStats";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DSSRecommendation {
   claimId: string;
@@ -26,6 +27,7 @@ interface DSSRecommendation {
 }
 
 export default function DSSPage() {
+  const { t } = useLanguage();
   const [selectedClaimId, setSelectedClaimId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -139,7 +141,7 @@ export default function DSSPage() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading DSS analysis...</p>
+          <p className="text-muted-foreground">{t("pages.dss.loading", "Loading DSS analysis...")}</p>
         </div>
       </div>
     );
@@ -150,8 +152,8 @@ export default function DSSPage() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">DSS Analysis Error</h3>
-          <p className="text-muted-foreground">Failed to load decision support data</p>
+          <h3 className="text-lg font-medium mb-2">{t("pages.dss.error", "DSS Analysis Error")}</h3>
+          <p className="text-muted-foreground">{t("pages.dss.errorDescription", "Failed to load decision support data")}</p>
         </div>
       </div>
     );
@@ -161,14 +163,14 @@ export default function DSSPage() {
     <div className="space-y-6" data-testid="dss-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Decision Support System</h1>
+          <h1 className="text-3xl font-bold">{t("pages.dss.title", "Decision Support System")}</h1>
           <p className="text-muted-foreground">
-            AI-powered analysis and recommendations for FRA claim processing
+            {t("pages.dss.subtitle", "AI-powered analysis and recommendations for FRA claim processing")}
           </p>
         </div>
         <Badge variant="outline" className="gap-2">
           <Brain className="h-4 w-4" />
-          AI-Powered Analysis
+          {t("pages.dss.aiPowered", "AI-Powered Analysis")}
         </Badge>
       </div>
 
@@ -176,15 +178,15 @@ export default function DSSPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" data-testid="tab-overview">
             <TrendingUp className="h-4 w-4 mr-2" />
-            System Overview
+            {t("pages.dss.systemOverview", "System Overview")}
           </TabsTrigger>
           <TabsTrigger value="recommendations" data-testid="tab-recommendations">
             <Brain className="h-4 w-4 mr-2" />
-            AI Recommendations
+            {t("pages.dss.aiRecommendations", "AI Recommendations")}
           </TabsTrigger>
           <TabsTrigger value="detailed-analysis" data-testid="tab-detailed-analysis">
             <Search className="h-4 w-4 mr-2" />
-            Detailed Analysis
+            {t("pages.dss.detailedAnalysis", "Detailed Analysis")}
           </TabsTrigger>
         </TabsList>
 
@@ -193,12 +195,12 @@ export default function DSSPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card data-testid="insight-total-recommendations">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Recommendations</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("pages.dss.totalRecommendations", "Total Recommendations")}</CardTitle>
                 <Brain className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{insights.totalRecommendations}</div>
-                <p className="text-xs text-muted-foreground">Claims analyzed</p>
+                <p className="text-xs text-muted-foreground">{t("pages.dss.claimsAnalyzed", "Claims analyzed")}</p>
               </CardContent>
             </Card>
 

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Download, Eye } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface Claim {
   id: string;
@@ -36,14 +37,18 @@ const statusColors = {
   'under-review': 'secondary'
 } as const;
 
-const statusLabels = {
-  pending: 'Pending',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  'under-review': 'Under Review'
+const getStatusLabel = (status: string, t: (key: string, fallback: string) => string) => {
+  const labels = {
+    pending: t("components.claimsTable.statusPending", "Pending"),
+    approved: t("components.claimsTable.statusApproved", "Approved"),
+    rejected: t("components.claimsTable.statusRejected", "Rejected"),
+    'under-review': t("components.claimsTable.statusUnderReview", "Under Review")
+  };
+  return labels[status as keyof typeof labels] || status;
 };
 
 export default function ClaimsTable({ claims, onViewClaim, onExportData }: ClaimsTableProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [stateFilter, setStateFilter] = useState<string>('all');
@@ -65,9 +70,9 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Forest Rights Claims</CardTitle>
+            <CardTitle>{t("components.claimsTable.title", "Forest Rights Claims")}</CardTitle>
             <CardDescription>
-              Manage and review FRA claims across states
+              {t("components.claimsTable.description", "Manage and review FRA claims across states")}
             </CardDescription>
           </div>
           <Button 
@@ -79,7 +84,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
             data-testid="button-export"
           >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {t("common.export", "Export")}
           </Button>
         </div>
         
@@ -88,7 +93,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search claims, names, or locations..."
+                placeholder={t("components.claimsTable.searchPlaceholder", "Search claims, names, or locations...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
@@ -144,7 +149,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
               {filteredClaims.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    No claims found matching your criteria
+                    {t("components.claimsTable.noClaims", "No claims found matching your criteria")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -170,7 +175,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusColors[claim.status]} data-testid={`badge-status-${claim.status}`}>
-                        {statusLabels[claim.status]}
+                        {getStatusLabel(claim.status, t)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
@@ -178,7 +183,7 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {claim.landType === 'individual' ? 'Individual' : 'Community'}
+                        {claim.landType === 'individual' ? t("components.claimsTable.individual", "Individual") : t("components.claimsTable.community", "Community")}
                       </Badge>
                     </TableCell>
                     <TableCell>

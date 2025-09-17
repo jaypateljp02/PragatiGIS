@@ -94,9 +94,68 @@
       "claimsAvailable": "दावे उपलब्ध",
       "multipleFormats": "कई प्रारूप",
       "generateReports": "रिपोर्ट तैयार करें"
+    },
+    "dss": {
+      "title": "निर्णय समर्थन प्रणाली",
+      "subtitle": "एफआरए दावा प्रसंस्करण के लिए एआई-संचालित विश्लेषण और सिफारिशें",
+      "loading": "डीएसएस विश्लेषण लोड हो रहा है...",
+      "error": "डीएसएस विश्लेषण त्रुटि",
+      "errorDescription": "निर्णय समर्थन डेटा लोड करने में विफल",
+      "aiPowered": "एआई-संचालित विश्लेषण",
+      "systemOverview": "प्रणाली अवलोकन",
+      "aiRecommendations": "एआई सिफारिशें",
+      "detailedAnalysis": "विस्तृत विश्लेषण",
+      "totalRecommendations": "कुल सिफारिशें",
+      "claimsAnalyzed": "दावों का विश्लेषण किया गया"
+    },
+    "stateDashboard": {
+      "title": "वन अधिकार डैशबोर्ड",
+      "subtitle": "राज्य में वन अधिकार अधिनियम के कार्यान्वयन का व्यापक अवलोकन",
+      "loading": "राज्य डैशबोर्ड लोड हो रहा है...",
+      "stateCode": "राज्य कोड",
+      "exportReport": "रिपोर्ट निर्यात करें"
+    },
+    "maps": {
+      "title": "इंटरैक्टिव मैप्स",
+      "subtitle": "वन अधिकार अधिनियम दावों का भू-स्थानिक दृश्यीकरण और विश्लेषण"
+    },
+    "settings": {
+      "title": "सेटिंग्स",
+      "subtitle": "अपनी खाता पसंद और सिस्टम कॉन्फ़िगरेशन का प्रबंधन करें",
+      "profile": "प्रोफाइल",
+    },
+    "bulkUpload": {
+      "backToClaims": "दावों पर वापस जाएं",
+      "title": "दावा प्रबंधन",
+      "subtitle": "एफआरए दावों के बड़े वॉल्यूम का आयात और प्रबंधन करें",
+      "downloadTemplate": "टेम्प्लेट डाउनलोड करें",
+      "uploadClaims": "दावे अपलोड करें",
+      "importHistory": "आयात इतिहास",
+      "guidelines": "दिशानिर्देश",
+      "recentImportHistory": "हाल का आयात इतिहास",
+      "viewRecentImports": "हाल के बल्क आयात ऑपरेशन और उनकी स्थिति देखें"
+    },
+    "security": {
+      "security": "सुरक्षा",
+      "profileInformation": "प्रोफाइल जानकारी",
+      "updatePersonalInfo": "अपनी व्यक्तिगत जानकारी और संपर्क विवरण अपडेट करें",
+      "uploading": "अपलोड हो रहा है...",
+      "changeAvatar": "अवतार बदलें"
     }
   },
   "components": {
+    "claimsTable": {
+      "title": "वन अधिकार दावे",
+      "description": "राज्यों में एफआरए दावों का प्रबंधन और समीक्षा करें",
+      "searchPlaceholder": "दावे, नाम या स्थान खोजें...",
+      "statusPending": "लंबित",
+      "statusApproved": "स्वीकृत",
+      "statusRejected": "अस्वीकृत",
+      "statusUnderReview": "समीक्षाधीन",
+      "individual": "व्यक्तिगत",
+      "community": "सामुदायिक",
+      "noClaims": "आपके मानदंडों से मेल खाने वाले कोई दावे नहीं मिले"
+    },
     "dashboardStats": {
       "loadError": "डैशबोर्ड आंकड़े लोड करने में असमर्थ",
       "totalClaims": "कुल दावे",

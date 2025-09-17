@@ -7,8 +7,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "wouter";
 import { ArrowLeft, FileDown, Upload, Database } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function BulkUploadPage() {
+  const { t } = useLanguage();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { data: recentImports, isLoading } = useQuery({
@@ -51,12 +53,12 @@ Jane Smith,Village C,District 1,Telangana,1.8,individual,pending,3,Agricultural 
           <Link href="/claims">
             <Button variant="outline" size="sm" data-testid="button-back">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Claims
+              {t("pages.bulkUpload.backToClaims", "Back to Claims")}
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Claims Management</h1>
-            <p className="text-muted-foreground">Import and manage large volumes of FRA claims data</p>
+            <h1 className="text-2xl font-bold">{t("pages.bulkUpload.title", "Claims Management")}</h1>
+            <p className="text-muted-foreground">{t("pages.bulkUpload.subtitle", "Import and manage large volumes of FRA claims data")}</p>
           </div>
         </div>
         <Button 
@@ -65,7 +67,7 @@ Jane Smith,Village C,District 1,Telangana,1.8,individual,pending,3,Agricultural 
           data-testid="button-download-template"
         >
           <FileDown className="h-4 w-4 mr-2" />
-          Download Template
+          {t("pages.bulkUpload.downloadTemplate", "Download Template")}
         </Button>
       </div>
 
@@ -73,14 +75,14 @@ Jane Smith,Village C,District 1,Telangana,1.8,individual,pending,3,Agricultural 
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload" data-testid="tab-upload">
             <Upload className="h-4 w-4 mr-2" />
-            Upload Claims
+            {t("pages.bulkUpload.uploadClaims", "Upload Claims")}
           </TabsTrigger>
           <TabsTrigger value="history" data-testid="tab-history">
             <Database className="h-4 w-4 mr-2" />
-            Import History
+            {t("pages.bulkUpload.importHistory", "Import History")}
           </TabsTrigger>
           <TabsTrigger value="guidelines" data-testid="tab-guidelines">
-            Guidelines
+            {t("pages.bulkUpload.guidelines", "Guidelines")}
           </TabsTrigger>
         </TabsList>
 
@@ -91,9 +93,9 @@ Jane Smith,Village C,District 1,Telangana,1.8,individual,pending,3,Agricultural 
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Import History</CardTitle>
+              <CardTitle>{t("pages.bulkUpload.recentImportHistory", "Recent Import History")}</CardTitle>
               <CardDescription>
-                View recent bulk import operations and their status
+                {t("pages.bulkUpload.viewRecentImports", "View recent bulk import operations and their status")}
               </CardDescription>
             </CardHeader>
             <CardContent>
