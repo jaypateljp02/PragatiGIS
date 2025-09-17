@@ -7,8 +7,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, BarChart3, AlertTriangle } from "lucide-react";
 import { Claim } from "@/components/ClaimsTable";
 import ReportGenerator from "@/components/ReportGenerator";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ReportsPage() {
+  const { t } = useLanguage();
+  
   // Fetch claims data for reports
   const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
     queryKey: ['/api/claims'],
@@ -20,7 +23,7 @@ export default function ReportsPage() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading report data...</p>
+          <p className="text-muted-foreground">{t("pages.reports.loadingData", "Loading report data...")}</p>
         </div>
       </div>
     );
@@ -32,7 +35,7 @@ export default function ReportsPage() {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load claims data for reports. Please check your authentication and try again.
+            {t("pages.reports.loadError", "Failed to load claims data for reports. Please check your authentication and try again.")}
           </AlertDescription>
         </Alert>
       </div>
@@ -43,19 +46,19 @@ export default function ReportsPage() {
     <div className="space-y-6" data-testid="reports-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reports</h1>
+          <h1 className="text-3xl font-bold">{t("pages.reports.title", "Reports")}</h1>
           <p className="text-muted-foreground">
-            Generate comprehensive reports and export data from the FRA Atlas Platform
+            {t("pages.reports.subtitle", "Generate comprehensive reports and export data from the FRA Atlas Platform")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-2">
             <FileText className="h-3 w-3" />
-            {claims.length} Claims Available
+            {claims.length} {t("pages.reports.claimsAvailable", "Claims Available")}
           </Badge>
           <Badge variant="outline" className="gap-2">
             <BarChart3 className="h-3 w-3" />
-            Multiple Formats
+            {t("pages.reports.multipleFormats", "Multiple Formats")}
           </Badge>
         </div>
       </div>
@@ -64,7 +67,7 @@ export default function ReportsPage() {
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="generate" data-testid="tab-generate">
             <FileText className="h-4 w-4 mr-2" />
-            Generate Reports
+            {t("pages.reports.generateReports", "Generate Reports")}
           </TabsTrigger>
         </TabsList>
 

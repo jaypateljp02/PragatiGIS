@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Zap } from "lucide-react";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -29,20 +31,20 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">FRA Atlas Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("pages.dashboard.title", "FRA Atlas Dashboard")}</h1>
           <p className="text-muted-foreground">
-            Monitor Forest Rights Act claims and document processing across India
+            {t("pages.dashboard.subtitle", "Monitor Forest Rights Act claims and document processing across India")}
           </p>
         </div>
         
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" data-testid="button-reports">
             <Download className="h-4 w-4 mr-2" />
-            Reports
+            {t("common.reports", "Reports")}
           </Button>
           <Button size="sm" data-testid="button-process-documents">
             <Zap className="h-4 w-4 mr-2" />
-            Process Documents
+            {t("pages.dashboard.processDocuments", "Process Documents")}
           </Button>
         </div>
       </div>
@@ -59,8 +61,8 @@ export default function Dashboard() {
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">New Claims</h3>
-                <p className="text-sm text-muted-foreground">Review pending submissions</p>
+                <h3 className="font-semibold">{t("pages.dashboard.newClaims", "New Claims")}</h3>
+                <p className="text-sm text-muted-foreground">{t("pages.dashboard.reviewPending", "Review pending submissions")}</p>
               </div>
             </div>
           </CardContent>
@@ -73,8 +75,8 @@ export default function Dashboard() {
                 <Download className="h-6 w-6 text-chart-3" />
               </div>
               <div>
-                <h3 className="font-semibold">Export Data</h3>
-                <p className="text-sm text-muted-foreground">Download reports</p>
+                <h3 className="font-semibold">{t("pages.dashboard.exportData", "Export Data")}</h3>
+                <p className="text-sm text-muted-foreground">{t("pages.dashboard.downloadReports", "Download reports")}</p>
               </div>
             </div>
           </CardContent>
@@ -88,8 +90,8 @@ export default function Dashboard() {
                 <Zap className="h-6 w-6 text-chart-2" />
               </div>
               <div>
-                <h3 className="font-semibold">AI Analysis</h3>
-                <p className="text-sm text-muted-foreground">Decision support system</p>
+                <h3 className="font-semibold">{t("pages.dashboard.aiAnalysis", "AI Analysis")}</h3>
+                <p className="text-sm text-muted-foreground">{t("pages.dashboard.decisionSupport", "Decision support system")}</p>
               </div>
             </div>
           </CardContent>
@@ -102,9 +104,9 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <Card data-testid="recent-activity">
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{t("pages.dashboard.recentActivity", "Recent Activity")}</CardTitle>
           <CardDescription>
-            Latest updates on claim processing and document uploads
+            {t("pages.dashboard.latestUpdates", "Latest updates on claim processing and document uploads")}
           </CardDescription>
         </CardHeader>
         <CardContent>

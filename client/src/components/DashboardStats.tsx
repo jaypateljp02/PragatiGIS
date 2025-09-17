@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, CheckCircle2, Clock, AlertTriangle, MapPin, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StatCardProps {
   title: string;
@@ -62,6 +63,8 @@ interface DashboardStatsProps {
 }
 
 export default function DashboardStats({ stats: propStats }: DashboardStatsProps) {
+  const { t } = useLanguage();
+  
   // Fetch real stats from API
   const { data: apiStats, isLoading, error } = useQuery<StatsData>({
     queryKey: ['/api/dashboard/stats'],
@@ -103,7 +106,7 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
       <Card>
         <CardContent className="p-6 text-center">
           <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">Unable to load dashboard statistics</p>
+          <p className="text-muted-foreground">{t("components.dashboardStats.loadError", "Unable to load dashboard statistics")}</p>
         </CardContent>
       </Card>
     );
@@ -118,39 +121,39 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
       <StatCard
-        title="Total Claims"
+        title={t("components.dashboardStats.totalClaims", "Total Claims")}
         value={stats.totalClaims.toLocaleString()}
-        subtitle="Across all states"
+        subtitle={t("components.dashboardStats.acrossStates", "Across all states")}
         icon={<FileText className="h-4 w-4" />}
       />
       <StatCard
-        title="Approved Claims"
+        title={t("components.dashboardStats.approvedClaims", "Approved Claims")}
         value={stats.approvedClaims.toLocaleString()}
-        subtitle={`${approvalRate}% approval rate`}
+        subtitle={`${approvalRate}% ${t("components.dashboardStats.approvalRate", "approval rate")}`}
         icon={<CheckCircle2 className="h-4 w-4" />}
       />
       <StatCard
-        title="Pending Review"
+        title={t("components.dashboardStats.pendingReview", "Pending Review")}
         value={pendingTotal.toLocaleString()}
-        subtitle={`${stats.pendingClaims} pending, ${stats.underReviewClaims} under review`}
+        subtitle={`${stats.pendingClaims} ${t("components.dashboardStats.pending", "pending")}, ${stats.underReviewClaims} ${t("components.dashboardStats.underReview", "under review")}`}
         icon={<Clock className="h-4 w-4" />}
       />
       <StatCard
-        title="Rejected Claims"
+        title={t("components.dashboardStats.rejectedClaims", "Rejected Claims")}
         value={stats.rejectedClaims.toLocaleString()}
-        subtitle={`${stats.totalClaims > 0 ? Math.round((stats.rejectedClaims / stats.totalClaims) * 100) : 0}% rejection rate`}
+        subtitle={`${stats.totalClaims > 0 ? Math.round((stats.rejectedClaims / stats.totalClaims) * 100) : 0}% ${t("components.dashboardStats.rejectionRate", "rejection rate")}`}
         icon={<AlertTriangle className="h-4 w-4" />}
       />
       <StatCard
-        title="Forest Area"
+        title={t("components.dashboardStats.forestArea", "Forest Area")}
         value={stats.totalArea}
-        subtitle="Under FRA claims"
+        subtitle={t("components.dashboardStats.underFRAClaims", "Under FRA claims")}
         icon={<MapPin className="h-4 w-4" />}
       />
       <StatCard
-        title="Documents"
+        title={t("components.dashboardStats.documents", "Documents")}
         value={(stats.totalDocuments || 0).toLocaleString()}
-        subtitle={`${processingRate}% processed`}
+        subtitle={`${processingRate}% ${t("components.dashboardStats.processed", "processed")}`}
         icon={<Users className="h-4 w-4" />}
       />
     </div>
