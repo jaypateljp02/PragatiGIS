@@ -6,10 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import AppSidebar from "@/components/AppSidebar";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Dashboard from "@/pages/Dashboard";
 import MapPage from "@/pages/MapPage";
 import DSSPage from "@/pages/DSSPage";
@@ -81,7 +83,10 @@ function AppLayout() {
         <div className="flex flex-col flex-1">
           <header className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 overflow-auto p-6">
             <Router />
@@ -95,14 +100,16 @@ function AppLayout() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WorkflowProvider>
-          <TooltipProvider>
-            <AppLayout />
-            <Toaster />
-          </TooltipProvider>
-        </WorkflowProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <WorkflowProvider>
+            <TooltipProvider>
+              <AppLayout />
+              <Toaster />
+            </TooltipProvider>
+          </WorkflowProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

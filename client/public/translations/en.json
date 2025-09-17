@@ -1,0 +1,74 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "download": "Download",
+    "upload": "Upload",
+    "view": "View",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "header": {
+    "title": "FRA Atlas",
+    "subtitle": "Forest Rights Platform"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signInSubtitle": "Sign In to Continue",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "signingIn": "Signing in...",
+    "loginSuccess": "Login Successful",
+    "welcomeMessage": "Welcome to FRA Atlas Platform",
+    "loginFailed": "Login Failed",
+    "invalidCredentials": "Invalid username or password. Please try again.",
+    "demoCredentials": "Demo Credentials:",
+    "ministry": "Ministry:",
+    "state": "State:",
+    "district": "District:",
+    "village": "Village:"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "claimsDocuments": "Claims & Documents",
+    "stateAnalytics": "State Analytics", 
+    "interactiveMaps": "Interactive Maps",
+    "decisionSupport": "Decision Support",
+    "reports": "Reports",
+    "settings": "Settings",
+    "mainNavigation": "Main Navigation",
+    "quickStats": "Quick Stats"
+  },
+  "dashboard": {
+    "pendingReview": "Pending Review",
+    "processing": "Processing",
+    "approvedToday": "Approved Today"
+  },
+  "loginPage": {
+    "welcomeTitle": "Welcome to FRA Atlas Platform",
+    "description": "Forest Rights Act document management and processing system for India's tribal communities",
+    "useCredentials": "Use your credentials to access the FRA Atlas Platform",
+    "platformFeatures": "Platform Features:",
+    "feature1": "Document processing with OCR support",
+    "feature2": "Geospatial claim visualization", 
+    "feature3": "Multi-language support (Hindi, Odia, Telugu, Bengali, Gujarati)",
+    "feature4": "Role-based access control",
+    "feature5": "Analytics and reporting dashboard",
+    "footerText1": "Serving Madhya Pradesh, Odisha, Telangana, and Tripura",
+    "footerText2": "Ministry of Tribal Affairs, Government of India"
+  }
+}

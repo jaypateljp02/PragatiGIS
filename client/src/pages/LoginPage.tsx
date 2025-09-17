@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function LoginPage() {
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const { login, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -35,15 +38,15 @@ export default function LoginPage() {
     try {
       await login(username.trim(), password);
       toast({
-        title: "Login Successful",
-        description: "Welcome to FRA Atlas Platform",
+        title: t("auth.loginSuccess", "Login Successful"),
+        description: t("auth.welcomeMessage", "Welcome to FRA Atlas Platform"),
       });
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Invalid username or password. Please try again.",
+        title: t("auth.loginFailed", "Login Failed"),
+        description: error.message || t("auth.invalidCredentials", "Invalid username or password. Please try again."),
       });
       setIsLoggingIn(false);
     }
@@ -54,7 +57,7 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("common.loading", "Loading...")}</p>
         </div>
       </div>
     );
@@ -66,9 +69,12 @@ export default function LoginPage() {
       <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <TreePine className="h-8 w-8 text-green-600" />
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">FRA Atlas</span>
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">{t("header.title", "FRA Atlas")}</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}
@@ -82,30 +88,30 @@ export default function LoginPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome to FRA Atlas Platform
+              {t("loginPage.welcomeTitle", "Welcome to FRA Atlas Platform")}
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Forest Rights Act document management and processing system for India's tribal communities
+              {t("loginPage.description", "Forest Rights Act document management and processing system for India's tribal communities")}
             </p>
           </div>
 
           {/* Login Card */}
           <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border border-white/20">
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Sign In to Continue</CardTitle>
+              <CardTitle className="text-xl">{t("auth.signInSubtitle", "Sign In to Continue")}</CardTitle>
               <CardDescription>
-                Use your credentials to access the FRA Atlas Platform
+                {t("loginPage.useCredentials", "Use your credentials to access the FRA Atlas Platform")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Username Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">{t("auth.username", "Username")}</Label>
                   <Input
                     id="username"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder={t("auth.usernamePlaceholder", "Enter your username")}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={isLoggingIn || isLoading}
@@ -116,12 +122,12 @@ export default function LoginPage() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("auth.password", "Password")}</Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t("auth.passwordPlaceholder", "Enter your password")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isLoggingIn || isLoading}
@@ -152,12 +158,12 @@ export default function LoginPage() {
                   {isLoggingIn ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Signing in...
+                      {t("auth.signingIn", "Signing in...")}
                     </>
                   ) : (
                     <>
                       <LogIn className="h-5 w-5 mr-2" />
-                      Sign In
+                      {t("auth.signIn", "Sign In")}
                     </>
                   )}
                 </Button>
@@ -168,12 +174,12 @@ export default function LoginPage() {
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
                   <div className="space-y-2">
-                    <p className="font-semibold">Demo Credentials:</p>
+                    <p className="font-semibold">{t("auth.demoCredentials", "Demo Credentials:")}</p>
                     <div className="text-sm space-y-1">
-                      <p><strong>Ministry:</strong> ministry.admin / admin123</p>
-                      <p><strong>State:</strong> mp.admin / state123</p>
-                      <p><strong>District:</strong> district.officer / district123</p>
-                      <p><strong>Village:</strong> village.officer / village123</p>
+                      <p><strong>{t("auth.ministry", "Ministry")}:</strong> ministry.admin / admin123</p>
+                      <p><strong>{t("auth.state", "State")}:</strong> mp.admin / state123</p>
+                      <p><strong>{t("auth.district", "District")}:</strong> district.officer / district123</p>
+                      <p><strong>{t("auth.village", "Village")}:</strong> village.officer / village123</p>
                     </div>
                   </div>
                 </AlertDescription>
@@ -181,13 +187,13 @@ export default function LoginPage() {
 
               {/* Features List */}
               <div className="mt-6 space-y-3">
-                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Platform Features:</h3>
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{t("loginPage.platformFeatures", "Platform Features:")}</h3>
                 <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                  <li>• Document processing with OCR support</li>
-                  <li>• Geospatial claim visualization</li>
-                  <li>• Multi-language support (Hindi, Odia, Telugu, Bengali, Gujarati)</li>
-                  <li>• Role-based access control</li>
-                  <li>• Analytics and reporting dashboard</li>
+                  <li>• {t("loginPage.feature1", "Document processing with OCR support")}</li>
+                  <li>• {t("loginPage.feature2", "Geospatial claim visualization")}</li>
+                  <li>• {t("loginPage.feature3", "Multi-language support (Hindi, Odia, Telugu, Bengali, Gujarati)")}</li>
+                  <li>• {t("loginPage.feature4", "Role-based access control")}</li>
+                  <li>• {t("loginPage.feature5", "Analytics and reporting dashboard")}</li>
                 </ul>
               </div>
             </CardContent>
@@ -195,8 +201,8 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>Serving Madhya Pradesh, Odisha, Telangana, and Tripura</p>
-            <p className="mt-1">Ministry of Tribal Affairs, Government of India</p>
+            <p>{t("loginPage.footerText1", "Serving Madhya Pradesh, Odisha, Telangana, and Tripura")}</p>
+            <p className="mt-1">{t("loginPage.footerText2", "Ministry of Tribal Affairs, Government of India")}</p>
           </div>
         </div>
       </div>
