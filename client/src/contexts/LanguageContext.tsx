@@ -21,7 +21,7 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('hi');
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
   const [translations, setTranslations] = useState<Record<string, any>>({});
 
   // Load translations when language changes
