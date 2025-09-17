@@ -2,12 +2,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 // Available languages with their codes and names
 export const languages = {
-  en: { name: 'English', nativeName: 'English' },
   hi: { name: 'Hindi', nativeName: 'हिन्दी' },
-  bn: { name: 'Bengali', nativeName: 'বাংলা' },
-  or: { name: 'Odia', nativeName: 'ଓଡ଼ିଆ' },
-  te: { name: 'Telugu', nativeName: 'తెలుగు' },
-  gu: { name: 'Gujarati', nativeName: 'ગુજરાતી' }
+  en: { name: 'English', nativeName: 'English' }
 } as const;
 
 export type LanguageCode = keyof typeof languages;
@@ -25,7 +21,7 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('hi');
   const [translations, setTranslations] = useState<Record<string, any>>({});
 
   // Load translations when language changes
