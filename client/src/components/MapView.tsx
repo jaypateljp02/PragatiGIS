@@ -12,9 +12,9 @@ import { useRef } from "react";
 // Convert Claim to ClaimData format for map component
 const convertClaimToMapData = (claim: Claim) => ({
   ...claim,
-  claimId: claim.id, // Use id as claimId since it's not in the Claim type
-  area: claim.area.toString(), // Convert number to string
-  dateSubmitted: new Date(claim.dateSubmitted),
+  claimId: claim.id || '', // Use id as claimId since it's not in the Claim type
+  area: (claim.area || 0).toString(), // Convert number to string, fallback to 0
+  dateSubmitted: new Date(claim.dateSubmitted || Date.now()),
   // Keep real coordinates from claim data if available
   coordinates: claim.coordinates || undefined
 });

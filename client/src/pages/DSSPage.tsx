@@ -88,9 +88,9 @@ export default function DSSPage() {
   const recommendations = getDSSRecommendations();
 
   const filteredRecommendations = recommendations.filter(rec => {
-    const matchesSearch = rec.claimantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         rec.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         rec.claimId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (rec.claimantName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (rec.location?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (rec.claimId?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesRisk = riskFilter === 'all' || 
                        (riskFilter === 'high' && rec.riskScore >= 60) ||

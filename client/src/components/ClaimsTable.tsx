@@ -54,9 +54,9 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
   const [stateFilter, setStateFilter] = useState<string>('all');
 
   const filteredClaims = claims.filter(claim => {
-    const matchesSearch = claim.claimantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (claim.claimantName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (claim.location?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (claim.id?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || claim.status === statusFilter;
     const matchesState = stateFilter === 'all' || claim.state === stateFilter;
     
