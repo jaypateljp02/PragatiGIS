@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 interface AnalyticsChartsProps {
   claimsByState?: Array<{ name: string; claims: number; approved: number; pending: number; rejected: number; }>;
@@ -17,35 +19,140 @@ export default function AnalyticsCharts({
 }: AnalyticsChartsProps) {
   const { t } = useLanguage();
   
-  // Mock data for demonstration //todo: remove mock functionality
-  const defaultStateData = [
-    { name: 'Madhya Pradesh', claims: 28459, approved: 19232, pending: 6847, rejected: 2380 },
-    { name: 'Maharashtra', claims: 22134, approved: 15698, pending: 4923, rejected: 1513 },
-    { name: 'Odisha', claims: 19876, approved: 13245, pending: 5234, rejected: 1397 },
-    { name: 'Gujarat', claims: 15432, approved: 11087, pending: 3298, rejected: 1047 },
-    { name: 'Telangana', claims: 12987, approved: 9134, pending: 2845, rejected: 1008 },
-    { name: 'Others', claims: 27959, approved: 18836, pending: 7309, rejected: 1814 },
-  ];
+  // Fetch real analytics data from API
+  const { data: claimsData = [], isLoading } = useQuery<any[]>({
+    queryKey: ['/api/claims'],
+    enabled: true,
+  });
 
-  const defaultTrendData = [
-    { month: 'Jan 2024', submitted: 8234, processed: 7892, approved: 6234 },
-    { month: 'Feb 2024', submitted: 9123, processed: 8456, approved: 6789 },
-    { month: 'Mar 2024', submitted: 10245, processed: 9234, approved: 7456 },
-    { month: 'Apr 2024', submitted: 8976, processed: 8123, approved: 6543 },
-    { month: 'May 2024', submitted: 11234, processed: 10456, approved: 8234 },
-    { month: 'Jun 2024', submitted: 12456, processed: 11234, approved: 9123 },
-  ];
+  // Fetch dashboard stats for status distribution
+  const { data: statsData } = useQuery<any>({
+    queryKey: ['/api/dashboard/stats'],
+    enabled: true,
+  });
 
-  const defaultStatusData = [
-    { name: t("components.analyticsCharts.approved", "Approved"), value: 89231, color: '#10b981' },
-    { name: t("components.analyticsCharts.pending", "Pending"), value: 23456, color: '#f59e0b' },
-    { name: t("components.dashboardStats.underReview", "Under Review"), value: 8934, color: '#6b7280' },
-    { name: t("components.analyticsCharts.rejected", "Rejected"), value: 4226, color: '#ef4444' },
-  ];
+  // Transform API data into chart-ready format
+  const stateData = useMemo(() => {
+    if (claimsByState.length > 0) return claimsByState;
+    
+    // Group claims data by state
+    const stateMap = new Map<string, { approved: number; pending: number; rejected: number; total: number }>();
+    
+    claimsData.forEach((claim: any) => {
+      const stateName = claim.state || 'Unknown';
+      if (!stateMap.has(stateName)) {
+        stateMap.set(stateName, { approved: 0, pending: 0, rejected: 0, total: 0 });
+      }
+      
+      const stateStats = stateMap.get(stateName)!;
+      stateStats.total += (claim.ifr_received || 0) + (claim.cfr_received || 0);
+      stateStats.approved += (claim.ifr_titles || 0) + (claim.cfr_titles || 0);
+      stateStats.rejected += (claim.ifr_rejected || 0) + (claim.cfr_rejected || 0);
+      stateStats.pending = stateStats.total - stateStats.approved - stateStats.rejected;
+    });
 
-  const stateData = claimsByState.length > 0 ? claimsByState : defaultStateData;
-  const trendData = monthlyTrends.length > 0 ? monthlyTrends : defaultTrendData;
-  const statusData = statusDistribution.length > 0 ? statusDistribution : defaultStatusData;
+    return Array.from(stateMap.entries())
+      .map(([name, stats]) => ({
+        name,
+        claims: stats.total,
+        approved: stats.approved,
+        pending: Math.max(0, stats.pending),
+        rejected: stats.rejected
+      }))
+      .sort((a, b) => b.claims - a.claims)
+      .slice(0, 6); // Top 6 states
+  }, [claimsData, claimsByState]);
+
+  const trendData = useMemo(() => {
+    if (monthlyTrends.length > 0) return monthlyTrends;
+    
+    // Group claims data by month
+    const monthMap = new Map<string, { submitted: number; processed: number; approved: number }>();
+    
+    claimsData.forEach((claim: any) => {
+      const year = claim.year || new Date().getFullYear();
+      const month = claim.month || new Date().getMonth() + 1;
+      const monthKey = `${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+      
+      if (!monthMap.has(monthKey)) {
+        monthMap.set(monthKey, { submitted: 0, processed: 0, approved: 0 });
+      }
+      
+      const monthStats = monthMap.get(monthKey)!;
+      monthStats.submitted += (claim.ifr_received || 0) + (claim.cfr_received || 0);
+      monthStats.approved += (claim.ifr_titles || 0) + (claim.cfr_titles || 0);
+      monthStats.processed = monthStats.submitted; // Assume all submitted are processed
+    });
+
+    return Array.from(monthMap.entries())
+      .map(([month, stats]) => ({ month, ...stats }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+      .slice(-6); // Last 6 months
+  }, [claimsData, monthlyTrends]);
+
+  const statusData = useMemo(() => {
+    if (statusDistribution.length > 0) return statusDistribution;
+    
+    // Use stats data if available, otherwise calculate from claims data
+    if (statsData && typeof statsData === 'object') {
+      return [
+        { 
+          name: t("components.analyticsCharts.approved", "Approved"), 
+          value: statsData.approvedClaims || 0, 
+          color: '#10b981' 
+        },
+        { 
+          name: t("components.analyticsCharts.pending", "Pending"), 
+          value: statsData.pendingClaims || 0, 
+          color: '#f59e0b' 
+        },
+        { 
+          name: t("components.dashboardStats.underReview", "Under Review"), 
+          value: statsData.underReviewClaims || 0, 
+          color: '#6b7280' 
+        },
+        { 
+          name: t("components.analyticsCharts.rejected", "Rejected"), 
+          value: statsData.rejectedClaims || 0, 
+          color: '#ef4444' 
+        },
+      ].filter(item => item.value > 0);
+    }
+    
+    // Fallback: calculate from claims data
+    const totals = claimsData.reduce((acc: any, claim: any) => {
+      const claimApproved = (claim.ifr_titles || 0) + (claim.cfr_titles || 0);
+      const claimRejected = (claim.ifr_rejected || 0) + (claim.cfr_rejected || 0);
+      const claimTotal = (claim.ifr_received || 0) + (claim.cfr_received || 0);
+      const claimPending = Math.max(0, claimTotal - claimApproved - claimRejected);
+      
+      acc.approved += claimApproved;
+      acc.rejected += claimRejected;
+      acc.pending += claimPending;
+      return acc;
+    }, { approved: 0, pending: 0, rejected: 0, underReview: 0 });
+
+    return [
+      { name: t("components.analyticsCharts.approved", "Approved"), value: totals.approved, color: '#10b981' },
+      { name: t("components.analyticsCharts.pending", "Pending"), value: totals.pending, color: '#f59e0b' },
+      { name: t("components.analyticsCharts.rejected", "Rejected"), value: totals.rejected, color: '#ef4444' },
+    ].filter(item => item.value > 0);
+  }, [claimsData, statusDistribution, statsData, t]);
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="md:col-span-2">
+          <CardContent className="flex items-center justify-center h-48">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-muted-foreground">{t("components.analyticsCharts.loading", "Loading analytics...")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
