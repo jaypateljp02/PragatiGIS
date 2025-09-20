@@ -271,25 +271,43 @@ export default function DocumentWorkflowPage() {
         // Update process step progress
         if (processedDocs > 0) {
           const processProgress = Math.round((processedDocs / totalDocs) * 100);
-          processStep.setData({ 
+          const newProcessData = { 
             totalDocuments: totalDocs, 
             processedDocuments: processedDocs,
             progress: processProgress
-          });
+          };
+          
+          // Only update if data has changed
+          const currentProcessData = processStep.data;
+          if (!currentProcessData || 
+              currentProcessData.totalDocuments !== totalDocs ||
+              currentProcessData.processedDocuments !== processedDocs ||
+              currentProcessData.progress !== processProgress) {
+            processStep.setData(newProcessData);
+          }
         }
         
         // Update review step progress
         if (reviewedDocs > 0) {
           const reviewProgress = Math.round((reviewedDocs / totalDocs) * 100);
-          reviewStep.setData({
+          const newReviewData = {
             totalDocuments: totalDocs,
             reviewedDocuments: reviewedDocs,
             progress: reviewProgress
-          });
+          };
+          
+          // Only update if data has changed
+          const currentReviewData = reviewStep.data;
+          if (!currentReviewData ||
+              currentReviewData.totalDocuments !== totalDocs ||
+              currentReviewData.reviewedDocuments !== reviewedDocs ||
+              currentReviewData.progress !== reviewProgress) {
+            reviewStep.setData(newReviewData);
+          }
         }
       }
     }
-  }, [documents, currentWorkflow, processStep, reviewStep]);
+  }, [documents, currentWorkflow]);
 
   const handleCreateWorkflow = async () => {
     try {
