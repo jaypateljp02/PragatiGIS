@@ -1685,7 +1685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Real Data Import Routes
   const dataImportService = new DataImportService(storage);
-  const govApiService = new GovernmentAPIService(storage);
+  const govApiService = new GovernmentAPIService(storage, {
+    dataGovInApiKey: process.env.DATA_GOV_IN_API_KEY
+  });
 
   // Import real FRA claims from CSV
   app.post("/api/admin/import-claims", requireAuth, requireRole('ministry', 'state'), async (req: any, res: any) => {
