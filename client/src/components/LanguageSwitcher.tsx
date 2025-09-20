@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { Globe, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
 import { useLanguage, languages, LanguageCode } from "@/contexts/LanguageContext";
 
 export default function LanguageSwitcher() {
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage, setLanguage, isLoading } = useLanguage();
 
   return (
     <DropdownMenu>
@@ -19,8 +19,13 @@ export default function LanguageSwitcher() {
           size="icon" 
           className="h-9 w-9"
           data-testid="button-language-switcher"
+          disabled={isLoading}
         >
-          <Globe className="h-4 w-4" />
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Globe className="h-4 w-4" />
+          )}
           <span className="sr-only">Switch language</span>
         </Button>
       </DropdownMenuTrigger>
@@ -33,9 +38,18 @@ export default function LanguageSwitcher() {
               currentLanguage === code ? "bg-accent" : ""
             }`}
             data-testid={`language-option-${code}`}
+            disabled={isLoading}
           >
             <div className="flex items-center justify-between w-full">
-              <span className="text-sm font-medium">{language.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{language.name}</span>
+                {currentLanguage === code && !isLoading && (
+                  <Check className="h-3 w-3 text-green-600" />
+                )}
+                {currentLanguage === code && isLoading && (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                )}
+              </div>
               <span className="text-sm text-muted-foreground ml-2">
                 {language.nativeName}
               </span>

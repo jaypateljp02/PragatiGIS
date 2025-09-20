@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback, useRef } from 'react';
 
 // Available languages with their codes and names
 export const languages = {
@@ -12,6 +12,7 @@ interface LanguageContextType {
   currentLanguage: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
   t: (key: string, fallback?: string) => string;
+  isLoading: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -20,55 +21,124 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
-export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
-  const [translations, setTranslations] = useState<Record<string, any>>({});
+// Translation cache to avoid refetching
+const translationCache = new Map<LanguageCode, Record<string, any>>();
 
-  // Load translations when language changes
-  useEffect(() => {
-    const loadTranslations = async () => {
-      try {
-        const response = await fetch(`/translations/${currentLanguage}.json`);
-        if (response.ok) {
-          const data = await response.json();
+// Helper function to get initial language from localStorage
+const getInitialLanguage = (): LanguageCode => {
+  const savedLanguage = localStorage.getItem('fra-atlas-language') as LanguageCode;
+  return (savedLanguage && languages[savedLanguage]) ? savedLanguage : 'en';
+};
+
+export function LanguageProvider({ children }: LanguageProviderProps) {
+  // Initialize with saved language to avoid double fetch
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(getInitialLanguage);
+  const [translations, setTranslations] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Track current request to prevent race conditions
+  const currentRequestRef = useRef<number>(0);
+
+  // Load translations with caching and race condition protection
+  const loadTranslations = useCallback(async (language: LanguageCode) => {
+    // Generate unique request ID
+    const requestId = ++currentRequestRef.current;
+    
+    // Check cache first
+    if (translationCache.has(language)) {
+      // Only update if this is still the latest request
+      if (requestId === currentRequestRef.current) {
+        const cachedTranslations = translationCache.get(language)!;
+        setTranslations(cachedTranslations);
+      }
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/translations/${language}.json`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Only update if this is still the latest request
+        if (requestId === currentRequestRef.current) {
+          translationCache.set(language, data);
           setTranslations(data);
         }
-      } catch (error) {
-        console.error('Failed to load translations:', error);
+      } else {
+        console.error(`Failed to load ${language} translations:`, response.status);
       }
-    };
-
-    loadTranslations();
-  }, [currentLanguage]);
-
-  // Load saved language preference
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('fra-atlas-language') as LanguageCode;
-    if (savedLanguage && languages[savedLanguage]) {
-      setCurrentLanguage(savedLanguage);
+    } catch (error) {
+      console.error(`Failed to load ${language} translations:`, error);
+    } finally {
+      // Only clear loading if this is still the latest request
+      if (requestId === currentRequestRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
-  const setLanguage = (language: LanguageCode) => {
-    setCurrentLanguage(language);
-    localStorage.setItem('fra-atlas-language', language);
-  };
+  // Load translations when language changes
+  useEffect(() => {
+    loadTranslations(currentLanguage);
+  }, [currentLanguage, loadTranslations]);
 
-  // Translation function with nested key support
-  const t = (key: string, fallback?: string): string => {
-    const keys = key.split('.');
-    let value = translations;
-    
-    for (const k of keys) {
-      value = value?.[k];
-      if (value === undefined) break;
+  // Preload all translations on first load
+  useEffect(() => {
+    const preloadTranslations = async () => {
+      // Preload both languages in the background
+      for (const lang of Object.keys(languages) as LanguageCode[]) {
+        if (!translationCache.has(lang)) {
+          try {
+            const response = await fetch(`/translations/${lang}.json`);
+            if (response.ok) {
+              const data = await response.json();
+              translationCache.set(lang, data);
+            }
+          } catch (error) {
+            // Silent fail for preloading
+            console.debug(`Failed to preload ${lang} translations:`, error);
+          }
+        }
+      }
+    };
+
+    // Preload after a short delay to not block initial render
+    const timeoutId = setTimeout(preloadTranslations, 100);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const setLanguage = useCallback((language: LanguageCode) => {
+    if (language !== currentLanguage) {
+      setCurrentLanguage(language);
+      localStorage.setItem('fra-atlas-language', language);
     }
-    
-    return typeof value === 'string' ? value : fallback || key;
-  };
+  }, [currentLanguage]);
+
+  // Memoized translation function with nested key support
+  const t = useMemo(() => {
+    return (key: string, fallback?: string): string => {
+      const keys = key.split('.');
+      let value = translations;
+      
+      for (const k of keys) {
+        value = value?.[k];
+        if (value === undefined) break;
+      }
+      
+      return typeof value === 'string' ? value : fallback || key;
+    };
+  }, [translations]);
+
+  const contextValue = useMemo(() => ({
+    currentLanguage,
+    setLanguage,
+    t,
+    isLoading
+  }), [currentLanguage, setLanguage, t, isLoading]);
 
   return (
-    <LanguageContext.Provider value={{ currentLanguage, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
