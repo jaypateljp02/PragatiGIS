@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AnalyticsChartsProps {
   claimsByState?: Array<{ name: string; claims: number; approved: number; pending: number; rejected: number; }>;
@@ -14,6 +15,7 @@ export default function AnalyticsCharts({
   monthlyTrends = [],
   statusDistribution = [] 
 }: AnalyticsChartsProps) {
+  const { t } = useLanguage();
   
   // Mock data for demonstration //todo: remove mock functionality
   const defaultStateData = [
@@ -35,10 +37,10 @@ export default function AnalyticsCharts({
   ];
 
   const defaultStatusData = [
-    { name: 'Approved', value: 89231, color: '#10b981' },
-    { name: 'Pending', value: 23456, color: '#f59e0b' },
-    { name: 'Under Review', value: 8934, color: '#6b7280' },
-    { name: 'Rejected', value: 4226, color: '#ef4444' },
+    { name: t("components.analyticsCharts.approved", "Approved"), value: 89231, color: '#10b981' },
+    { name: t("components.analyticsCharts.pending", "Pending"), value: 23456, color: '#f59e0b' },
+    { name: t("components.dashboardStats.underReview", "Under Review"), value: 8934, color: '#6b7280' },
+    { name: t("components.analyticsCharts.rejected", "Rejected"), value: 4226, color: '#ef4444' },
   ];
 
   const stateData = claimsByState.length > 0 ? claimsByState : defaultStateData;
@@ -50,9 +52,9 @@ export default function AnalyticsCharts({
       {/* Claims by State */}
       <Card className="md:col-span-2" data-testid="chart-claims-by-state">
         <CardHeader>
-          <CardTitle>Claims by State</CardTitle>
+          <CardTitle>{t("components.analyticsCharts.claimsByStateTitle", "Claims by State")}</CardTitle>
           <CardDescription>
-            Distribution of FRA claims across major states
+            {t("components.analyticsCharts.claimsByStateDescription", "Distribution of FRA claims across major states")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -62,9 +64,9 @@ export default function AnalyticsCharts({
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="approved" stackId="a" fill="hsl(var(--chart-3))" name="Approved" />
-              <Bar dataKey="pending" stackId="a" fill="hsl(var(--chart-4))" name="Pending" />
-              <Bar dataKey="rejected" stackId="a" fill="hsl(var(--destructive))" name="Rejected" />
+              <Bar dataKey="approved" stackId="a" fill="hsl(var(--chart-3))" name={t("components.analyticsCharts.approved", "Approved")} />
+              <Bar dataKey="pending" stackId="a" fill="hsl(var(--chart-4))" name={t("components.analyticsCharts.pending", "Pending")} />
+              <Bar dataKey="rejected" stackId="a" fill="hsl(var(--destructive))" name={t("components.analyticsCharts.rejected", "Rejected")} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -73,9 +75,9 @@ export default function AnalyticsCharts({
       {/* Status Distribution */}
       <Card data-testid="chart-status-distribution">
         <CardHeader>
-          <CardTitle>Claim Status Distribution</CardTitle>
+          <CardTitle>{t("components.analyticsCharts.statusDistributionTitle", "Claim Status Distribution")}</CardTitle>
           <CardDescription>
-            Overall distribution of claim statuses
+            {t("components.analyticsCharts.statusDistributionDescription", "Overall distribution of claim statuses")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -104,9 +106,9 @@ export default function AnalyticsCharts({
       {/* Monthly Trends */}
       <Card data-testid="chart-monthly-trends">
         <CardHeader>
-          <CardTitle>Monthly Processing Trends</CardTitle>
+          <CardTitle>{t("components.analyticsCharts.monthlyTrendsTitle", "Monthly Processing Trends")}</CardTitle>
           <CardDescription>
-            Claims submission and processing over time
+            {t("components.analyticsCharts.monthlyTrendsDescription", "Claims submission and processing over time")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,21 +123,21 @@ export default function AnalyticsCharts({
                 dataKey="submitted" 
                 stroke="hsl(var(--chart-1))" 
                 strokeWidth={2}
-                name="Submitted"
+                name={t("components.analyticsCharts.submitted", "Submitted")}
               />
               <Line 
                 type="monotone" 
                 dataKey="processed" 
                 stroke="hsl(var(--chart-2))" 
                 strokeWidth={2}
-                name="Processed"
+                name={t("components.analyticsCharts.processed", "Processed")}
               />
               <Line 
                 type="monotone" 
                 dataKey="approved" 
                 stroke="hsl(var(--chart-3))" 
                 strokeWidth={2}
-                name="Approved"
+                name={t("components.analyticsCharts.approved", "Approved")}
               />
             </LineChart>
           </ResponsiveContainer>

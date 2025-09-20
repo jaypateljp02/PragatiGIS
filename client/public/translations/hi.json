@@ -166,6 +166,19 @@
       "community": "सामुदायिक",
       "noClaims": "आपके मानदंडों से मेल खाने वाले कोई दावे नहीं मिले"
     },
+    "analyticsCharts": {
+      "claimsByStateTitle": "राज्य द्वारा दावे",
+      "claimsByStateDescription": "प्रमुख राज्यों में एफआरए दावों का वितरण",
+      "statusDistributionTitle": "दावा स्थिति वितरण",
+      "statusDistributionDescription": "दावा स्थितियों का समग्र वितरण",
+      "monthlyTrendsTitle": "मासिक प्रसंस्करण ट्रेंड",
+      "monthlyTrendsDescription": "समय के साथ दावा प्रस्तुति और प्रसंस्करण",
+      "approved": "स्वीकृत",
+      "pending": "लंबित",
+      "rejected": "अस्वीकृत",
+      "submitted": "प्रस्तुत",
+      "processed": "संसाधित"
+    },
     "dashboardStats": {
       "loadError": "डैशबोर्ड आंकड़े लोड करने में असमर्थ",
       "totalClaims": "कुल दावे",
