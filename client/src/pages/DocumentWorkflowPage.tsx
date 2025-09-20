@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OCRDocument {
   id: string;
@@ -40,6 +41,7 @@ interface OCRDocument {
 }
 
 export default function DocumentWorkflowPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("upload");
   const [selectedDoc, setSelectedDoc] = useState<OCRDocument | null>(null);
   const [editedText, setEditedText] = useState("");
@@ -221,8 +223,8 @@ export default function DocumentWorkflowPage() {
       });
       toast({
         variant: "destructive",
-        title: "Document Rejected",
-        description: "OCR data has been rejected and marked for re-processing.",
+        title: t("pages.documentWorkflow.documentRejected", "Document Rejected"),
+        description: t("pages.documentWorkflow.rejectedMessage", "OCR data has been rejected and marked for re-processing."),
       });
     } catch (error) {
       console.error('Rejection failed:', error);
@@ -297,8 +299,8 @@ export default function DocumentWorkflowPage() {
       );
       setShowWorkflowIntegration(false);
       toast({
-        title: "Workflow Started",
-        description: "Document processing workflow has been created.",
+        title: t("pages.documentWorkflow.workflowStarted", "Workflow Started"),
+        description: t("pages.documentWorkflow.workflowMessage", "Document processing workflow has been created."),
       });
     } catch (error) {
       console.error('Failed to create workflow:', error);
@@ -332,9 +334,9 @@ export default function DocumentWorkflowPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents & Claims Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("pages.documentWorkflow.title", "Documents & Claims Management")}</h1>
           <p className="text-muted-foreground">
-            Upload FRA documents, review OCR results, and manage claims in one unified workflow
+            {t("pages.documentWorkflow.subtitle", "Upload FRA documents, review OCR results, and manage claims in one unified workflow")}
           </p>
         </div>
         
@@ -443,7 +445,7 @@ export default function DocumentWorkflowPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
-            Upload Documents
+            {t("pages.documentWorkflow.uploadDocuments", "Upload Documents")}
           </TabsTrigger>
           <TabsTrigger value="review" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
@@ -451,7 +453,7 @@ export default function DocumentWorkflowPage() {
           </TabsTrigger>
           <TabsTrigger value="claims" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Claims Management
+            {t("pages.documentWorkflow.claimsManagement", "Claims Management")}
           </TabsTrigger>
         </TabsList>
 
@@ -463,12 +465,12 @@ export default function DocumentWorkflowPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">1. Upload Documents</CardTitle>
+                  <CardTitle className="text-lg">1. {t("pages.documentWorkflow.uploadDocuments", "Upload Documents")}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Support for PDF, JPEG, PNG, TIFF formats. Multi-language documents accepted.
+                  {t("pages.documentWorkflow.uploadDescription", "Support for PDF, JPEG, PNG, TIFF formats. Multi-language documents accepted.")}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -477,12 +479,12 @@ export default function DocumentWorkflowPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-chart-2" />
-                  <CardTitle className="text-lg">2. OCR Processing</CardTitle>
+                  <CardTitle className="text-lg">2. {t("pages.documentWorkflow.ocrProcessing", "OCR Processing")}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Automated text extraction in Hindi, Odia, Telugu, Bengali, Gujarati, and English.
+                  {t("pages.documentWorkflow.ocrDescription", "Automated text extraction in Hindi, Odia, Telugu, Bengali, Gujarati, and English.")}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -491,12 +493,12 @@ export default function DocumentWorkflowPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-chart-3" />
-                  <CardTitle className="text-lg">3. Data Extraction</CardTitle>
+                  <CardTitle className="text-lg">3. {t("pages.documentWorkflow.dataExtraction", "Data Extraction")}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Extract claim IDs, names, locations, areas, and other structured data.
+                  {t("pages.documentWorkflow.extractionDescription", "Extract claim IDs, names, locations, areas, and other structured data.")}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -523,7 +525,7 @@ export default function DocumentWorkflowPage() {
             <div className="flex items-center justify-center min-h-96">
               <div className="text-center space-y-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-muted-foreground">Loading OCR documents...</p>
+                <p className="text-muted-foreground">{t("pages.documentWorkflow.loadingDocuments", "Loading OCR documents...")}</p>
               </div>
             </div>
           ) : (
@@ -533,10 +535,10 @@ export default function DocumentWorkflowPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    Documents ({documents.length})
+                    {t("pages.documentWorkflow.documents", "Documents")} ({documents.length})
                   </CardTitle>
                   <CardDescription>
-                    Click a document to review its OCR results
+                    {t("pages.documentWorkflow.clickToReview", "Click a document to review its OCR results")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -566,7 +568,7 @@ export default function DocumentWorkflowPage() {
                           
                           <div className="mt-2 flex items-center justify-between">
                             <span className={`text-xs font-medium ${getConfidenceColor(doc.confidence)}`}>
-                              {doc.confidence}% confident
+                              {doc.confidence}{t("pages.documentWorkflow.confident", "% confident")}
                             </span>
                             <Progress value={doc.confidence} className="w-16 h-1" />
                           </div>
@@ -715,9 +717,9 @@ export default function DocumentWorkflowPage() {
                     <CardContent className="pt-6">
                       <div className="text-center py-12">
                         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium">Select a document to review</h3>
+                        <h3 className="text-lg font-medium">{t("pages.documentWorkflow.selectDocumentToReview", "Select a document to review")}</h3>
                         <p className="text-muted-foreground">
-                          Choose a document from the list to view and edit its OCR results
+                          {t("pages.documentWorkflow.chooseFromList", "Choose a document from the list to view and edit its OCR results")}
                         </p>
                       </div>
                     </CardContent>
@@ -734,33 +736,33 @@ export default function DocumentWorkflowPage() {
             <div className="flex items-center justify-center min-h-96" data-testid="claims-loading">
               <div className="text-center space-y-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-muted-foreground">Loading claims data...</p>
+                <p className="text-muted-foreground">{t("pages.documentWorkflow.loadingClaims", "Loading claims data...")}</p>
               </div>
             </div>
           ) : claimsError ? (
             <div className="space-y-4" data-testid="claims-error">
               <Alert variant="destructive">
                 <AlertDescription>
-                  Failed to load claims data. Please check your authentication and try again.
+                  {t("pages.documentWorkflow.failedToLoad", "Failed to load claims data. Please check your authentication and try again.")}
                 </AlertDescription>
               </Alert>
               <Button 
                 onClick={() => window.location.reload()} 
                 variant="outline"
               >
-                Retry
+                {t("pages.documentWorkflow.retry", "Retry")}
               </Button>
             </div>
           ) : (
             <div data-testid="claims-page" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">Claims Management</h2>
-                  <p className="text-muted-foreground">Manage and review FRA claims across states</p>
+                  <h2 className="text-2xl font-bold">{t("pages.documentWorkflow.claimsManagement", "Claims Management")}</h2>
+                  <p className="text-muted-foreground">{t("pages.documentWorkflow.manageClaims", "Manage and review FRA claims across states")}</p>
                 </div>
                 <Button onClick={() => setLocation('/bulk-upload')} data-testid="button-bulk-upload">
                   <Upload className="h-4 w-4 mr-2" />
-                  Bulk Upload
+                  {t("pages.documentWorkflow.bulkUpload", "Bulk Upload")}
                 </Button>
               </div>
               

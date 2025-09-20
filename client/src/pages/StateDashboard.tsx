@@ -144,50 +144,50 @@ export default function StateDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Claims</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("pages.stateDashboard.totalClaims", "Total Claims")}</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClaims.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              0% change from last month
+              0{t("pages.stateDashboard.changeFromLastMonth", "% change from last month")}
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("pages.stateDashboard.approvalRate", "Approval Rate")}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-chart-3" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-chart-3">{approvalRate}%</div>
             <p className="text-xs text-muted-foreground">
-              {stats.approvedClaims.toLocaleString()} approved
+              {stats.approvedClaims.toLocaleString()} {t("pages.stateDashboard.approved", "approved")}
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Area</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("pages.stateDashboard.totalArea", "Total Area")}</CardTitle>
             <TreePine className="h-4 w-4 text-chart-1" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalArea.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">hectares recognized</p>
+            <p className="text-xs text-muted-foreground">{t("pages.stateDashboard.hectaresRecognized", "hectares recognized")}</p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Processing Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("pages.stateDashboard.processingTime", "Processing Time")}</CardTitle>
             <Clock className="h-4 w-4 text-chart-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgProcessingTime} days</div>
+            <div className="text-2xl font-bold">{avgProcessingTime} {t("pages.stateDashboard.days", "days")}</div>
             <p className="text-xs text-muted-foreground">
-              average processing
+              {t("pages.stateDashboard.avgProcessing", "average processing")}
             </p>
           </CardContent>
         </Card>
@@ -195,10 +195,10 @@ export default function StateDashboard() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">State Overview</TabsTrigger>
-          <TabsTrigger value="districts">District Analysis</TabsTrigger>
-          <TabsTrigger value="demographics">Demographics</TabsTrigger>
-          <TabsTrigger value="initiatives">Initiatives</TabsTrigger>
+          <TabsTrigger value="overview">{t("pages.stateDashboard.stateOverview", "State Overview")}</TabsTrigger>
+          <TabsTrigger value="districts">{t("pages.stateDashboard.districtAnalysis", "District Analysis")}</TabsTrigger>
+          <TabsTrigger value="demographics">{t("pages.stateDashboard.demographics", "Demographics")}</TabsTrigger>
+          <TabsTrigger value="initiatives">{t("pages.stateDashboard.initiatives", "Initiatives")}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -209,7 +209,7 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Claims Status Distribution
+                  {t("pages.stateDashboard.claimsStatusDistribution", "Claims Status Distribution")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -217,7 +217,7 @@ export default function StateDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-chart-3"></div>
-                      Approved
+                      {t("pages.stateDashboard.approved", "Approved")}
                     </span>
                     <span className="font-medium">{stats.approvedClaims.toLocaleString()}</span>
                   </div>
@@ -228,7 +228,7 @@ export default function StateDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-chart-4"></div>
-                      Pending
+                      {t("pages.stateDashboard.pending", "Pending")}
                     </span>
                     <span className="font-medium">{stats.pendingClaims.toLocaleString()}</span>
                   </div>
@@ -239,7 +239,7 @@ export default function StateDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-chart-2"></div>
-                      Processing
+                      {t("pages.stateDashboard.processing", "Processing")}
                     </span>
                     <span className="font-medium">{stats.processing.toLocaleString()}</span>
                   </div>
@@ -250,7 +250,7 @@ export default function StateDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-destructive"></div>
-                      Rejected
+                      {t("pages.stateDashboard.rejected", "Rejected")}
                     </span>
                     <span className="font-medium">{stats.rejectedClaims.toLocaleString()}</span>
                   </div>
@@ -264,7 +264,7 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Recent Updates
+                  {t("pages.stateDashboard.recentUpdates", "Recent Updates")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -291,10 +291,10 @@ export default function StateDashboard() {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        {district.name} District
+                        {district.name} {t("pages.stateDashboard.district", "District")}
                       </CardTitle>
                       <CardDescription>
-                        {district.population.toLocaleString()} population • {district.area.toLocaleString()} ha area
+                        {district.population.toLocaleString()} {t("pages.stateDashboard.population", "population")} • {district.area.toLocaleString()} ha {t("pages.stateDashboard.area", "area")}
                       </CardDescription>
                     </div>
                     <Badge variant="outline">
@@ -306,15 +306,15 @@ export default function StateDashboard() {
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">{district.totalClaims}</div>
-                      <p className="text-xs text-muted-foreground">Total Claims</p>
+                      <p className="text-xs text-muted-foreground">{t("pages.stateDashboard.totalClaimsCol", "Total Claims")}</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-chart-3">{district.approvedClaims}</div>
-                      <p className="text-xs text-muted-foreground">Approved</p>
+                      <p className="text-xs text-muted-foreground">{t("pages.stateDashboard.approved", "Approved")}</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-chart-4">{district.pendingClaims}</div>
-                      <p className="text-xs text-muted-foreground">Pending</p>
+                      <p className="text-xs text-muted-foreground">{t("pages.stateDashboard.pendingCol", "Pending")}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -330,13 +330,13 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Tribal Population
+                  {t("pages.stateDashboard.tribalPopulation", "Tribal Population")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{stateData.demographics.tribalPopulation.toLocaleString()}</div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Across {stateData.demographics.tribalDistricts} tribal districts
+                  {t("pages.stateDashboard.acrossTribalDistricts", "Across")} {stateData.demographics.tribalDistricts} {t("pages.stateDashboard.acrossTribalDistricts", "tribal districts")}
                 </p>
               </CardContent>
             </Card>
@@ -345,13 +345,13 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TreePine className="h-5 w-5" />
-                  Forest Cover
+                  {t("pages.stateDashboard.forestCover", "Forest Cover")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{stateData.demographics.forestCover.toLocaleString()}</div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Square kilometers
+                  {t("pages.stateDashboard.squareKilometers", "Square kilometers")}
                 </p>
               </CardContent>
             </Card>
@@ -360,13 +360,13 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Coverage
+                  {t("pages.stateDashboard.coverage", "Coverage")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{stats.villages}</div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Villages covered
+                  {t("pages.stateDashboard.villagesCovered", "Villages covered")}
                 </p>
               </CardContent>
             </Card>
@@ -380,9 +380,9 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-chart-3" />
-                  Key Initiatives
+                  {t("pages.stateDashboard.keyInitiatives", "Key Initiatives")}
                 </CardTitle>
-                <CardDescription>Current programs and achievements</CardDescription>
+                <CardDescription>{t("pages.stateDashboard.currentPrograms", "Current programs and achievements")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -400,9 +400,9 @@ export default function StateDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-chart-4" />
-                  Current Challenges
+                  {t("pages.stateDashboard.currentChallenges", "Current Challenges")}
                 </CardTitle>
-                <CardDescription>Areas requiring focused attention</CardDescription>
+                <CardDescription>{t("pages.stateDashboard.focusedAttention", "Areas requiring focused attention")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
