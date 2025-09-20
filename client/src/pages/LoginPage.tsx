@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, TreePine, LogIn, Eye, EyeOff } from "lucide-react";
+import { Shield, LogIn, Eye, EyeOff } from "lucide-react";
+import logoImage from "@assets/logobg_1758394737092.png";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
@@ -68,7 +69,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <TreePine className="h-8 w-8 text-green-600" />
+          <img src={logoImage} alt="FRA Atlas Logo" className="h-8 w-8" />
           <span className="text-2xl font-bold text-gray-900 dark:text-white">{t("header.title", "FRA Atlas")}</span>
         </div>
         <div className="flex items-center gap-2">

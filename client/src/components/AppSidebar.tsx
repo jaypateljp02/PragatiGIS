@@ -10,7 +10,8 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
-import { BarChart3, FileText, Map, Upload, Settings, TreePine, Eye, CheckSquare, Brain, Download } from "lucide-react";
+import { BarChart3, FileText, Map, Upload, Settings, Eye, CheckSquare, Brain, Download } from "lucide-react";
+import logoImage from "@assets/logobg_1758394737092.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -74,8 +75,8 @@ export default function AppSidebar() {
     <Sidebar data-testid="app-sidebar">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-            <TreePine className="h-4 w-4 text-primary-foreground" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-md overflow-hidden">
+            <img src={logoImage} alt="FRA Atlas Logo" className="h-8 w-8 object-contain" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">{t("header.title", "FRA Atlas")}</h2>
