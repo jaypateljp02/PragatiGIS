@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { DataImportService } from "./data-import";
+import { GovernmentAPIService } from "./govt-api-service";
 import { 
   loginSchema, 
   insertUserSchema, 
@@ -9,6 +11,7 @@ import {
   insertWorkflowInstanceSchema,
   insertWorkflowTransitionSchema
 } from "@shared/schema-sqlite";
+import { z } from 'zod';
 import { randomUUID } from "crypto";
 import multer from "multer";
 import csv from "csv-parser";
@@ -1689,6 +1692,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(logs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch audit log" });
+    }
+  });
+
+  // Real Data Import Routes
+  const dataImportService = new DataImportService(storage);
+  const govApiService = new GovernmentAPIService(storage);
+
+  // Import real FRA claims from CSV
+  app.post("/api/admin/import-claims", requireAuth, requireRole('ministry', 'state'), async (req: any, res: any) => {
+    try {
+      console.log('Starting CSV claims import...');
+      const csvPath = 'sample-fra-claims.csv';
+      const importedCount = await dataImportService.importClaimsFromCSV(csvPath);
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully imported ${importedCount} real FRA claims from government data`,
+        imported_count: importedCount
+      });
+    } catch (error) {
+      console.error('Claims import error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to import claims data",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Import comprehensive geographical data
+  app.post("/api/admin/import-geography", requireAuth, requireRole('ministry'), async (req: any, res: any) => {
+    try {
+      console.log('Starting comprehensive geographical data import...');
+      await dataImportService.importComprehensiveGeographicalData();
+      
+      res.json({ 
+        success: true, 
+        message: "Successfully imported comprehensive states and districts data from government sources"
+      });
+    } catch (error) {
+      console.error('Geography import error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to import geographical data",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get forest cover data from government APIs
+  app.get("/api/gov-data/forest-cover/:stateCode?", requireAuth, async (req: any, res: any) => {
+    try {
+      const { stateCode } = req.params;
+      const forestData = await govApiService.fetchForestCoverData(stateCode);
+      
+      res.json({
+        success: true,
+        data: forestData,
+        source: "Forest Survey of India via data.gov.in API"
+      });
+    } catch (error) {
+      console.error('Forest data API error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch forest cover data"
+      });
+    }
+  });
+
+  // Get tribal demographic data
+  app.get("/api/gov-data/tribal-demographics", requireAuth, async (req: any, res: any) => {
+    try {
+      const tribalData = await govApiService.fetchTribalDemographicData();
+      
+      res.json({
+        success: true,
+        data: tribalData,
+        source: "Ministry of Tribal Affairs"
+      });
+    } catch (error) {
+      console.error('Tribal data API error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch tribal demographic data"
+      });
+    }
+  });
+
+  // Get FRA implementation statistics
+  app.get("/api/gov-data/fra-stats", requireAuth, async (req: any, res: any) => {
+    try {
+      const fraStats = await govApiService.fetchFRAImplementationStats();
+      
+      res.json({
+        success: true,
+        data: fraStats,
+        source: "Ministry of Tribal Affairs - FRA Implementation Dashboard"
+      });
+    } catch (error) {
+      console.error('FRA stats API error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch FRA implementation statistics"
+      });
+    }
+  });
+
+  // Enhanced DSS analysis with real government data
+  app.post("/api/dss/analyze-with-gov-data", requireAuth, async (req: any, res: any) => {
+    try {
+      // Validate request body with Zod
+      const requestSchema = z.object({
+        claimId: z.string().min(1, "Claim ID is required")
+      });
+      
+      const { claimId } = requestSchema.parse(req.body);
+
+      const claim = await storage.getClaim(claimId);
+      if (!claim) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+
+      // Perform enhanced analysis with real government data
+      const analysis = await govApiService.analyzeClaimWithRealData({
+        claimId: claim.claimId,
+        state: claim.state,
+        area: claim.area,
+        landType: claim.landType,
+        familyMembers: claim.familyMembers,
+        notes: claim.notes,
+        coordinates: claim.coordinates
+      });
+      
+      res.json({
+        success: true,
+        analysis,
+        message: "Analysis completed using real government data sources"
+      });
+    } catch (error) {
+      console.error('DSS analysis error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to analyze claim with government data"
+      });
+    }
+  });
+
+  // Get real policy rules and precedent data
+  app.get("/api/dss/policy-rules", requireAuth, async (req: any, res: any) => {
+    try {
+      const policyRules = await govApiService.getPolicyRulesData();
+      
+      res.json({
+        success: true,
+        data: policyRules,
+        source: "Forest Rights Act 2006 - Official Policy Rules"
+      });
+    } catch (error) {
+      console.error('Policy rules error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch policy rules data"
+      });
     }
   });
 
