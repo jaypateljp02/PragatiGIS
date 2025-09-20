@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, LogIn, Eye, EyeOff } from "lucide-react";
-import logoImage from "@assets/logobg_1758394737092.png";
+import logoImage from "@assets/logo_1758394848677.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";

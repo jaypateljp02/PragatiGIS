@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
 import { BarChart3, FileText, Map, Upload, Settings, Eye, CheckSquare, Brain, Download } from "lucide-react";
-import logoImage from "@assets/logobg_1758394737092.png";
+import logoImage from "@assets/logo_1758394848677.jpg";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
