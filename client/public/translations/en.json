@@ -122,7 +122,7 @@
     "settings": {
       "title": "Settings",
       "subtitle": "Manage your account preferences and system configurations",
-      "profile": "Profile",
+      "profile": "Profile"
     },
     "bulkUpload": {
       "backToClaims": "Back to Claims",

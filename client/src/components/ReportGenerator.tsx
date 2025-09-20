@@ -12,6 +12,7 @@ import {
   TreePine, Users, CheckCircle2, AlertTriangle, Settings 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { Claim } from "./ClaimsTable";
@@ -61,6 +62,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Fetch dashboard stats for reports
   const { data: dashboardStats } = useQuery<DashboardStats>({
@@ -71,40 +73,40 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   const reportTemplates: ReportTemplate[] = [
     {
       id: 'claims-summary',
-      name: 'Claims Summary',
-      description: 'Detailed summary of all claims data',
+      name: t('pages.reports.templates.claimsSummary', 'Claims Summary'),
+      description: t('pages.reports.templates.claimsSummaryDesc', 'Detailed summary of all claims data'),
       icon: <FileText className="h-5 w-5" />,
       type: 'claims',
       format: 'pdf'
     },
     {
       id: 'dss-analysis',
-      name: 'DSS Analysis Report',
-      description: 'AI-powered insights and recommendations',
+      name: t('pages.reports.templates.dssAnalysis', 'DSS Analysis Report'),
+      description: t('pages.reports.templates.dssAnalysisDesc', 'AI-powered insights and recommendations'),
       icon: <Brain className="h-5 w-5" />,
       type: 'dss',
       format: 'pdf'
     },
     {
       id: 'compliance',
-      name: 'Compliance Report',
-      description: 'Policy adherence and audit trails',
+      name: t('pages.reports.templates.compliance', 'Compliance Report'),
+      description: t('pages.reports.templates.complianceDesc', 'Policy adherence and audit trails'),
       icon: <CheckCircle2 className="h-5 w-5" />,
       type: 'compliance',
       format: 'pdf'
     },
     {
       id: 'environmental',
-      name: 'Environmental Impact',
-      description: 'Forest cover and ecological analysis',
+      name: t('pages.reports.templates.environmental', 'Environmental Impact'),
+      description: t('pages.reports.templates.environmentalDesc', 'Forest cover and ecological analysis'),
       icon: <TreePine className="h-5 w-5" />,
       type: 'environmental',
       format: 'pdf'
     },
     {
       id: 'data-export',
-      name: 'Data Export',
-      description: 'Raw data in Excel/CSV format',
+      name: t('pages.reports.templates.dataExport', 'Data Export'),
+      description: t('pages.reports.templates.dataExportDesc', 'Raw data in Excel/CSV format'),
       icon: <Download className="h-5 w-5" />,
       type: 'claims',
       format: 'excel'
@@ -279,15 +281,15 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       pdf.save(fileName);
       
       toast({
-        title: "Report Generated",
-        description: `PDF report saved as ${fileName}`,
+        title: t('pages.reports.reportGenerated', 'Report Generated'),
+        description: t('pages.reports.reportSuccess', `PDF report saved as ${fileName}`),
       });
       
     } catch (error) {
       console.error('PDF generation failed:', error);
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate PDF report",
+        title: t('pages.reports.reportError', 'Generation Failed'),
+        description: t('pages.reports.reportFailed', 'Failed to generate PDF report'),
         variant: "destructive"
       });
     } finally {
@@ -578,15 +580,15 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       setGenerationProgress(100);
       
       toast({
-        title: "Report Generated",
-        description: `Excel report saved as ${fileName}. Contains ${filteredClaims.length} filtered claims.`,
+        title: t('pages.reports.reportGenerated', 'Report Generated'),
+        description: t('pages.reports.reportSuccess', `Excel report saved as ${fileName}. Contains ${filteredClaims.length} filtered claims.`),
       });
       
     } catch (error) {
       console.error('Excel generation failed:', error);
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate Excel report",
+        title: t('pages.reports.reportError', 'Generation Failed'),
+        description: t('pages.reports.reportFailed', 'Failed to generate Excel report'),
         variant: "destructive"
       });
     } finally {
@@ -652,15 +654,15 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       setGenerationProgress(100);
       
       toast({
-        title: "Report Generated",
-        description: `CSV report downloaded successfully. Contains ${filteredClaims.length} filtered claims.`,
+        title: t('pages.reports.reportGenerated', 'Report Generated'),
+        description: t('pages.reports.reportSuccess', `CSV report downloaded successfully. Contains ${filteredClaims.length} filtered claims.`),
       });
       
     } catch (error) {
       console.error('CSV generation failed:', error);
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate CSV report",
+        title: t('pages.reports.reportError', 'Generation Failed'),
+        description: t('pages.reports.reportFailed', 'Failed to generate CSV report'),
         variant: "destructive"
       });
     } finally {
@@ -682,8 +684,8 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
         break;
       default:
         toast({
-          title: "Unsupported Format",
-          description: "Selected format is not supported",
+          title: t('pages.reports.reportError', 'Unsupported Format'),
+          description: t('pages.reports.reportFailed', 'Selected format is not supported'),
           variant: "destructive"
         });
     }
@@ -695,14 +697,14 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     <div className="space-y-6" data-testid="report-generator">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Report Generator</h2>
+          <h2 className="text-2xl font-bold">{t('pages.reports.generateReports', 'Report Generator')}</h2>
           <p className="text-muted-foreground">
-            Generate comprehensive reports and export data
+            {t('pages.reports.subtitle', 'Generate comprehensive reports and export data from the FRA Atlas Platform')}
           </p>
         </div>
         <Badge variant="outline" className="gap-2">
           <FileText className="h-3 w-3" />
-          Report Builder
+          {t('pages.reports.generateReports', 'Report Builder')}
         </Badge>
       </div>
 
@@ -711,9 +713,9 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
         <div className="lg:col-span-2">
           <Card data-testid="report-templates">
             <CardHeader>
-              <CardTitle>Report Templates</CardTitle>
+              <CardTitle>{t('pages.reports.reportTemplates', 'Report Templates')}</CardTitle>
               <CardDescription>
-                Choose from pre-built report templates
+                {t('pages.reports.choosePreBuilt', 'Choose from pre-built report templates')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -767,12 +769,12 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                Report Options
+                {t('pages.reports.reportOptions', 'Report Options')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Output Format</label>
+                <label className="text-sm font-medium">{t('pages.reports.outputFormat', 'Output Format')}</label>
                 <Select 
                   value={reportOptions.format} 
                   onValueChange={(value: 'pdf' | 'csv' | 'excel') => 
@@ -791,7 +793,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Date Range</label>
+                <label className="text-sm font-medium">{t('pages.reports.dateRange', 'Date Range')}</label>
                 <Select 
                   value={reportOptions.dateRange} 
                   onValueChange={(value: 'week' | 'month' | 'quarter' | 'year' | 'custom') => 
@@ -802,17 +804,17 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="week">Last Week</SelectItem>
-                    <SelectItem value="month">Last Month</SelectItem>
-                    <SelectItem value="quarter">Last Quarter</SelectItem>
-                    <SelectItem value="year">Last Year</SelectItem>
-                    <SelectItem value="custom">Custom Range</SelectItem>
+                    <SelectItem value="week">{t('pages.reports.week', 'Last Week')}</SelectItem>
+                    <SelectItem value="month">{t('pages.reports.month', 'Last Month')}</SelectItem>
+                    <SelectItem value="quarter">{t('pages.reports.quarter', 'Last Quarter')}</SelectItem>
+                    <SelectItem value="year">{t('pages.reports.year', 'Last Year')}</SelectItem>
+                    <SelectItem value="custom">{t('pages.reports.custom', 'Custom Range')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-sm font-medium">State Filter</label>
+                <label className="text-sm font-medium">{t('pages.reports.stateFilter', 'State Filter')}</label>
                 <Select 
                   value={reportOptions.stateFilter || 'all'} 
                   onValueChange={(value) => 
@@ -823,7 +825,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All States</SelectItem>
+                    <SelectItem value="all">{t('common.all', 'All States')}</SelectItem>
                     <SelectItem value="Madhya Pradesh">Madhya Pradesh</SelectItem>
                     <SelectItem value="Maharashtra">Maharashtra</SelectItem>
                     <SelectItem value="Odisha">Odisha</SelectItem>
@@ -850,7 +852,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
               {isGenerating && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Generating report...</span>
+                    <span>{t('pages.reports.generatingReport', 'Generating report...')}</span>
                     <span>{generationProgress}%</span>
                   </div>
                   <Progress value={generationProgress} className="w-full" />
@@ -866,12 +868,12 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                 {isGenerating ? (
                   <>
                     <span className="animate-spin mr-2">⏳</span>
-                    Generating...
+                    {t('common.generating', 'Generating...')}
                   </>
                 ) : (
                   <>
                     <Download className="h-4 w-4 mr-2" />
-                    Generate Report
+                    {t('pages.reports.generateReport', 'Generate Report')}
                   </>
                 )}
               </Button>
@@ -881,23 +883,23 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
           {/* Quick Stats */}
           <Card className="mt-4" data-testid="quick-stats">
             <CardHeader>
-              <CardTitle className="text-sm">Quick Stats</CardTitle>
+              <CardTitle className="text-sm">{t('navigation.quickStats', 'Quick Stats')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Available Claims</span>
+                <span className="text-muted-foreground">{t('pages.reports.claimsAvailable', 'Available Claims')}</span>
                 <span className="font-medium">{claims.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Filtered Claims</span>
+                <span className="text-muted-foreground">{t('pages.reports.filteredClaims', 'Filtered Claims')}</span>
                 <span className="font-medium text-primary">{getFilteredClaims().length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Reports</span>
+                <span className="text-muted-foreground">{t('pages.reports.totalClaims', 'Total Reports')}</span>
                 <span className="font-medium">{reportTemplates.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Formats</span>
+                <span className="text-muted-foreground">{t('pages.reports.multipleFormats', 'Formats')}</span>
                 <span className="font-medium">PDF, Excel, CSV</span>
               </div>
             </CardContent>
