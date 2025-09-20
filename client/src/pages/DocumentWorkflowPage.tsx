@@ -203,6 +203,11 @@ export default function DocumentWorkflowPage() {
       
     } catch (error) {
       console.error('Approval failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Approval Failed",
+        description: "Failed to approve the document. Please try again.",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -228,6 +233,11 @@ export default function DocumentWorkflowPage() {
       });
     } catch (error) {
       console.error('Rejection failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Rejection Failed",
+        description: "Failed to reject the document. Please try again.",
+      });
     } finally {
       setIsProcessing(false);
     }

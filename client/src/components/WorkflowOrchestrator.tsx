@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useWorkflow, WORKFLOW_STEP_LABELS } from "@/contexts/WorkflowContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   PlayCircle, PauseCircle, CheckCircle2, Clock, AlertCircle, 
   ArrowRight, ArrowLeft, RotateCcw, Plus, FileText, Upload, 
@@ -49,6 +50,7 @@ export default function WorkflowOrchestrator({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState("");
   const [newWorkflowDescription, setNewWorkflowDescription] = useState("");
+  const { toast } = useToast();
 
   // Auto-refresh workflow data
   useEffect(() => {
@@ -141,6 +143,11 @@ export default function WorkflowOrchestrator({
       setShowCreateDialog(false);
     } catch (error) {
       console.error('Failed to create workflow:', error);
+      toast({
+        variant: "destructive",
+        title: "Workflow Creation Failed",
+        description: "Failed to create the workflow. Please try again.",
+      });
     }
   };
 
