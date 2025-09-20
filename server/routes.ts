@@ -16,7 +16,7 @@ import { randomUUID } from "crypto";
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import { createWorker } from "tesseract.js";
+import { createWorker, PSM } from "tesseract.js";
 import type { Document } from "@shared/schema-sqlite";
 import fs from "fs";
 import path from "path";
@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                  'అआইईউేైొౌకఃగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరలవశషసహ' + // Telugu
                                  'অআইঈউঊএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ' + // Bengali
                                  'અઆઇઈઉઊએઐઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલવશષસહ', // Gujarati
-        tessedit_pageseg_mode: '6', // Uniform block of text (as string for Tesseract.js)
+        tessedit_pageseg_mode: PSM.SINGLE_BLOCK, // Uniform block of text
         preserve_interword_spaces: '1',
         user_defined_dpi: '300'
       });
@@ -1649,8 +1649,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completed = workflows.filter(w => w.status === 'completed' && w.completedAt);
       if (completed.length > 0) {
         const totalTime = completed.reduce((sum, w) => {
-          const completedTime = w.completedAt ? new Date(w.completedAt).getTime() : Date.now();
-          const duration = completedTime - new Date(w.startedAt).getTime();
+          // w.completedAt is guaranteed to exist due to filter above
+          const completedTime = new Date(w.completedAt!).getTime();
+          // Skip entries without startedAt or with invalid dates
+          if (!w.startedAt) return sum;
+          const startTime = new Date(w.startedAt).getTime();
+          if (isNaN(startTime) || isNaN(completedTime)) return sum;
+          // Ensure non-negative duration
+          const duration = Math.max(0, completedTime - startTime);
           return sum + duration;
         }, 0);
         analytics.avgCompletionTime = Math.round(totalTime / completed.length / (1000 * 60 * 60)); // hours
