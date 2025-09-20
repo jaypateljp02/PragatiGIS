@@ -1848,6 +1848,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Data import route for real FRA claims
+  app.post("/api/admin/import-real-data", requireAuth, requireRole('ministry', 'state'), async (req: any, res: any) => {
+    try {
+      console.log('Starting import of real FRA claims data...');
+      const importService = new DataImportService(storage);
+      
+      // Import real claims from CSV
+      const csvPath = './sample-fra-claims.csv';
+      const claimsImported = await importService.importClaimsFromCSV(csvPath);
+      
+      // Import comprehensive geographical data
+      await importService.importComprehensiveGeographicalData();
+      
+      console.log(`Successfully imported ${claimsImported} real FRA claims`);
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully imported ${claimsImported} real FRA claims and geographical data`,
+        claimsImported 
+      });
+    } catch (error) {
+      console.error('Data import error:', error);
+      res.status(500).json({ 
+        error: "Failed to import real data", 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Test government API integration
+  app.get("/api/admin/test-govt-api", requireAuth, requireRole('ministry', 'state'), async (req: any, res: any) => {
+    try {
+      const govtAPI = new GovernmentAPIService(storage, {
+        dataGovInApiKey: process.env.DATA_GOV_API_KEY
+      });
+      
+      console.log('Testing government API integration...');
+      
+      // Test different API endpoints
+      const [forestData, tribalData, fraStats, policyRules] = await Promise.all([
+        govtAPI.fetchForestCoverData('MP'),
+        govtAPI.fetchTribalDemographicData(),
+        govtAPI.fetchFRAImplementationStats(),
+        govtAPI.getPolicyRulesData()
+      ]);
+      
+      res.json({
+        success: true,
+        message: "Government API integration test completed",
+        data: {
+          forestCoverData: forestData,
+          tribalDemographics: tribalData,
+          fraImplementationStats: fraStats,
+          policyRules: policyRules
+        }
+      });
+    } catch (error) {
+      console.error('Government API test error:', error);
+      res.status(500).json({ 
+        error: "Government API test failed", 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
