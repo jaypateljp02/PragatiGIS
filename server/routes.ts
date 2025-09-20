@@ -539,22 +539,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/claims/:id/approve", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+  app.post("/api/claims/:id/approve", requireAuth, requireRole("ministry", "state", "district"), async (req: any, res: any) => {
     try {
-      const token = req.header("Authorization")?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ error: "No token provided" });
-      }
-
-      const session = await storage.getSession(token);
-      if (!session) {
-        return res.status(401).json({ error: "Invalid token" });
-      }
-
+      // Use already validated session and user from requireAuth middleware
       const claim = await storage.updateClaim(req.params.id, {
         status: "approved",
         dateProcessed: new Date(),
-        assignedOfficer: session.userId
+        assignedOfficer: req.user.id
       });
 
       if (!claim) {
@@ -563,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Log the approval
       await storage.logAudit({
-        userId: session.userId,
+        userId: req.user.id,
         action: "approve_claim",
         resourceType: "claim",
         resourceId: req.params.id,
@@ -578,24 +569,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/claims/:id/reject", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+  app.post("/api/claims/:id/reject", requireAuth, requireRole("ministry", "state", "district"), async (req: any, res: any) => {
     try {
-      const token = req.header("Authorization")?.replace("Bearer ", "");
-      if (!token) {
-        return res.status(401).json({ error: "No token provided" });
-      }
-
-      const session = await storage.getSession(token);
-      if (!session) {
-        return res.status(401).json({ error: "Invalid token" });
-      }
-
+      // Use already validated session and user from requireAuth middleware
       const { reason } = req.body;
       const existingClaim = await storage.getClaim(req.params.id);
       const claim = await storage.updateClaim(req.params.id, {
         status: "rejected",
         dateProcessed: new Date(),
-        assignedOfficer: session.userId,
+        assignedOfficer: req.user.id,
         notes: reason || existingClaim?.notes
       });
 
@@ -605,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Log the rejection
       await storage.logAudit({
-        userId: session.userId,
+        userId: req.user.id,
         action: "reject_claim",
         resourceType: "claim",
         resourceId: req.params.id,
