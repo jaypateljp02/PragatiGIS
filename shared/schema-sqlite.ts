@@ -155,9 +155,6 @@ export const fraStatistics = sqliteTable("fra_statistics", {
   individualClaims: integer("individual_claims").notNull(),
   communityClaims: integer("community_claims").notNull(), 
   totalClaims: integer("total_claims").notNull(),
-  individualTitles: integer("individual_titles").default(0), // Titles distributed - Individual
-  communityTitles: integer("community_titles").default(0), // Titles distributed - Community
-  totalTitles: integer("total_titles").default(0), // Titles distributed - Total
   sourceUrl: text("source_url").notNull(),
   sourceType: text("source_type").notNull().default("parliament_questions"), // "parliament_questions", "ministry_report", etc.
   fetchedAt: integer("fetched_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),

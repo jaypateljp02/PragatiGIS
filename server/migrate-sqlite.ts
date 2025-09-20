@@ -180,6 +180,22 @@ export async function migrateSQLite() {
     )
   `);
 
+  db.run(sql`
+    CREATE TABLE IF NOT EXISTS fra_statistics (
+      id TEXT PRIMARY KEY,
+      state_name TEXT NOT NULL,
+      reporting_period TEXT NOT NULL,
+      individual_claims INTEGER NOT NULL,
+      community_claims INTEGER NOT NULL,
+      total_claims INTEGER NOT NULL,
+      source_url TEXT NOT NULL,
+      source_type TEXT NOT NULL DEFAULT 'parliament_questions',
+      fetched_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+      checksum TEXT,
+      created_at INTEGER DEFAULT (unixepoch()) NOT NULL
+    )
+  `);
+
   console.log('SQLite tables created successfully');
 
   // Check if data already exists

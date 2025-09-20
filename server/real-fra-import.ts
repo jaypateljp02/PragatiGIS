@@ -113,11 +113,6 @@ export class RealFRAImportService {
           const individualClaims = this.parseInteger(record['Number of Claims Received upto 30-06-2024 - Individual']);
           const communityClaims = this.parseInteger(record['NUmber of Claims Received upto 30-06-2024 - Community']);
           const totalClaims = this.parseInteger(record['NUmber of Claims Received upto 30-06-2024 - Total']);
-          
-          // Parse titles distributed fields
-          const individualTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Individual']);
-          const communityTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Community']);
-          const totalTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Total']);
 
           // Store actual government statistics (not synthetic claims)
           const statisticData: InsertFraStatistics = {
@@ -126,9 +121,6 @@ export class RealFRAImportService {
             individualClaims: individualClaims,
             communityClaims: communityClaims,
             totalClaims: totalClaims,
-            individualTitles: individualTitles,
-            communityTitles: communityTitles,
-            totalTitles: totalTitles,
             sourceUrl: sourceUrl,
             sourceType: 'parliament_questions',
             checksum: checksum
@@ -137,7 +129,7 @@ export class RealFRAImportService {
           // Insert government statistics into dedicated table
           await db.insert(fraStatistics).values(statisticData);
           statisticsImported++;
-          console.log(`Imported FRA statistics for ${stateName}: ${totalClaims} claims, ${totalTitles} titles distributed`);
+          console.log(`Imported FRA statistics for ${stateName}: ${totalClaims} total claims`);
 
         } catch (error) {
           console.warn(`Failed to process statistics for ${record.State}:`, error);
