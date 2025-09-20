@@ -110,12 +110,12 @@ export default function DSSAnalytics({ selectedClaimId }: DSSAnalyticsProps) {
   });
 
   const getPolicyChecks = (claimId?: string): PolicyCheck[] => {
-    if (!claimId || !policyRulesData?.success) return [];
+    if (!claimId || !(policyRulesData as any)?.success) return [];
     
     const claim = claims.find(c => c.id === claimId);
     if (!claim) return [];
 
-    const rules = policyRulesData.data || {};
+    const rules = (policyRulesData as any)?.data || {};
     const maxAreaIndividual = rules.individual_rights?.max_area_hectares || 4.0;
     
     return [
@@ -154,7 +154,7 @@ export default function DSSAnalytics({ selectedClaimId }: DSSAnalyticsProps) {
   });
 
   const getPrecedentCases = (claimId?: string): PrecedentCase[] => {
-    if (!claimId || !fraStatsData?.success) return [];
+    if (!claimId || !(fraStatsData as any)?.success) return [];
     
     const claim = claims.find(c => c.id === claimId);
     if (!claim) return [];
