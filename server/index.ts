@@ -43,12 +43,20 @@ app.use((req, res, next) => {
   // Register Express routes
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    // If headers already sent, delegate to default Express error handler
+    if (res.headersSent) {
+      return next(err);
+    }
+    
+    console.error('Unhandled error:', err);
+    
+    // Use generic message for 500+ errors to avoid information disclosure
+    const message = status >= 500 ? "Internal Server Error" : (err.message || "An error occurred");
+    
+    return res.status(status).json({ message });
   });
 
   // importantly only setup vite in development and after
