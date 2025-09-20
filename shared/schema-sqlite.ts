@@ -147,6 +147,21 @@ export const auditLog = sqliteTable("audit_log", {
   createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });
 
+// Government FRA Statistics from official sources (Parliament questions, Ministry reports)
+export const fraStatistics = sqliteTable("fra_statistics", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  stateName: text("state_name").notNull(),
+  reportingPeriod: text("reporting_period").notNull(), // e.g., "30-06-2024"
+  individualClaims: integer("individual_claims").notNull(),
+  communityClaims: integer("community_claims").notNull(), 
+  totalClaims: integer("total_claims").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  sourceType: text("source_type").notNull().default("parliament_questions"), // "parliament_questions", "ministry_report", etc.
+  fetchedAt: integer("fetched_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  checksum: text("checksum"), // MD5 hash of source data for change detection
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull()
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -188,6 +203,12 @@ export const insertWorkflowTransitionSchema = createInsertSchema(workflowTransit
   createdAt: true,
 });
 
+export const insertFraStatisticsSchema = createInsertSchema(fraStatistics).omit({
+  id: true,
+  createdAt: true,
+  fetchedAt: true,
+});
+
 // Login schema
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -213,3 +234,5 @@ export type InsertWorkflowStep = z.infer<typeof insertWorkflowStepSchema>;
 export type WorkflowStep = typeof workflowSteps.$inferSelect;
 export type InsertWorkflowTransition = z.infer<typeof insertWorkflowTransitionSchema>;
 export type WorkflowTransition = typeof workflowTransitions.$inferSelect;
+export type InsertFraStatistics = z.infer<typeof insertFraStatisticsSchema>;
+export type FraStatistics = typeof fraStatistics.$inferSelect;

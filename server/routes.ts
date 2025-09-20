@@ -1848,30 +1848,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Data import route for real FRA claims
+  // Data import route for real FRA claims from government sources
   app.post("/api/admin/import-real-data", requireAuth, requireRole('ministry', 'state'), async (req: any, res: any) => {
     try {
-      console.log('Starting import of real FRA claims data...');
-      const importService = new DataImportService(storage);
+      console.log('Starting import of real FRA data from government sources...');
+      const { RealFRAImportService } = await import('./real-fra-import');
+      const realImportService = new RealFRAImportService(storage);
       
-      // Import real claims from CSV
-      const csvPath = './sample-fra-claims.csv';
-      const claimsImported = await importService.importClaimsFromCSV(csvPath);
+      // Download and import real FRA data from government sources
+      const csvFilePath = await realImportService.downloadRealFRAData();
+      const claimsImported = await realImportService.importRealFRAStatistics(csvFilePath);
       
       // Import comprehensive geographical data
-      await importService.importComprehensiveGeographicalData();
+      const dataImportService = new DataImportService(storage);
+      await dataImportService.importComprehensiveGeographicalData();
       
-      console.log(`Successfully imported ${claimsImported} real FRA claims`);
+      // Get quarterly sync information (scheduler runs at server startup)
+      const syncInfo = realImportService.getQuarterlySyncInfo();
+      
+      console.log(`Successfully imported ${claimsImported} real FRA statistics from government data`);
       
       res.json({ 
         success: true, 
-        message: `Successfully imported ${claimsImported} real FRA claims and geographical data`,
-        claimsImported 
+        message: `Successfully imported ${claimsImported} FRA state statistics from Ministry of Tribal Affairs`,
+        statisticsImported: claimsImported,
+        source: 'Ministry of Tribal Affairs - Parliament Questions (Session 265)',
+        next_sync: syncInfo.nextSync,
+        sync_message: syncInfo.message
       });
     } catch (error) {
-      console.error('Data import error:', error);
+      console.error('Real data import error:', error);
       res.status(500).json({ 
-        error: "Failed to import real data", 
+        error: "Failed to import real government FRA data", 
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }

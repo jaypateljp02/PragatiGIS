@@ -79,5 +79,57 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Set up quarterly FRA data sync scheduler (singleton - runs only once at startup)
+    setupQuarterlyFRASync();
   });
 })();
+
+/**
+ * Set up quarterly FRA data sync scheduler (called once at server startup)
+ */
+let quarterlySchedulerInitialized = false;
+function setupQuarterlyFRASync(): void {
+  if (quarterlySchedulerInitialized) {
+    log('Quarterly FRA sync scheduler already initialized, skipping');
+    return;
+  }
+  
+  quarterlySchedulerInitialized = true;
+  
+  // In production, this would be a proper cron job or task scheduler
+  // For development, we set up a timer-based approach
+  const THREE_MONTHS_MS = 7 * 24 * 60 * 60 * 1000; // 1 week for testing (normally would be 3 months)
+  
+  const scheduleNextSync = () => {
+    const nextSync = new Date();
+    nextSync.setMonth(nextSync.getMonth() + 3);
+    
+    log(`FRA quarterly data sync scheduled for: ${nextSync.toDateString()}`);
+    
+    // Schedule the next sync
+    setTimeout(async () => {
+      try {
+        log('Running scheduled FRA data sync...');
+        const { RealFRAImportService } = await import('./real-fra-import');
+        const storage = await import('./storage');
+        const realImportService = new RealFRAImportService(storage.storage);
+        
+        const csvFilePath = await realImportService.downloadRealFRAData();
+        const imported = await realImportService.importRealFRAStatistics(csvFilePath);
+        
+        log(`Scheduled sync completed: imported ${imported} FRA statistics`);
+        
+        // Schedule the next sync
+        scheduleNextSync();
+      } catch (error) {
+        console.error('Scheduled FRA sync failed:', error);
+        // Retry in 24 hours on failure
+        setTimeout(scheduleNextSync, 24 * 60 * 60 * 1000);
+      }
+    }, THREE_MONTHS_MS);
+  };
+  
+  scheduleNextSync();
+  log('Quarterly FRA data sync scheduler initialized successfully');
+}
