@@ -50,6 +50,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       if (requestId === currentRequestRef.current) {
         const cachedTranslations = translationCache.get(language)!;
         setTranslations(cachedTranslations);
+        setIsLoading(false); // Clear loading state for cached results
       }
       return;
     }
@@ -86,9 +87,9 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Preload all translations on first load
   useEffect(() => {
     const preloadTranslations = async () => {
-      // Preload both languages in the background
+      // Preload other languages in the background (excluding current to avoid duplication)
       for (const lang of Object.keys(languages) as LanguageCode[]) {
-        if (!translationCache.has(lang)) {
+        if (lang !== currentLanguage && !translationCache.has(lang)) {
           try {
             const response = await fetch(`/translations/${lang}.json`);
             if (response.ok) {
@@ -103,10 +104,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       }
     };
 
-    // Preload after a short delay to not block initial render
-    const timeoutId = setTimeout(preloadTranslations, 100);
+    // Preload after current language is loaded to avoid duplication
+    const timeoutId = setTimeout(preloadTranslations, 200);
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [currentLanguage]); // Depend on currentLanguage to handle initial language properly
 
   const setLanguage = useCallback((language: LanguageCode) => {
     if (language !== currentLanguage) {

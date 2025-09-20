@@ -99,11 +99,11 @@ export default function DSSPage() {
 
   const getRecommendationBadge = (rec: string) => {
     switch (rec) {
-      case 'approve': return <Badge className="bg-chart-3 text-chart-3-foreground">Approve</Badge>;
-      case 'reject': return <Badge variant="destructive">Reject</Badge>;
-      case 'investigate': return <Badge className="bg-chart-4 text-chart-4-foreground">Investigate</Badge>;
-      case 'request-more-info': return <Badge variant="secondary">More Info</Badge>;
-      default: return <Badge variant="outline">Unknown</Badge>;
+      case 'approve': return <Badge className="bg-chart-3 text-chart-3-foreground">{t("pages.dss.recommendations.approve", "Approve")}</Badge>;
+      case 'reject': return <Badge variant="destructive">{t("pages.dss.recommendations.reject", "Reject")}</Badge>;
+      case 'investigate': return <Badge className="bg-chart-4 text-chart-4-foreground">{t("pages.dss.recommendations.investigate", "Investigate")}</Badge>;
+      case 'request-more-info': return <Badge variant="secondary">{t("pages.dss.recommendations.moreInfo", "More Info")}</Badge>;
+      default: return <Badge variant="outline">{t("pages.dss.recommendations.unknown", "Unknown")}</Badge>;
     }
   };
 
@@ -206,38 +206,38 @@ export default function DSSPage() {
 
             <Card data-testid="insight-approve-recommendations">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Approve Recommendations</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("pages.dss.approveRecommendations", "Approve Recommendations")}</CardTitle>
                 <CheckCircle2 className="h-4 w-4 text-chart-3" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-chart-3">{insights.approveCount}</div>
                 <p className="text-xs text-muted-foreground">
-                  {Math.round((insights.approveCount / insights.totalRecommendations) * 100)}% of total
+                  {Math.round((insights.approveCount / insights.totalRecommendations) * 100)}{t("pages.dss.ofTotal", "% of total")}
                 </p>
               </CardContent>
             </Card>
 
             <Card data-testid="insight-high-priority">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">High Priority</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("pages.dss.highPriority", "High Priority")}</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">{insights.highPriorityCount}</div>
-                <p className="text-xs text-muted-foreground">Require immediate attention</p>
+                <p className="text-xs text-muted-foreground">{t("pages.dss.requireAttention", "Require immediate attention")}</p>
               </CardContent>
             </Card>
 
             <Card data-testid="insight-average-risk">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Average Risk Score</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("pages.dss.averageRiskScore", "Average Risk Score")}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${getRiskColor(insights.averageRisk)}`}>
                   {insights.averageRisk}%
                 </div>
-                <p className="text-xs text-muted-foreground">System-wide risk level</p>
+                <p className="text-xs text-muted-foreground">{t("pages.dss.systemRiskLevel", "System-wide risk level")}</p>
               </CardContent>
             </Card>
           </div>
@@ -253,14 +253,14 @@ export default function DSSPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Filter Recommendations
+                {t("pages.dss.filterRecommendations", "Filter Recommendations")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-4">
                 <div className="flex-1">
                   <Input
-                    placeholder="Search by claimant name, location, or ID..."
+                    placeholder={t("pages.dss.searchPlaceholder", "Search by claimant name, location, or ID...")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     data-testid="input-search-recommendations"
@@ -271,10 +271,10 @@ export default function DSSPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Risk Levels</SelectItem>
-                    <SelectItem value="high">High Risk (60%+)</SelectItem>
-                    <SelectItem value="medium">Medium Risk (30-60%)</SelectItem>
-                    <SelectItem value="low">Low Risk (&lt;30%)</SelectItem>
+                    <SelectItem value="all">{t("pages.dss.allRiskLevels", "All Risk Levels")}</SelectItem>
+                    <SelectItem value="high">{t("pages.dss.highRisk", "High Risk (60%+)")}</SelectItem>
+                    <SelectItem value="medium">{t("pages.dss.mediumRisk", "Medium Risk (30-60%)")}</SelectItem>
+                    <SelectItem value="low">{t("pages.dss.lowRisk", "Low Risk (<30%)")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -284,9 +284,9 @@ export default function DSSPage() {
           {/* Recommendations List */}
           <Card data-testid="recommendations-list">
             <CardHeader>
-              <CardTitle>AI Recommendations ({filteredRecommendations.length})</CardTitle>
+              <CardTitle>{t("pages.dss.aiRecommendationsList", "AI Recommendations")} ({filteredRecommendations.length})</CardTitle>
               <CardDescription>
-                Machine learning powered analysis and decision suggestions
+                {t("pages.dss.mlAnalysisDescription", "Machine learning powered analysis and decision suggestions")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -306,7 +306,7 @@ export default function DSSPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-medium ${getRiskColor(rec.riskScore)}`}>
-                          {rec.riskScore}% risk
+                          {rec.riskScore}{t("pages.dss.riskText", "% risk")}
                         </span>
                         {getRecommendationBadge(rec.recommendation)}
                       </div>
@@ -322,7 +322,7 @@ export default function DSSPage() {
                 {filteredRecommendations.length === 0 && (
                   <div className="text-center py-8">
                     <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">No recommendations match your filters</p>
+                    <p className="text-muted-foreground">{t("pages.dss.noRecommendations", "No recommendations match your filters")}</p>
                   </div>
                 )}
               </div>
@@ -338,16 +338,16 @@ export default function DSSPage() {
               <CardContent className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Detailed Analysis</h3>
+                  <h3 className="text-lg font-medium mb-2">{t("pages.dss.detailedAnalysisTitle", "Detailed Analysis")}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Select a claim from the recommendations tab to view detailed AI analysis
+                    {t("pages.dss.selectClaimText", "Select a claim from the recommendations tab to view detailed AI analysis")}
                   </p>
                   <Button 
                     variant="outline"
                     onClick={() => setActiveTab("recommendations")}
                     data-testid="button-view-recommendations"
                   >
-                    View Recommendations
+                    {t("pages.dss.viewRecommendations", "View Recommendations")}
                   </Button>
                 </div>
               </CardContent>
