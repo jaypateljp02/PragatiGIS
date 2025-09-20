@@ -5,10 +5,18 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { Claim } from "@/components/ClaimsTable";
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
+
+  // Fetch claims data for recent activity
+  const { data: claims = [] } = useQuery<Claim[]>({
+    queryKey: ['/api/claims'],
+    enabled: true,
+  });
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -111,39 +119,41 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[
-              { 
-                time: t("pages.recentActivity.activity1Time", "2 minutes ago"), 
-                action: t("pages.recentActivity.activity1Action", "Document processed: FRA-MH-2024-001234.pdf"), 
-                status: 'success' 
-              },
-              { 
-                time: t("pages.recentActivity.activity2Time", "15 minutes ago"), 
-                action: t("pages.recentActivity.activity2Action", "New claim submitted from Odisha district office"), 
-                status: 'info' 
-              },
-              { 
-                time: t("pages.recentActivity.activity3Time", "1 hour ago"), 
-                action: t("pages.recentActivity.activity3Action", "Batch processing completed: 45 documents"), 
-                status: 'success' 
-              },
-              { 
-                time: t("pages.recentActivity.activity4Time", "2 hours ago"), 
-                action: t("pages.recentActivity.activity4Action", "System alert: OCR accuracy below threshold"), 
-                status: 'warning' 
-              },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <div className={`w-2 h-2 rounded-full ${
-                  activity.status === 'success' ? 'bg-chart-3' :
-                  activity.status === 'warning' ? 'bg-chart-4' : 'bg-chart-2'
-                }`}></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{activity.action}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
+            {claims.slice(-5).map((claim: any, index) => {
+              // Create stable composite key since claim.id might not exist
+              const stableKey = `${claim.state || 'unknown'}-${claim.district || 'unknown'}-${claim.year || 'unknown'}-${index}`;
+              
+              // Since this is aggregated data, create activity entries based on available data
+              const totalClaims = (claim.ifr_received || 0) + (claim.cfr_received || 0);
+              const approvedClaims = (claim.ifr_titles || 0) + (claim.cfr_titles || 0);
+              
+              const activityType = approvedClaims > 0 ? 'approved' : 'submitted';
+              const status = activityType === 'approved' ? 'success' : 'info';
+              
+              return (
+                <div key={stableKey} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className={`w-2 h-2 rounded-full ${
+                    status === 'success' ? 'bg-chart-3' : 'bg-chart-2'
+                  }`}></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {activityType === 'approved' 
+                        ? `${approvedClaims} claims approved in ${claim.district || 'Unknown District'}` 
+                        : `${totalClaims} claims submitted from ${claim.district || 'Unknown District'}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {claim.state || 'Unknown State'} • {claim.year || 'Recent'}
+                    </p>
+                  </div>
                 </div>
+              );
+            })}
+            
+            {claims.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No recent activity</p>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
