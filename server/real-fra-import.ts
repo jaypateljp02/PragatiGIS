@@ -13,6 +13,9 @@ export interface RealFRARecord {
   'Number of Claims Received upto 30-06-2024 - Individual'?: string;
   'NUmber of Claims Received upto 30-06-2024 - Community'?: string;
   'NUmber of Claims Received upto 30-06-2024 - Total'?: string;
+  'Number of Titles Distributed upto 30-06-2024 - Individual'?: string;
+  'Number of Titles Distributed upto 30-06-2024 - Community'?: string;
+  'Number of Titles Distributed upto 30-06-2024 - Total'?: string;
   [key: string]: any; // For any additional fields
 }
 
@@ -20,11 +23,23 @@ export class RealFRAImportService {
   constructor(private storage: DatabaseStorage) {}
 
   /**
-   * Download real FRA CSV from government data.gov.in
+   * Use the real FRA CSV file from attached assets (government data)
    */
   async downloadRealFRAData(): Promise<string> {
     try {
-      // Official download URLs for real government FRA data (environment configurable)
+      // Use the real government data file from attached assets
+      const realDataPath = path.join(process.cwd(), 'attached_assets', 'clamin_1758404599277.csv');
+      
+      try {
+        // Check if the real data file exists
+        await fs.access(realDataPath);
+        console.log(`Using real government FRA data from: ${realDataPath}`);
+        return realDataPath;
+      } catch (error) {
+        console.warn(`Real data file not found at ${realDataPath}, trying fallback options...`);
+      }
+
+      // Try alternative paths or download if needed
       const governmentUrls = process.env.FRA_DATA_URLS 
         ? process.env.FRA_DATA_URLS.split(',')
         : [
@@ -58,10 +73,10 @@ export class RealFRAImportService {
         }
       }
 
-      // If download fails, create fallback with real government statistics
+      // If all options fail, create fallback with real government statistics
       return await this.createFallbackRealData(tempDir);
     } catch (error) {
-      console.error('Error downloading real FRA data:', error);
+      console.error('Error accessing real FRA data:', error);
       throw error;
     }
   }
@@ -98,6 +113,11 @@ export class RealFRAImportService {
           const individualClaims = this.parseInteger(record['Number of Claims Received upto 30-06-2024 - Individual']);
           const communityClaims = this.parseInteger(record['NUmber of Claims Received upto 30-06-2024 - Community']);
           const totalClaims = this.parseInteger(record['NUmber of Claims Received upto 30-06-2024 - Total']);
+          
+          // Parse titles distributed fields
+          const individualTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Individual']);
+          const communityTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Community']);
+          const totalTitles = this.parseInteger(record['Number of Titles Distributed upto 30-06-2024 - Total']);
 
           // Store actual government statistics (not synthetic claims)
           const statisticData: InsertFraStatistics = {
@@ -106,6 +126,9 @@ export class RealFRAImportService {
             individualClaims: individualClaims,
             communityClaims: communityClaims,
             totalClaims: totalClaims,
+            individualTitles: individualTitles,
+            communityTitles: communityTitles,
+            totalTitles: totalTitles,
             sourceUrl: sourceUrl,
             sourceType: 'parliament_questions',
             checksum: checksum
@@ -114,7 +137,7 @@ export class RealFRAImportService {
           // Insert government statistics into dedicated table
           await db.insert(fraStatistics).values(statisticData);
           statisticsImported++;
-          console.log(`Imported FRA statistics for ${stateName}: ${totalClaims} total claims`);
+          console.log(`Imported FRA statistics for ${stateName}: ${totalClaims} claims, ${totalTitles} titles distributed`);
 
         } catch (error) {
           console.warn(`Failed to process statistics for ${record.State}:`, error);

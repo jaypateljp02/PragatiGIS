@@ -10,7 +10,8 @@ import {
   auditLog,
   workflowInstances,
   workflowSteps,
-  workflowTransitions
+  workflowTransitions,
+  fraStatistics
 } from "../shared/schema-sqlite";
 import bcrypt from "bcrypt";
 import { sql } from 'drizzle-orm';
