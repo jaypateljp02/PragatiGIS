@@ -113,23 +113,23 @@ export default function Dashboard() {
           <div className="space-y-4">
             {[
               { 
-                time: '2 minutes ago', 
-                action: 'Document processed: FRA-MH-2024-001234.pdf', 
+                time: t("pages.recentActivity.activity1Time", "2 minutes ago"), 
+                action: t("pages.recentActivity.activity1Action", "Document processed: FRA-MH-2024-001234.pdf"), 
                 status: 'success' 
               },
               { 
-                time: '15 minutes ago', 
-                action: 'New claim submitted from Odisha district office', 
+                time: t("pages.recentActivity.activity2Time", "15 minutes ago"), 
+                action: t("pages.recentActivity.activity2Action", "New claim submitted from Odisha district office"), 
                 status: 'info' 
               },
               { 
-                time: '1 hour ago', 
-                action: 'Batch processing completed: 45 documents', 
+                time: t("pages.recentActivity.activity3Time", "1 hour ago"), 
+                action: t("pages.recentActivity.activity3Action", "Batch processing completed: 45 documents"), 
                 status: 'success' 
               },
               { 
-                time: '2 hours ago', 
-                action: 'System alert: OCR accuracy below threshold', 
+                time: t("pages.recentActivity.activity4Time", "2 hours ago"), 
+                action: t("pages.recentActivity.activity4Action", "System alert: OCR accuracy below threshold"), 
                 status: 'warning' 
               },
             ].map((activity, index) => (

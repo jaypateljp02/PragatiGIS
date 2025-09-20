@@ -108,6 +108,16 @@
       "totalRecommendations": "कुल सिफारिशें",
       "claimsAnalyzed": "दावों का विश्लेषण किया गया"
     },
+    "recentActivity": {
+      "activity1Time": "2 मिनट पहले",
+      "activity1Action": "दस्तावेज़ संसाधित: FRA-MH-2024-001234.pdf",
+      "activity2Time": "15 मिनट पहले", 
+      "activity2Action": "ओडिशा जिला कार्यालय से नया दावा प्रस्तुत",
+      "activity3Time": "1 घंटे पहले",
+      "activity3Action": "बैच प्रसंस्करण पूर्ण: 45 दस्तावेज़",
+      "activity4Time": "2 घंटे पहले",
+      "activity4Action": "सिस्टम अलर्ट: ओसीआर सटीकता सीमा से नीचे"
+    },
     "stateDashboard": {
       "title": "वन अधिकार डैशबोर्ड",
       "subtitle": "राज्य में वन अधिकार अधिनियम के कार्यान्वयन का व्यापक अवलोकन",
