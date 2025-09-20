@@ -56,6 +56,8 @@ interface StatsData {
   totalArea: string;
   totalDocuments?: number;
   processedDocuments?: number;
+  failedDocuments?: number;
+  processingDocuments?: number;
 }
 
 interface DashboardStatsProps {
@@ -81,6 +83,8 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
     totalArea: "0 hectares",
     totalDocuments: 0,
     processedDocuments: 0,
+    failedDocuments: 0,
+    processingDocuments: 0,
   };
 
   if (isLoading) {
@@ -151,10 +155,10 @@ export default function DashboardStats({ stats: propStats }: DashboardStatsProps
         icon={<MapPin className="h-4 w-4" />}
       />
       <StatCard
-        title={t("components.dashboardStats.documents", "Documents")}
-        value={(stats.totalDocuments || 0).toLocaleString()}
-        subtitle={`${processingRate}% ${t("components.dashboardStats.processed", "processed")}`}
-        icon={<Users className="h-4 w-4" />}
+        title={t("components.dashboardStats.documentsProcessed", "OCR Processed")}
+        value={(stats.processedDocuments || 0).toLocaleString()}
+        subtitle={`${stats.totalDocuments || 0} ${t("components.dashboardStats.totalUploaded", "total uploaded")}`}
+        icon={<FileText className="h-4 w-4" />}
       />
     </div>
   );

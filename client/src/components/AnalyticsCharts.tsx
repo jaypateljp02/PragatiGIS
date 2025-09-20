@@ -31,6 +31,12 @@ export default function AnalyticsCharts({
     enabled: true,
   });
 
+  // Fetch OCR analytics data
+  const { data: ocrData } = useQuery<any>({
+    queryKey: ['/api/analytics/ocr'],
+    enabled: true,
+  });
+
   // Transform API data into chart-ready format
   const stateData = useMemo(() => {
     if (claimsByState.length > 0) return claimsByState;
@@ -154,6 +160,18 @@ export default function AnalyticsCharts({
     );
   }
 
+  // OCR processing chart data
+  const ocrProcessingData = useMemo(() => {
+    if (!ocrData?.summary) return [];
+    
+    const summary = ocrData.summary;
+    return [
+      { name: t("components.analyticsCharts.processed", "Processed"), value: summary.processedDocuments, color: '#10b981' },
+      { name: t("components.analyticsCharts.processing", "Processing"), value: summary.processingDocuments, color: '#f59e0b' },
+      { name: t("components.analyticsCharts.failed", "Failed"), value: summary.failedDocuments, color: '#ef4444' },
+    ].filter(item => item.value > 0);
+  }, [ocrData, t]);
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {/* Claims by State */}
@@ -250,6 +268,39 @@ export default function AnalyticsCharts({
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* OCR Processing Status */}
+      {ocrProcessingData.length > 0 && (
+        <Card data-testid="chart-ocr-processing">
+          <CardHeader>
+            <CardTitle>{t("components.analyticsCharts.ocrProcessingTitle", "Document Processing Status")}</CardTitle>
+            <CardDescription>
+              {t("components.analyticsCharts.ocrProcessingDescription", "OCR processing status of uploaded documents")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={ocrProcessingData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {ocrProcessingData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

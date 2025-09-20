@@ -349,9 +349,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `${(totalAreaNum / 1000).toFixed(2)}K hectares`
         : `${totalAreaNum.toFixed(2)} hectares`;
       
-      // Get documents count (mock for now since we don't have documents yet)
-      const totalDocuments = allClaims.length * 3; // Average 3 docs per claim
-      const processedDocuments = Math.floor(totalDocuments * 0.75); // 75% processed
+      // Get real documents count from OCR processing
+      const allDocuments = await storage.getAllDocuments();
+      const totalDocuments = allDocuments.length;
+      const processedDocuments = allDocuments.filter(doc => doc.ocrStatus === 'completed').length;
+      const failedDocuments = allDocuments.filter(doc => doc.ocrStatus === 'failed').length;
+      const processingDocuments = allDocuments.filter(doc => doc.ocrStatus === 'processing').length;
       
       const stats = {
         totalClaims,
@@ -361,13 +364,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rejectedClaims,
         totalArea,
         totalDocuments,
-        processedDocuments
+        processedDocuments,
+        failedDocuments,
+        processingDocuments
       };
       
       res.json(stats);
     } catch (error) {
       console.error('Dashboard stats error:', error);
       res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+    }
+  });
+
+  // OCR Analytics API - Returns detailed OCR processing statistics and extracted data insights
+  app.get("/api/analytics/ocr", requireAuth, async (req: any, res: any) => {
+    try {
+      const allDocuments = await storage.getAllDocuments();
+      
+      // Basic OCR statistics
+      const totalDocuments = allDocuments.length;
+      const completedDocuments = allDocuments.filter(doc => doc.ocrStatus === 'completed');
+      const failedDocuments = allDocuments.filter(doc => doc.ocrStatus === 'failed');
+      const processingDocuments = allDocuments.filter(doc => doc.ocrStatus === 'processing');
+      
+      // Processing accuracy and confidence metrics
+      const successRate = totalDocuments > 0 ? (completedDocuments.length / totalDocuments) * 100 : 0;
+      const avgConfidence = completedDocuments.length > 0 
+        ? completedDocuments.reduce((sum, doc) => sum + (doc.confidence || 0), 0) / completedDocuments.length 
+        : 0;
+
+      // Document type distribution from extracted data
+      const documentTypes = new Map<string, number>();
+      const extractedClaimsData: any[] = [];
+      let totalExtractedArea = 0;
+      let extractedClaimsCount = 0;
+
+      completedDocuments.forEach(doc => {
+        if (doc.extractedData && typeof doc.extractedData === 'object') {
+          const data = doc.extractedData as any;
+          
+          // Document type analysis
+          const docType = data.documentType || 'Unknown';
+          documentTypes.set(docType, (documentTypes.get(docType) || 0) + 1);
+          
+          // Extract claims data if available
+          if (data.extractedFields) {
+            const fields = data.extractedFields;
+            if (fields.claimNumber || fields.applicantName) {
+              extractedClaimsCount++;
+              
+              // Calculate total area from extracted data
+              if (fields.area && typeof fields.area === 'number') {
+                totalExtractedArea += fields.area;
+              }
+              
+              // Collect structured claims data for analytics
+              extractedClaimsData.push({
+                claimId: fields.claimNumber || 'Unknown',
+                claimantName: fields.applicantName || 'Unknown',
+                state: fields.state || 'Unknown',
+                district: fields.district || 'Unknown',
+                village: fields.village || 'Unknown',
+                area: fields.area || 0,
+                landType: fields.landType || 'Unknown',
+                documentType: docType,
+                confidence: doc.confidence || 0,
+                extractedAt: doc.updatedAt
+              });
+            }
+          }
+        }
+      });
+
+      // State-wise extracted claims distribution
+      const stateDistribution = new Map<string, number>();
+      extractedClaimsData.forEach(claim => {
+        stateDistribution.set(claim.state, (stateDistribution.get(claim.state) || 0) + 1);
+      });
+
+      // Land type distribution
+      const landTypeDistribution = new Map<string, number>();
+      extractedClaimsData.forEach(claim => {
+        landTypeDistribution.set(claim.landType, (landTypeDistribution.get(claim.landType) || 0) + 1);
+      });
+
+      // Monthly processing trends (last 6 months)
+      const monthlyProcessing = new Map<string, { processed: number; failed: number }>();
+      const now = new Date();
+      
+      allDocuments.forEach(doc => {
+        const dateValue = doc.updatedAt || doc.createdAt;
+        if (!dateValue) return;
+        const docDate = new Date(dateValue);
+        const monthKey = docDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        if (!monthlyProcessing.has(monthKey)) {
+          monthlyProcessing.set(monthKey, { processed: 0, failed: 0 });
+        }
+        
+        const monthData = monthlyProcessing.get(monthKey)!;
+        if (doc.ocrStatus === 'completed') {
+          monthData.processed++;
+        } else if (doc.ocrStatus === 'failed') {
+          monthData.failed++;
+        }
+      });
+
+      const response = {
+        summary: {
+          totalDocuments,
+          processedDocuments: completedDocuments.length,
+          failedDocuments: failedDocuments.length,
+          processingDocuments: processingDocuments.length,
+          successRate: Math.round(successRate * 100) / 100,
+          averageConfidence: Math.round(avgConfidence * 100) / 100,
+          extractedClaimsCount,
+          totalExtractedArea: Math.round(totalExtractedArea * 100) / 100
+        },
+        documentTypes: Array.from(documentTypes.entries()).map(([type, count]) => ({
+          type,
+          count,
+          percentage: Math.round((count / completedDocuments.length) * 100)
+        })),
+        stateDistribution: Array.from(stateDistribution.entries()).map(([state, count]) => ({
+          state,
+          count,
+          percentage: Math.round((count / extractedClaimsCount) * 100)
+        })),
+        landTypeDistribution: Array.from(landTypeDistribution.entries()).map(([landType, count]) => ({
+          landType,
+          count,
+          percentage: Math.round((count / extractedClaimsCount) * 100)
+        })),
+        monthlyTrends: Array.from(monthlyProcessing.entries())
+          .map(([month, data]) => ({ month, ...data }))
+          .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+          .slice(-6)
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('OCR analytics error:', error);
+      res.status(500).json({ error: "Failed to fetch OCR analytics" });
     }
   });
 
