@@ -37,6 +37,18 @@ export default function AnalyticsCharts({
     enabled: true,
   });
 
+  // OCR processing chart data (moved before early return to fix hooks order)
+  const ocrProcessingData = useMemo(() => {
+    if (!ocrData?.summary) return [];
+    
+    const summary = ocrData.summary;
+    return [
+      { name: t("components.analyticsCharts.processed", "Processed"), value: summary.processedDocuments, color: '#10b981' },
+      { name: t("components.analyticsCharts.processing", "Processing"), value: summary.processingDocuments, color: '#f59e0b' },
+      { name: t("components.analyticsCharts.failed", "Failed"), value: summary.failedDocuments, color: '#ef4444' },
+    ].filter(item => item.value > 0);
+  }, [ocrData, t]);
+
   // Transform API data into chart-ready format
   const stateData = useMemo(() => {
     if (claimsByState.length > 0) return claimsByState;
@@ -159,18 +171,6 @@ export default function AnalyticsCharts({
       </div>
     );
   }
-
-  // OCR processing chart data
-  const ocrProcessingData = useMemo(() => {
-    if (!ocrData?.summary) return [];
-    
-    const summary = ocrData.summary;
-    return [
-      { name: t("components.analyticsCharts.processed", "Processed"), value: summary.processedDocuments, color: '#10b981' },
-      { name: t("components.analyticsCharts.processing", "Processing"), value: summary.processingDocuments, color: '#f59e0b' },
-      { name: t("components.analyticsCharts.failed", "Failed"), value: summary.failedDocuments, color: '#ef4444' },
-    ].filter(item => item.value > 0);
-  }, [ocrData, t]);
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
