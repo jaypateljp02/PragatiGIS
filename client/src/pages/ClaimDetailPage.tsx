@@ -68,9 +68,7 @@ export default function ClaimDetailPage() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/claims/${params?.id}/approve`, {
-      method: 'POST',
-    }),
+    mutationFn: () => apiRequest('POST', `/api/claims/${params?.id}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/claims', params?.id] });
       toast({
@@ -88,10 +86,7 @@ export default function ClaimDetailPage() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (data: { reason: string }) => apiRequest(`/api/claims/${params?.id}/reject`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: { reason: string }) => apiRequest('POST', `/api/claims/${params?.id}/reject`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/claims', params?.id] });
       toast({
@@ -272,7 +267,31 @@ export default function ClaimDetailPage() {
                   <div>
                     <dt className="font-medium text-sm text-muted-foreground">Coordinates</dt>
                     <dd className="font-mono text-sm">
-                      {claim.coordinates.lat.toFixed(4)}, {claim.coordinates.lng.toFixed(4)}
+                      {(() => {
+                        try {
+                          // Handle different coordinate formats
+                          if (typeof claim.coordinates === 'string') {
+                            const parsed = JSON.parse(claim.coordinates);
+                            if (parsed.type === 'Point' && parsed.coordinates) {
+                              const [lng, lat] = parsed.coordinates;
+                              return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                            } else if (parsed.latitude && parsed.longitude) {
+                              return `${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)}`;
+                            }
+                          } else if (claim.coordinates.type === 'Point' && claim.coordinates.coordinates) {
+                            const [lng, lat] = claim.coordinates.coordinates;
+                            return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                          } else if (claim.coordinates.latitude && claim.coordinates.longitude) {
+                            return `${claim.coordinates.latitude.toFixed(4)}, ${claim.coordinates.longitude.toFixed(4)}`;
+                          } else if (claim.coordinates.lat && claim.coordinates.lng) {
+                            return `${claim.coordinates.lat.toFixed(4)}, ${claim.coordinates.lng.toFixed(4)}`;
+                          }
+                          return 'Coordinates available';
+                        } catch (error) {
+                          console.warn('Error parsing coordinates:', error);
+                          return 'Coordinates available';
+                        }
+                      })()}
                     </dd>
                   </div>
                 )}
