@@ -14,7 +14,7 @@ export default function Dashboard() {
 
   // Fetch claims data for recent activity
   const { data: claims = [] } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
+    queryKey: ['/api/claims', { format: 'detailed' }],
     enabled: true,
   });
 

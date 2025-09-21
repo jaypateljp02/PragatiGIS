@@ -30,7 +30,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
 
   // Fetch claims data for mapping
   const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
+    queryKey: ['/api/claims', { format: 'detailed' }],
     enabled: true,
   });
 

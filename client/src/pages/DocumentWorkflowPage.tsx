@@ -74,7 +74,7 @@ export default function DocumentWorkflowPage() {
 
   // Fetch claims data for claims management
   const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
+    queryKey: ['/api/claims', { format: 'detailed' }],
     enabled: true,
   });
 

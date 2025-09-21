@@ -35,7 +35,7 @@ export default function DSSPage() {
 
   // Fetch claims data
   const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
+    queryKey: ['/api/claims', { format: 'detailed' }],
     enabled: true,
   });
 
