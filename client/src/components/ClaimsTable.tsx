@@ -174,7 +174,11 @@ export default function ClaimsTable({ claims, onViewClaim, onExportData }: Claim
                       {parseFloat((claim.area || 0).toString()).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusColors[claim.status]} data-testid={`badge-status-${claim.status}`}>
+                      <Badge 
+                        variant={statusColors[claim.status]} 
+                        className={claim.status === 'approved' ? 'bg-chart-3 text-white border-transparent' : ''}
+                        data-testid={`badge-status-${claim.status}`}
+                      >
                         {getStatusLabel(claim.status, t)}
                       </Badge>
                     </TableCell>
