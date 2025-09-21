@@ -31,10 +31,10 @@ interface ClaimsTableProps {
 }
 
 const statusColors = {
-  pending: 'default',
+  pending: 'secondary',
   approved: 'default',
   rejected: 'destructive',
-  'under-review': 'secondary'
+  'under-review': 'outline'
 } as const;
 
 const getStatusLabel = (status: string, t: (key: string, fallback: string) => string) => {
