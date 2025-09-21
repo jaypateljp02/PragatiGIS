@@ -23,22 +23,31 @@ export default function AppSidebar() {
   const [location, navigate] = useLocation();
   const { t } = useLanguage();
 
-  // Fetch OCR review data for counts
-  const { data: ocrReviewData = [] } = useQuery<any[]>({
-    queryKey: ['/api/ocr-review'],
+  // Fetch detailed claims data for dynamic counts
+  const { data: detailedClaims = [] } = useQuery<any[]>({
+    queryKey: ['/api/claims', { format: 'detailed' }],
+    queryFn: async () => {
+      const response = await fetch('/api/claims?format=detailed', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch claims');
+      return response.json();
+    },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch dashboard stats for approved counts
+  // Fetch dashboard stats for additional data
   const { data: dashboardStats } = useQuery<any>({
     queryKey: ['/api/dashboard/stats'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
-  // Calculate dynamic counts
-  const pendingReviewCount = ocrReviewData.length;
-  const processingCount = 0; // Could be derived from workflow data if needed
-  const approvedTodayCount = dashboardStats?.approvedClaims || 0;
+  // Calculate dynamic counts based on claims data
+  const pendingClaimsCount = detailedClaims.filter(claim => claim.status === 'pending').length;
+  const processingClaimsCount = detailedClaims.filter(claim => 
+    claim.status === 'under-review' || claim.status === 'processing'
+  ).length;
+  const approvedClaimsCount = detailedClaims.filter(claim => claim.status === 'approved').length;
 
   // Define navigation items with translations
   const navigation = [
@@ -51,7 +60,7 @@ export default function AppSidebar() {
       title: t("navigation.claimsDocuments", "Claims & Documents"),
       url: "/documents",
       icon: FileText,
-      badge: pendingReviewCount > 0 ? pendingReviewCount.toString() : undefined
+      badge: pendingClaimsCount > 0 ? pendingClaimsCount.toString() : undefined
     },
     {
       title: t("navigation.stateAnalytics", "State Analytics"),
@@ -139,16 +148,16 @@ export default function AppSidebar() {
           <SidebarGroupContent>
             <div className="px-3 py-2 text-sm space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">{t("dashboard.pendingReview", "Pending Review")}</span>
-                <Badge variant={pendingReviewCount > 0 ? "default" : "outline"}>{pendingReviewCount}</Badge>
+                <span className="text-muted-foreground">{t("dashboard.pendingClaims", "Pending Claims")}</span>
+                <Badge variant={pendingClaimsCount > 0 ? "default" : "outline"}>{pendingClaimsCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">{t("dashboard.processing", "Processing")}</span>
-                <Badge variant="outline">{processingCount}</Badge>
+                <span className="text-muted-foreground">{t("dashboard.processingClaims", "Processing Claims")}</span>
+                <Badge variant={processingClaimsCount > 0 ? "secondary" : "outline"}>{processingClaimsCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">{t("dashboard.approvedToday", "Approved Today")}</span>
-                <Badge variant="default" className="bg-chart-3">{approvedTodayCount}</Badge>
+                <span className="text-muted-foreground">{t("dashboard.approvedClaims", "Approved Claims")}</span>
+                <Badge variant="default" className="bg-chart-3">{approvedClaimsCount}</Badge>
               </div>
             </div>
           </SidebarGroupContent>
