@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { DataImportService } from "./data-import";
 import { GovernmentAPIService } from "./govt-api-service";
@@ -654,23 +655,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/claims", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+  app.post("/api/claims", requireAuth, requireRole("ministry", "state", "district"), async (req: any, res) => {
     try {
       const claimData = insertClaimSchema.parse(req.body);
       const claim = await storage.createClaim(claimData);
+      
+      // Broadcast real-time event for new claim creation
+      (req.app as any).broadcastEvent({
+        type: 'claim_created',
+        data: { 
+          claim,
+          createdBy: {
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        excludeUsers: [] // Send to all relevant users
+      });
+      
+      console.log(`New claim created: ${claim.id} by ${req.user.username}`);
       res.status(201).json(claim);
     } catch (error) {
       res.status(400).json({ error: "Invalid claim data" });
     }
   });
 
-  app.patch("/api/claims/:id", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+  app.patch("/api/claims/:id", requireAuth, requireRole("ministry", "state", "district"), async (req: any, res) => {
     try {
       const updates = req.body;
       const claim = await storage.updateClaim(req.params.id, updates);
       if (!claim) {
         return res.status(404).json({ error: "Claim not found" });
       }
+      
+      // Broadcast real-time event for claim update
+      (req.app as any).broadcastEvent({
+        type: 'claim_updated',
+        data: { 
+          claim,
+          updates,
+          updatedBy: {
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        excludeUsers: [] // Send to all relevant users
+      });
+      
+      console.log(`Claim updated: ${claim.id} by ${req.user.username}`);
       res.json(claim);
     } catch (error) {
       res.status(400).json({ error: "Failed to update claim" });
@@ -768,6 +804,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateDocument(documentId, {
         ocrStatus: 'processing'
       });
+      
+      // Broadcast real-time event for OCR processing start
+      (app as any).broadcastEvent({
+        type: 'document_ocr_started',
+        data: { 
+          documentId,
+          status: 'processing'
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village']
+      });
 
       // Get document details
       const document = await storage.getDocument(documentId);
@@ -798,12 +844,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         confidence: confidence
       });
 
+      // Broadcast real-time event for OCR completion
+      (app as any).broadcastEvent({
+        type: 'document_ocr_completed',
+        data: { 
+          documentId,
+          status: 'completed',
+          extractedData,
+          confidence
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village']
+      });
+
       console.log(`Real OCR processing completed for document ${documentId}`);
     } catch (error) {
       console.error(`OCR processing failed for document ${documentId}:`, error);
       // File content remains in database for potential retry
       await storage.updateDocument(documentId, {
         ocrStatus: 'failed'
+      });
+      
+      // Broadcast real-time event for OCR failure
+      (app as any).broadcastEvent({
+        type: 'document_ocr_failed',
+        data: { 
+          documentId,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village']
       });
     }
   }
@@ -1556,6 +1625,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Broadcast real-time event for new workflow creation
+      (req.app as any).broadcastEvent({
+        type: 'workflow_created',
+        data: { 
+          workflow,
+          createdBy: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetUsers: [user.id] // Send to creator
+      });
+      
+      console.log(`New workflow created: ${workflow.id} by ${user.username}`);
       res.status(201).json(workflow);
     } catch (error) {
       console.error('Create workflow error:', error);
@@ -1625,6 +1710,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Workflow not found" });
       }
       
+      // Broadcast real-time event for workflow update
+      (req.app as any).broadcastEvent({
+        type: 'workflow_updated',
+        data: { 
+          workflow,
+          updates,
+          updatedBy: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetUsers: [workflow.userId] // Send to workflow owner
+      });
+      
       // Log workflow update
       await storage.logAudit({
         userId: user.id,
@@ -1636,6 +1737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent') || null
       });
       
+      console.log(`Workflow updated: ${workflow.id} by ${user.username}`);
       res.json(workflow);
     } catch (error) {
       console.error('Update workflow error:', error);
@@ -1685,6 +1787,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastActiveAt: new Date()
       });
       
+      // Broadcast real-time event for workflow step update
+      (req.app as any).broadcastEvent({
+        type: 'workflow_step_updated',
+        data: { 
+          step,
+          workflowId: req.params.workflowId,
+          updates,
+          completedSteps,
+          currentStep: currentStep || 'completed',
+          updatedBy: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village']
+      });
+      
       // Log step update
       await storage.logAudit({
         userId: user.id,
@@ -1696,6 +1816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent') || null
       });
       
+      console.log(`Workflow step updated: ${step.id} in workflow ${req.params.workflowId} by ${user.username}`);
       res.json(step);
     } catch (error) {
       console.error('Update workflow step error:', error);
@@ -1715,6 +1836,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const transition = await storage.createWorkflowTransition(transitionData);
       
+      // Broadcast real-time event for workflow transition
+      (req.app as any).broadcastEvent({
+        type: 'workflow_transition_created',
+        data: { 
+          transition,
+          workflowId: req.params.workflowId,
+          triggeredBy: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village']
+      });
+      
+      console.log(`Workflow transition created: ${transition.id} for workflow ${req.params.workflowId} by ${user.username}`);
       res.status(201).json(transition);
     } catch (error) {
       console.error('Create transition error:', error);
@@ -1750,6 +1887,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Broadcast real-time event for workflow continuation
+      (req.app as any).broadcastEvent({
+        type: 'workflow_continued',
+        data: { 
+          workflow,
+          fromStep,
+          continuedBy: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetUsers: [workflow.userId] // Send to workflow owner
+      });
+      
       // Log continue action
       await storage.logAudit({
         userId: user.id,
@@ -1761,6 +1914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent') || null
       });
       
+      console.log(`Workflow continued: ${workflow.id} from step ${fromStep} by ${user.username}`);
       res.json({ message: "Workflow continued", workflow });
     } catch (error) {
       console.error('Continue workflow error:', error);
@@ -2060,5 +2214,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // WebSocket Server Setup for Real-time Communication
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/ws'
+  });
+
+  // Store active WebSocket connections with user context
+  const activeConnections = new Map<string, { ws: WebSocket; userId: string; role: string; }>();
+
+  // WebSocket Event Broadcasting System
+  const broadcastEvent = (event: {
+    type: string;
+    data: any;
+    targetRoles?: string[];
+    targetUsers?: string[];
+    excludeUsers?: string[];
+  }) => {
+    console.log(`Broadcasting WebSocket event: ${event.type}`, { 
+      targetRoles: event.targetRoles,
+      targetUsers: event.targetUsers,
+      connectionCount: activeConnections.size 
+    });
+
+    activeConnections.forEach((connection, connectionId) => {
+      try {
+        // Check if connection should receive this event
+        const shouldReceive = (
+          (!event.targetRoles || event.targetRoles.includes(connection.role)) &&
+          (!event.targetUsers || event.targetUsers.includes(connection.userId)) &&
+          (!event.excludeUsers || !event.excludeUsers.includes(connection.userId))
+        );
+
+        if (shouldReceive && connection.ws.readyState === WebSocket.OPEN) {
+          connection.ws.send(JSON.stringify({
+            type: event.type,
+            data: event.data,
+            timestamp: new Date().toISOString()
+          }));
+        }
+      } catch (error) {
+        console.error(`Failed to send WebSocket message to ${connectionId}:`, error);
+        // Remove dead connections
+        activeConnections.delete(connectionId);
+      }
+    });
+  };
+
+  // WebSocket Connection Handler
+  wss.on('connection', async (ws: WebSocket, req) => {
+    console.log('New WebSocket connection attempt');
+    
+    try {
+      // Extract session token from URL query parameters or headers
+      const url = new URL(req.url || '', 'http://localhost');
+      const token = url.searchParams.get('token') || req.headers.cookie?.match(/fra_session=([^;]+)/)?.[1];
+      
+      if (!token) {
+        console.log('WebSocket connection rejected: No authentication token');
+        ws.close(1008, 'Authentication required');
+        return;
+      }
+
+      // Validate session
+      const session = await storage.getSession(token);
+      if (!session) {
+        console.log('WebSocket connection rejected: Invalid session');
+        ws.close(1008, 'Invalid session');
+        return;
+      }
+
+      const user = await storage.getUser(session.userId);
+      if (!user || !user.isActive) {
+        console.log('WebSocket connection rejected: User not found or inactive');
+        ws.close(1008, 'User not found or inactive');
+        return;
+      }
+
+      // Generate connection ID and store connection
+      const connectionId = randomUUID();
+      activeConnections.set(connectionId, { 
+        ws, 
+        userId: user.id, 
+        role: user.role 
+      });
+
+      console.log(`WebSocket authenticated for user ${user.username} (${user.role}). Active connections: ${activeConnections.size}`);
+
+      // Send initial connection confirmation
+      ws.send(JSON.stringify({
+        type: 'connection_established',
+        data: { 
+          connectionId, 
+          user: { 
+            id: user.id, 
+            username: user.username, 
+            role: user.role 
+          } 
+        },
+        timestamp: new Date().toISOString()
+      }));
+
+      // Handle incoming messages
+      ws.on('message', async (message: Buffer) => {
+        try {
+          const data = JSON.parse(message.toString());
+          console.log(`WebSocket message from ${user.username}:`, data.type);
+
+          // Handle different message types
+          switch (data.type) {
+            case 'subscribe_to_workflow':
+              // Subscribe to specific workflow updates
+              ws.send(JSON.stringify({
+                type: 'subscribed',
+                data: { workflowId: data.workflowId },
+                timestamp: new Date().toISOString()
+              }));
+              break;
+              
+            case 'ping':
+              ws.send(JSON.stringify({
+                type: 'pong',
+                data: { timestamp: new Date().toISOString() },
+                timestamp: new Date().toISOString()
+              }));
+              break;
+              
+            default:
+              console.log(`Unknown WebSocket message type: ${data.type}`);
+          }
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      });
+
+      // Handle connection close
+      ws.on('close', () => {
+        activeConnections.delete(connectionId);
+        console.log(`WebSocket disconnected for user ${user.username}. Active connections: ${activeConnections.size}`);
+      });
+
+      // Handle connection errors
+      ws.on('error', (error) => {
+        console.error(`WebSocket error for user ${user.username}:`, error);
+        activeConnections.delete(connectionId);
+      });
+
+    } catch (error) {
+      console.error('WebSocket connection setup error:', error);
+      ws.close(1011, 'Server error');
+    }
+  });
+
+  // Attach broadcast function to app for use in routes
+  (app as any).broadcastEvent = broadcastEvent;
+  
+  console.log('WebSocket server initialized on /ws endpoint');
+  
   return httpServer;
 }
