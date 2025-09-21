@@ -163,15 +163,10 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   
   // Helper function to get filtered dashboard stats
   const getFilteredStats = (filteredClaims: Claim[]) => {
-    // Normalize status values to handle server/client mismatch
-    const normalizeStatus = (status: string) => {
-      return status === 'under_review' ? 'under-review' : status;
-    };
-    
-    const approved = filteredClaims.filter(c => normalizeStatus(c.status) === 'approved').length;
-    const pending = filteredClaims.filter(c => normalizeStatus(c.status) === 'pending').length;
-    const underReview = filteredClaims.filter(c => normalizeStatus(c.status) === 'under-review').length;
-    const rejected = filteredClaims.filter(c => normalizeStatus(c.status) === 'rejected').length;
+    const approved = filteredClaims.filter(c => c.status === 'approved').length;
+    const pending = filteredClaims.filter(c => c.status === 'pending').length;
+    const underReview = filteredClaims.filter(c => c.status === 'under-review').length;
+    const rejected = filteredClaims.filter(c => c.status === 'rejected').length;
     const totalArea = filteredClaims.reduce((sum, c) => sum + (c.area || 0), 0);
     
     return {
@@ -517,7 +512,8 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       pdf.text((claim.claimantName || '').substring(0, 25), 40, currentY);
       pdf.text((claim.location || '').substring(0, 25), 80, currentY);
       pdf.text((claim.area || 0).toString(), 120, currentY);
-      pdf.text(claim.status, 145, currentY);
+      const normalizedStatus = claim.status;
+      pdf.text(normalizedStatus, 145, currentY);
       pdf.text((claim.landType || '').substring(0, 15), 165, currentY);
       currentY += 6;
     });
@@ -546,17 +542,25 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       
       // Add filtered claims data sheet
       if (filteredClaims.length > 0) {
-        const claimsData = filteredClaims.map(claim => ({
-          'Claim ID': claim.id,
-          'Claimant Name': claim.claimantName,
-          'Location': claim.location,
-          'District': claim.district,
-          'State': claim.state,
-          'Area (hectares)': claim.area,
-          'Land Type': claim.landType,
-          'Status': claim.status,
-          'Date Submitted': claim.dateSubmitted
-        }));
+        const claimsData = filteredClaims.map(claim => {
+          // Normalize status and format date
+          const normalizedStatus = claim.status;
+          const val = claim.dateSubmitted;
+          const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
+          const formattedDate = new Date(ms).toISOString().split('T')[0]; // YYYY-MM-DD format
+          
+          return {
+            'Claim ID': claim.id,
+            'Claimant Name': claim.claimantName,
+            'Location': claim.location,
+            'District': claim.district,
+            'State': claim.state,
+            'Area (hectares)': claim.area,
+            'Land Type': claim.landType,
+            'Status': normalizedStatus,
+            'Date Submitted': formattedDate
+          };
+        });
         
         const ws1 = XLSX.utils.json_to_sheet(claimsData);
         XLSX.utils.book_append_sheet(wb, ws1, 'Filtered Claims Data');
@@ -632,6 +636,12 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       const csvContent = [headers.join(',')];
       
       filteredClaims.forEach(claim => {
+        // Normalize status and format date
+        const normalizedStatus = claim.status;
+        const val = claim.dateSubmitted;
+        const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
+        const formattedDate = new Date(ms).toISOString().split('T')[0]; // YYYY-MM-DD format
+        
         const row = [
           `"${claim.id}"`,
           `"${claim.claimantName || ''}"`,
@@ -640,8 +650,8 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
           `"${claim.state || ''}"`,
           `"${claim.area || 0}"`,
           `"${claim.landType || ''}"`,
-          `"${claim.status}"`,
-          `"${claim.dateSubmitted}"`
+          `"${normalizedStatus}"`,
+          `"${formattedDate}"`
         ];
         csvContent.push(row.join(','));
       });
