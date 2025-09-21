@@ -186,11 +186,19 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     setGenerationProgress(10);
 
     try {
+      console.log('Starting PDF generation...');
+      
       const filteredClaims = getFilteredClaims();
+      console.log('Filtered claims:', filteredClaims.length);
+      
       const filteredStats = getFilteredStats(filteredClaims);
+      console.log('Filtered stats:', filteredStats);
+      
       const selectedTemplate = reportTemplates.find(t => t.id === reportOptions.template);
+      console.log('Selected template:', selectedTemplate);
       
       // Create PDF
+      console.log('Creating jsPDF instance...');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
