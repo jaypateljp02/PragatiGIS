@@ -24,6 +24,7 @@ export function useWebSocket(options?: {
   autoReconnect?: boolean;
   maxReconnectAttempts?: number;
   reconnectInterval?: number;
+  isAuthenticated?: boolean;
 }): WebSocketHookResult {
   const { toast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
@@ -41,12 +42,18 @@ export function useWebSocket(options?: {
     onError,
     autoReconnect = true,
     maxReconnectAttempts = 5,
-    reconnectInterval = 3000
+    reconnectInterval = 3000,
+    isAuthenticated = false
   } = options || {};
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return; // Already connected
+    }
+
+    // Don't attempt connection if not authenticated
+    if (!isAuthenticated) {
+      return;
     }
 
     setIsConnecting(true);
@@ -137,7 +144,7 @@ export function useWebSocket(options?: {
       setConnectionError('Failed to create WebSocket connection');
       setIsConnecting(false);
     }
-  }, [onMessage, onConnect, onDisconnect, onError, autoReconnect, maxReconnectAttempts, reconnectInterval, toast]);
+  }, [onMessage, onConnect, onDisconnect, onError, autoReconnect, maxReconnectAttempts, reconnectInterval, isAuthenticated, toast]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -168,15 +175,19 @@ export function useWebSocket(options?: {
     connect();
   }, [connect]);
 
-  // Connect on mount
+  // Connect when authenticated, disconnect when not authenticated
   useEffect(() => {
-    connect();
+    if (isAuthenticated) {
+      connect();
+    } else {
+      disconnect();
+    }
     
     // Cleanup on unmount
     return () => {
       disconnect();
     };
-  }, []);
+  }, [isAuthenticated, connect]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

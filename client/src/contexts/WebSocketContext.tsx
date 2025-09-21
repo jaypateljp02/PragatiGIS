@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useWebSocket, WebSocketMessage } from '@/hooks/useWebSocket';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WebSocketContextType {
   isConnected: boolean;
@@ -28,6 +29,7 @@ interface WebSocketProviderProps {
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [eventListeners, setEventListeners] = useState<Map<string, Set<(data: any) => void>>>(new Map());
 
   const handleMessage = (message: WebSocketMessage) => {
@@ -196,7 +198,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     },
     autoReconnect: true,
     maxReconnectAttempts: 5,
-    reconnectInterval: 3000
+    reconnectInterval: 3000,
+    isAuthenticated: isAuthenticated
   });
 
   const subscribe = (eventType: string, callback: (data: any) => void) => {
