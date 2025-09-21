@@ -201,11 +201,18 @@ export class RealFRAImportService {
           // Map status to our status format
           const status = this.mapStatus(record.Status || '');
           
-          // Parse coordinates
-          const coordinates = {
-            latitude: parseFloat(record.Latitude || '0'),
-            longitude: parseFloat(record.Longitude || '0')
-          };
+          // Parse coordinates and convert to GeoJSON Point format for consistency
+          const lat = parseFloat(record.Latitude || '0');
+          const lng = parseFloat(record.Longitude || '0');
+          
+          // Only create coordinates if we have valid lat/lng values
+          let coordinates = null;
+          if (lat !== 0 && lng !== 0 && !isNaN(lat) && !isNaN(lng)) {
+            coordinates = {
+              type: 'Point' as const,
+              coordinates: [lng, lat] // GeoJSON format: [longitude, latitude]
+            };
+          }
 
           // Create claim data
           const claimData: InsertClaim = {
@@ -221,7 +228,7 @@ export class RealFRAImportService {
             status: status,
             dateSubmitted: this.parseDate(record.Submission_Date || ''),
             dateProcessed: this.parseDate(record.Last_Updated || ''),
-            coordinates: JSON.stringify(coordinates),
+            coordinates: coordinates ? JSON.stringify(coordinates) : null,
             surveyNumber: record.Survey_Number || '',
             forestType: record.Forest_Type || '',
             tribalCommunity: record.Tribal_Community || '',
