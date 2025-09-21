@@ -188,19 +188,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     }
   };
 
-  const { isConnected, isConnecting, connectionError, retryConnection } = useWebSocket({
-    onMessage: handleMessage,
-    onConnect: () => {
-      console.log('WebSocket connected - real-time updates active');
-    },
-    onDisconnect: () => {
-      console.log('WebSocket disconnected - falling back to polling');
-    },
-    autoReconnect: true,
-    maxReconnectAttempts: 5,
-    reconnectInterval: 3000,
-    isAuthenticated: isAuthenticated
-  });
+  // WebSocket disabled to prevent connection issues
+  const isConnected = false;
+  const isConnecting = false;
+  const connectionError = null;
+  const retryConnection = () => {};
 
   const subscribe = (eventType: string, callback: (data: any) => void) => {
     setEventListeners(prev => {

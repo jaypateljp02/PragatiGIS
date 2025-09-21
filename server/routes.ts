@@ -2287,11 +2287,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // WebSocket Server Setup for Real-time Communication
-  const wss = new WebSocketServer({ 
-    server: httpServer,
-    path: '/ws'
-  });
+  // WebSocket disabled to prevent connection issues
+  // const wss = new WebSocketServer({ 
+  //   server: httpServer,
+  //   path: '/ws'
+  // });
 
   // Store active WebSocket connections with user context and data scoping
   const activeConnections = new Map<string, { 
@@ -2344,7 +2344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  // WebSocket Connection Handler
+  // WebSocket Connection Handler (completely disabled)
+  /*
   wss.on('connection', async (ws: WebSocket, req) => {
     console.log('New WebSocket connection attempt');
     
@@ -2449,11 +2450,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ws.close(1011, 'Server error');
     }
   });
+  */
 
-  // Attach broadcast function to app for use in routes
-  (app as any).broadcastEvent = broadcastEvent;
+  // Attach broadcast function to app for use in routes (disabled)
+  (app as any).broadcastEvent = () => {};
   
-  console.log('WebSocket server initialized on /ws endpoint');
+  // console.log('WebSocket server initialized on /ws endpoint');
   
   return httpServer;
 }
