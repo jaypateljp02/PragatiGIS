@@ -63,6 +63,7 @@ export default function DocumentUpload({
         await uploadFileToBackend(file, fileId);
       } catch (error) {
         console.error('File upload failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         setFiles(prev => prev.map(f => 
           f.id === fileId 
             ? { ...f, status: 'error', progress: 0 }
@@ -70,7 +71,7 @@ export default function DocumentUpload({
         ));
         toast({
           title: "Upload failed",
-          description: `Failed to upload ${file.name}`,
+          description: `${file.name}: ${errorMessage}`,
           variant: "destructive"
         });
       }
@@ -112,7 +113,36 @@ export default function DocumentUpload({
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        // Try to get specific error message from response
+        let errorMessage = `Upload failed (${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Fall back to status-based message
+          switch (response.status) {
+            case 413:
+              errorMessage = "File too large. Please upload a smaller file.";
+              break;
+            case 415:
+              errorMessage = "Unsupported file type. Please upload PDF, JPG, PNG, or TIFF files.";
+              break;
+            case 401:
+              errorMessage = "Authentication required. Please log in again.";
+              break;
+            case 403:
+              errorMessage = "Permission denied. You don't have access to upload files.";
+              break;
+            case 500:
+              errorMessage = "Server error. Please try again later.";
+              break;
+            default:
+              errorMessage = `Upload failed (${response.status}). Please try again.`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const uploadResponse = await response.json();
@@ -170,6 +200,11 @@ export default function DocumentUpload({
               ? { ...f, status: 'error' }
               : f
           ));
+          toast({
+            title: "OCR Processing Failed",
+            description: `Text extraction failed for ${files.find(f => f.id === fileId)?.name}. The image may be unclear or contain no readable text.`,
+            variant: "destructive"
+          });
           return;
         } else if (result.ocrStatus === 'processing') {
           // Still processing, update progress
@@ -192,6 +227,11 @@ export default function DocumentUpload({
               ? { ...f, status: 'error' }
               : f
           ));
+          toast({
+            title: "Processing Timeout",
+            description: `OCR processing took too long for ${files.find(f => f.id === fileId)?.name}. Please try uploading again.`,
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error('Error checking OCR status:', error);
@@ -200,6 +240,11 @@ export default function DocumentUpload({
             ? { ...f, status: 'error' }
             : f
         ));
+        toast({
+          title: "Processing Error",
+          description: `Failed to check processing status for ${files.find(f => f.id === fileId)?.name}. Please try again.`,
+          variant: "destructive"
+        });
       }
     };
 

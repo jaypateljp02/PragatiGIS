@@ -44,8 +44,6 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    
     // If headers already sent, delegate to default Express error handler
     if (res.headersSent) {
       return next(err);
@@ -53,10 +51,24 @@ app.use((req, res, next) => {
     
     console.error('Unhandled error:', err);
     
+    // Handle specific Multer errors with proper JSON responses
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: "File too large. Maximum file size is 50MB." });
+    }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ error: "Invalid file field. Please use 'document' field name." });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ error: "Too many files. Maximum 1 file allowed." });
+    }
+    
+    // Handle other error types
+    const status = err.status || err.statusCode || 500;
+    
     // Use generic message for 500+ errors to avoid information disclosure
     const message = status >= 500 ? "Internal Server Error" : (err.message || "An error occurred");
     
-    return res.status(status).json({ message });
+    return res.status(status).json({ error: message });
   });
 
   // importantly only setup vite in development and after

@@ -898,18 +898,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Real OCR processing completed for document ${documentId}`);
     } catch (error) {
       console.error(`OCR processing failed for document ${documentId}:`, error);
+      
+      // Determine error type for better user feedback
+      let errorMessage = 'OCR processing failed';
+      if (error instanceof Error) {
+        if (error.message.includes('Document not found')) {
+          errorMessage = 'Document not found';
+        } else if (error.message.includes('File content not found')) {
+          errorMessage = 'File content missing from database';
+        } else if (error.message.includes('Unsupported file type')) {
+          errorMessage = 'File type not supported for OCR';
+        } else if (error.message.includes('No text')) {
+          errorMessage = 'No readable text found in document';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       // File content remains in database for potential retry
       await storage.updateDocument(documentId, {
         ocrStatus: 'failed'
       });
       
-      // Broadcast real-time event for OCR failure
+      // Broadcast real-time event for OCR failure with improved error message
       (app as any).broadcastEvent({
         type: 'document_ocr_failed',
         data: { 
           documentId,
           status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: errorMessage
         },
         targetRoles: ['ministry', 'state', 'district', 'village']
       });
@@ -1180,7 +1197,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
       if (!allowedTypes.includes(file.mimetype)) {
-        return res.status(400).json({ error: "Only PDF, JPEG, PNG, and TIFF files are allowed" });
+        return res.status(415).json({ error: "Unsupported file type. Please upload PDF, JPG, PNG, or TIFF files." });
+      }
+
+      // Validate file size (already handled by multer, but let's provide better error message)
+      if (file.size > 50 * 1024 * 1024) {
+        return res.status(413).json({ error: "File too large. Maximum file size is 50MB." });
       }
 
       // Create document record with file content stored in database
@@ -1213,7 +1235,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Document upload error:', error);
-      res.status(500).json({ error: "Failed to upload document" });
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.message.includes('LIMIT_FILE_SIZE')) {
+          return res.status(413).json({ error: "File too large. Maximum file size is 50MB." });
+        }
+        if (error.message.includes('LIMIT_UNEXPECTED_FILE')) {
+          return res.status(400).json({ error: "Invalid file field. Please use 'document' field name." });
+        }
+      }
+      
+      res.status(500).json({ error: "Failed to upload document. Please try again." });
     }
   });
 
