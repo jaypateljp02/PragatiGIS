@@ -14,7 +14,14 @@ export default function Dashboard() {
 
   // Fetch claims data for recent activity
   const { data: claims = [] } = useQuery<Claim[]>({
-    queryKey: ['/api/claims', { format: 'detailed' }],
+    queryKey: ['/api/claims', 'detailed'],
+    queryFn: async () => {
+      const response = await fetch('/api/claims?format=detailed', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch claims');
+      return response.json();
+    },
     enabled: true,
   });
 

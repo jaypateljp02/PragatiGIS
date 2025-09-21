@@ -74,7 +74,14 @@ export default function DocumentWorkflowPage() {
 
   // Fetch claims data for claims management
   const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
-    queryKey: ['/api/claims', { format: 'detailed' }],
+    queryKey: ['/api/claims', 'detailed'],
+    queryFn: async () => {
+      const response = await fetch('/api/claims?format=detailed', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch claims');
+      return response.json();
+    },
     enabled: true,
   });
 

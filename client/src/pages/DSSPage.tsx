@@ -35,7 +35,14 @@ export default function DSSPage() {
 
   // Fetch claims data
   const { data: claims = [], isLoading, error } = useQuery<Claim[]>({
-    queryKey: ['/api/claims', { format: 'detailed' }],
+    queryKey: ['/api/claims', 'detailed'],
+    queryFn: async () => {
+      const response = await fetch('/api/claims?format=detailed', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch claims');
+      return response.json();
+    },
     enabled: true,
   });
 
