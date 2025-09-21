@@ -74,14 +74,14 @@ export default function MapView({ onClaimClick }: MapViewProps) {
   return (
     <div className="space-y-4">
       {/* Map Controls */}
-      <div className="flex flex-wrap gap-4 items-center justify-between">
+      <div className="flex flex-wrap gap-4 items-center justify-between relative z-[1010]">
         <div className="flex gap-2">
           <Select value={selectedLayer} onValueChange={setSelectedLayer}>
             <SelectTrigger className="w-40" data-testid="select-map-layer">
               <Layers className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1020]">
               <SelectItem value="satellite">Satellite</SelectItem>
               <SelectItem value="terrain">Terrain</SelectItem>
               <SelectItem value="street">Street Map</SelectItem>
@@ -94,7 +94,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1020]">
               <SelectItem value="all">All Claims</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
@@ -132,7 +132,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
       </div>
 
       {/* Map Container */}
-      <Card data-testid="map-container">
+      <Card data-testid="map-container" className="relative">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Map className="h-5 w-5" />
@@ -143,7 +143,7 @@ export default function MapView({ onClaimClick }: MapViewProps) {
           </CardDescription>
         </CardHeader>
         
-        <CardContent>
+        <CardContent className="relative z-[1]">
           {isLoading ? (
             <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
               <div className="text-center space-y-4">
