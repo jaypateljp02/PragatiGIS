@@ -15,12 +15,30 @@ import logoImage from "@assets/logo_1758394848677.jpg";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
 
 // Moved navigation array inside component to access `t` function
 
 export default function AppSidebar() {
   const [location, navigate] = useLocation();
   const { t } = useLanguage();
+
+  // Fetch OCR review data for counts
+  const { data: ocrReviewData = [] } = useQuery<any[]>({
+    queryKey: ['/api/ocr-review'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch dashboard stats for approved counts
+  const { data: dashboardStats } = useQuery<any>({
+    queryKey: ['/api/dashboard/stats'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Calculate dynamic counts
+  const pendingReviewCount = ocrReviewData.length;
+  const processingCount = 0; // Could be derived from workflow data if needed
+  const approvedTodayCount = dashboardStats?.approvedClaims || 0;
 
   // Define navigation items with translations
   const navigation = [
@@ -33,7 +51,7 @@ export default function AppSidebar() {
       title: t("navigation.claimsDocuments", "Claims & Documents"),
       url: "/documents",
       icon: FileText,
-      badge: "0"
+      badge: pendingReviewCount > 0 ? pendingReviewCount.toString() : undefined
     },
     {
       title: t("navigation.stateAnalytics", "State Analytics"),
@@ -122,15 +140,15 @@ export default function AppSidebar() {
             <div className="px-3 py-2 text-sm space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">{t("dashboard.pendingReview", "Pending Review")}</span>
-                <Badge variant="outline">0</Badge>
+                <Badge variant={pendingReviewCount > 0 ? "default" : "outline"}>{pendingReviewCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">{t("dashboard.processing", "Processing")}</span>
-                <Badge variant="outline">0</Badge>
+                <Badge variant="outline">{processingCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">{t("dashboard.approvedToday", "Approved Today")}</span>
-                <Badge variant="default" className="bg-chart-3">0</Badge>
+                <Badge variant="default" className="bg-chart-3">{approvedTodayCount}</Badge>
               </div>
             </div>
           </SidebarGroupContent>
