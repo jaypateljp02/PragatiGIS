@@ -40,7 +40,7 @@ interface ReportTemplate {
 interface ReportOptions {
   template: string;
   format: 'pdf' | 'csv' | 'excel';
-  dateRange: 'week' | 'month' | 'quarter' | 'year' | 'custom';
+  dateRange: 'all' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
   stateFilter?: string;
   districtFilter?: string;
 }
@@ -55,7 +55,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   const [reportOptions, setReportOptions] = useState<ReportOptions>({
     template: 'claims-summary',
     format: 'pdf',
-    dateRange: 'month',
+    dateRange: 'all',
     stateFilter: 'all',
     districtFilter: 'all'
   });
@@ -127,41 +127,51 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       filteredClaims = filteredClaims.filter(claim => claim.district === reportOptions.districtFilter);
     }
     
-    // Apply date range filter
-    const now = new Date();
-    let cutoffDate = new Date();
-    
-    switch (reportOptions.dateRange) {
-      case 'week':
-        cutoffDate.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        cutoffDate.setMonth(now.getMonth() - 1);
-        break;
-      case 'quarter':
-        cutoffDate.setMonth(now.getMonth() - 3);
-        break;
-      case 'year':
-        cutoffDate.setFullYear(now.getFullYear() - 1);
-        break;
-      default:
-        return filteredClaims; // No date filtering
+    // Apply date range filter only if not 'all'
+    if (reportOptions.dateRange !== 'all') {
+      const now = new Date();
+      let cutoffDate = new Date();
+      
+      switch (reportOptions.dateRange) {
+        case 'week':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoffDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'year':
+          cutoffDate.setFullYear(now.getFullYear() - 1);
+          break;
+        default:
+          return filteredClaims; // No date filtering
+      }
+      
+      filteredClaims = filteredClaims.filter(claim => {
+        // Handle both epoch seconds and milliseconds
+        const val = claim.dateSubmitted;
+        const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
+        const claimDate = new Date(ms);
+        return claimDate >= cutoffDate;
+      });
     }
-    
-    filteredClaims = filteredClaims.filter(claim => {
-      const claimDate = new Date(claim.dateSubmitted);
-      return claimDate >= cutoffDate;
-    });
     
     return filteredClaims;
   };
   
   // Helper function to get filtered dashboard stats
   const getFilteredStats = (filteredClaims: Claim[]) => {
-    const approved = filteredClaims.filter(c => c.status === 'approved').length;
-    const pending = filteredClaims.filter(c => c.status === 'pending').length;
-    const underReview = filteredClaims.filter(c => c.status === 'under-review').length;
-    const rejected = filteredClaims.filter(c => c.status === 'rejected').length;
+    // Normalize status values to handle server/client mismatch
+    const normalizeStatus = (status: string) => {
+      return status === 'under_review' ? 'under-review' : status;
+    };
+    
+    const approved = filteredClaims.filter(c => normalizeStatus(c.status) === 'approved').length;
+    const pending = filteredClaims.filter(c => normalizeStatus(c.status) === 'pending').length;
+    const underReview = filteredClaims.filter(c => normalizeStatus(c.status) === 'under-review').length;
+    const rejected = filteredClaims.filter(c => normalizeStatus(c.status) === 'rejected').length;
     const totalArea = filteredClaims.reduce((sum, c) => sum + (c.area || 0), 0);
     
     return {
@@ -672,22 +682,29 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   };
 
   const handleGenerateReport = async () => {
-    switch (reportOptions.format) {
-      case 'pdf':
-        await generatePDFReport();
-        break;
-      case 'excel':
-        await generateExcelReport();
-        break;
-      case 'csv':
-        await generateCSVReport();
-        break;
-      default:
-        toast({
-          title: t('pages.reports.reportError', 'Unsupported Format'),
-          description: t('pages.reports.reportFailed', 'Selected format is not supported'),
-          variant: "destructive"
-        });
+    // Route based on template and format
+    if (reportOptions.template === 'data-export') {
+      // Data export uses the selected format
+      switch (reportOptions.format) {
+        case 'excel':
+          await generateExcelReport();
+          break;
+        case 'csv':
+          await generateCSVReport();
+          break;
+        case 'pdf':
+          await generatePDFReport();
+          break;
+        default:
+          toast({
+            title: t('pages.reports.reportError', 'Unsupported Format'),
+            description: t('pages.reports.reportFailed', 'Selected format is not supported'),
+            variant: "destructive"
+          });
+      }
+    } else {
+      // Other templates default to PDF
+      await generatePDFReport();
     }
   };
 
@@ -796,7 +813,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                 <label className="text-sm font-medium">{t('pages.reports.dateRange', 'Date Range')}</label>
                 <Select 
                   value={reportOptions.dateRange} 
-                  onValueChange={(value: 'week' | 'month' | 'quarter' | 'year' | 'custom') => 
+                  onValueChange={(value: 'all' | 'week' | 'month' | 'quarter' | 'year' | 'custom') => 
                     setReportOptions(prev => ({ ...prev, dateRange: value }))
                   }
                 >
@@ -804,6 +821,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">{t('pages.reports.all', 'All Time')}</SelectItem>
                     <SelectItem value="week">{t('pages.reports.week', 'Last Week')}</SelectItem>
                     <SelectItem value="month">{t('pages.reports.month', 'Last Month')}</SelectItem>
                     <SelectItem value="quarter">{t('pages.reports.quarter', 'Last Quarter')}</SelectItem>
