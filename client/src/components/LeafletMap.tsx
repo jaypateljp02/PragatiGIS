@@ -195,12 +195,46 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       let marker: L.Marker | L.Polygon | null = null;
       
       if (claim.coordinates) {
-        // Handle both GeoJSON format and legacy format
-        if ('type' in claim.coordinates) {
-          // GeoJSON format
-          if (claim.coordinates.type === 'Point') {
-            const [lng, lat] = claim.coordinates.coordinates as number[];
-            
+        let lat: number | undefined, lng: number | undefined;
+        
+        // Parse coordinates safely
+        try {
+          const coords = claim.coordinates;
+          
+          // Check if it's GeoJSON format (has type property)
+          if (coords && typeof coords === 'object' && 'type' in coords && coords.type) {
+            // GeoJSON format
+            if (coords.type === 'Point' && coords.coordinates) {
+              [lng, lat] = coords.coordinates as number[];
+            } else if (coords.type === 'Polygon' && coords.coordinates) {
+              // Handle polygon coordinates for land boundaries
+              const coordinates = coords.coordinates[0] as number[][];
+              const latLngs = coordinates.map(coord => [coord[1], coord[0]] as [number, number]);
+              
+              const statusColors = {
+                approved: '#10b981',
+                pending: '#f59e0b',
+                rejected: '#ef4444',
+                'under-review': '#8b5cf6'
+              };
+              
+              const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
+              
+              marker = L.polygon(latLngs, {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.3,
+                weight: 2
+              });
+            }
+          } else if (coords && typeof coords === 'object' && 'latitude' in coords && 'longitude' in coords) {
+            // Legacy format: { latitude: number, longitude: number }
+            lat = coords.latitude;
+            lng = coords.longitude;
+          }
+          
+          // Create marker for Point coordinates (both GeoJSON Point and legacy format)
+          if (lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng)) {
             // Create custom marker based on status
             const statusColors = {
               approved: '#10b981', // green
@@ -218,51 +252,9 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
             });
 
             marker = L.marker([lat, lng], { icon: customIcon });
-          } else if (claim.coordinates.type === 'Polygon') {
-            // Handle polygon coordinates for land boundaries
-            const coordinates = claim.coordinates.coordinates[0] as number[][];
-            const latLngs = coordinates.map(coord => [coord[1], coord[0]] as [number, number]);
-            
-            const statusColors = {
-              approved: '#10b981',
-              pending: '#f59e0b',
-              rejected: '#ef4444',
-              'under-review': '#8b5cf6'
-            };
-            
-            const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
-            
-            marker = L.polygon(latLngs, {
-              color: color,
-              fillColor: color,
-              fillOpacity: 0.3,
-              weight: 2
-            });
-          } else {
-            return; // Skip if coordinates format is unknown
           }
-        } else {
-          // Legacy format: { latitude: number, longitude: number }
-          const lat = claim.coordinates.latitude;
-          const lng = claim.coordinates.longitude;
-          
-          // Create custom marker based on status
-          const statusColors = {
-            approved: '#10b981', // green
-            pending: '#f59e0b',   // yellow
-            rejected: '#ef4444',  // red
-            'under-review': '#8b5cf6' // purple
-          };
-          
-          const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
-          
-          const customIcon = L.divIcon({
-            html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          });
-
-          marker = L.marker([lat, lng], { icon: customIcon });
+        } catch (error) {
+          console.warn('Error parsing coordinates for claim:', claim.id, error);
         }
       } else {
         // If no coordinates, try to place based on location name (mock coordinates)
