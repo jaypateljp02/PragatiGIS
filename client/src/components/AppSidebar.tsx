@@ -45,7 +45,7 @@ export default function AppSidebar() {
   // Calculate dynamic counts based on claims data
   const pendingClaimsCount = detailedClaims.filter(claim => claim.status === 'pending').length;
   const processingClaimsCount = detailedClaims.filter(claim => 
-    claim.status === 'under-review' || claim.status === 'processing'
+    claim.status === 'under-review'
   ).length;
   const approvedClaimsCount = detailedClaims.filter(claim => claim.status === 'approved').length;
 
@@ -152,7 +152,7 @@ export default function AppSidebar() {
                 <Badge variant={pendingClaimsCount > 0 ? "default" : "outline"}>{pendingClaimsCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">{t("dashboard.processingClaims", "Processing Claims")}</span>
+                <span className="text-muted-foreground">{t("dashboard.underReview", "Under Review")}</span>
                 <Badge variant={processingClaimsCount > 0 ? "secondary" : "outline"}>{processingClaimsCount}</Badge>
               </div>
               <div className="flex justify-between items-center">
