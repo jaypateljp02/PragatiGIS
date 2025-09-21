@@ -189,6 +189,13 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     const filteredClaims = claims.filter(claim => 
       statusFilter === 'all' || claim.status === statusFilter
     );
+    
+    console.log(`Processing ${filteredClaims.length} filtered claims for map display`);
+    console.log('Sample claims data:', filteredClaims.slice(0, 3).map(c => ({ 
+      id: c.id, 
+      coordinates: c.coordinates,
+      location: c.location 
+    })));
 
     // Add markers for filtered claims
     filteredClaims.forEach((claim) => {
