@@ -55,6 +55,7 @@ export async function migrateSQLite() {
       role TEXT NOT NULL,
       state_id INTEGER REFERENCES states(id),
       district_id INTEGER REFERENCES districts(id),
+      avatar TEXT,
       is_active INTEGER DEFAULT 1,
       created_at INTEGER DEFAULT (unixepoch()),
       updated_at INTEGER DEFAULT (unixepoch())
