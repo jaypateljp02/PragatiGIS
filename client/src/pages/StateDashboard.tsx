@@ -55,9 +55,9 @@ interface StateSpecificInfo {
 
 export default function StateDashboard() {
   const { t } = useLanguage();
-  // Get state from user context or URL params - for now using Maharashtra as example
+  // Get state from user context or URL params - for now using Odisha as example
   const stateCode = "OD"; // This would come from user authentication context
-  const stateId = 19; // Odisha state ID - in a real app this would be derived from the user context
+  const stateId = 2; // Odisha state ID - in a real app this would be derived from the user context
 
   // First get all states to map state code to ID (for more dynamic approach)
   const { data: allStates } = useQuery<any[]>({
