@@ -169,8 +169,8 @@ export class RealFRAImportService {
    */
   async importAuthenticClaimsData(csvFilePath?: string): Promise<number> {
     try {
-      // Use attached CSV file by default
-      const claimsDataPath = csvFilePath || path.join(process.cwd(), 'attached_assets', 'Authentic_Government_FRA_Claims_1758490400729.csv');
+      // Use attached CSV file by default - look in root attached_assets directory
+      const claimsDataPath = csvFilePath || path.join(process.cwd(), '..', 'attached_assets', 'Authentic_Government_FRA_Claims_1758490400729.csv');
       
       console.log(`Importing authentic FRA claims from: ${claimsDataPath}`);
       
