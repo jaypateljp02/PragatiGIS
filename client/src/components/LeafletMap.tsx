@@ -28,6 +28,9 @@ interface ClaimData {
   coordinates?: {
     type: 'Point' | 'Polygon';
     coordinates: number[] | number[][][];
+  } | {
+    latitude: number;
+    longitude: number;
   };
 }
 
@@ -189,11 +192,59 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
 
     // Add markers for filtered claims
     filteredClaims.forEach((claim) => {
-      let marker: L.Marker | L.Polygon;
+      let marker: L.Marker | L.Polygon | null = null;
       
       if (claim.coordinates) {
-        if (claim.coordinates.type === 'Point') {
-          const [lng, lat] = claim.coordinates.coordinates as number[];
+        // Handle both GeoJSON format and legacy format
+        if ('type' in claim.coordinates) {
+          // GeoJSON format
+          if (claim.coordinates.type === 'Point') {
+            const [lng, lat] = claim.coordinates.coordinates as number[];
+            
+            // Create custom marker based on status
+            const statusColors = {
+              approved: '#10b981', // green
+              pending: '#f59e0b',   // yellow
+              rejected: '#ef4444',  // red
+              'under-review': '#8b5cf6' // purple
+            };
+            
+            const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
+            
+            const customIcon = L.divIcon({
+              html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            });
+
+            marker = L.marker([lat, lng], { icon: customIcon });
+          } else if (claim.coordinates.type === 'Polygon') {
+            // Handle polygon coordinates for land boundaries
+            const coordinates = claim.coordinates.coordinates[0] as number[][];
+            const latLngs = coordinates.map(coord => [coord[1], coord[0]] as [number, number]);
+            
+            const statusColors = {
+              approved: '#10b981',
+              pending: '#f59e0b',
+              rejected: '#ef4444',
+              'under-review': '#8b5cf6'
+            };
+            
+            const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
+            
+            marker = L.polygon(latLngs, {
+              color: color,
+              fillColor: color,
+              fillOpacity: 0.3,
+              weight: 2
+            });
+          } else {
+            return; // Skip if coordinates format is unknown
+          }
+        } else {
+          // Legacy format: { latitude: number, longitude: number }
+          const lat = claim.coordinates.latitude;
+          const lng = claim.coordinates.longitude;
           
           // Create custom marker based on status
           const statusColors = {
@@ -212,28 +263,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
           });
 
           marker = L.marker([lat, lng], { icon: customIcon });
-        } else if (claim.coordinates.type === 'Polygon') {
-          // Handle polygon coordinates for land boundaries
-          const coordinates = claim.coordinates.coordinates[0] as number[][];
-          const latLngs = coordinates.map(coord => [coord[1], coord[0]] as [number, number]);
-          
-          const statusColors = {
-            approved: '#10b981',
-            pending: '#f59e0b',
-            rejected: '#ef4444',
-            'under-review': '#8b5cf6'
-          };
-          
-          const color = statusColors[claim.status as keyof typeof statusColors] || '#6b7280';
-          
-          marker = L.polygon(latLngs, {
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.3,
-            weight: 2
-          });
-        } else {
-          return; // Skip if coordinates format is unknown
         }
       } else {
         // If no coordinates, try to place based on location name (mock coordinates)
@@ -293,15 +322,18 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       statusSpan.style.fontWeight = 'bold';
       statusSpan.textContent = claim.status;
 
-      marker.bindPopup(popupContainer);
+      // Only proceed if marker was successfully created
+      if (marker) {
+        marker.bindPopup(popupContainer);
 
-      // Add click handler
-      marker.on('click', () => {
-        onClaimClick?.(claim);
-      });
+        // Add click handler
+        marker.on('click', () => {
+          onClaimClick?.(claim);
+        });
 
-      // Add to markers layer group
-      markersRef.current!.addLayer(marker);
+        // Add to markers layer group
+        markersRef.current!.addLayer(marker);
+      }
     });
 
     // Auto-fit map to show all markers if there are any
