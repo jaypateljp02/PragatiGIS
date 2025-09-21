@@ -10,14 +10,31 @@ import { type Claim } from "@/components/ClaimsTable";
 import { useRef } from "react";
 
 // Convert Claim to ClaimData format for map component
-const convertClaimToMapData = (claim: Claim) => ({
-  ...claim,
-  claimId: claim.id || '', // Use id as claimId since it's not in the Claim type
-  area: (claim.area || 0).toString(), // Convert number to string, fallback to 0
-  dateSubmitted: new Date(claim.dateSubmitted || Date.now()),
-  // Keep real coordinates from claim data if available
-  coordinates: claim.coordinates || undefined
-});
+const convertClaimToMapData = (claim: Claim) => {
+  let parsedCoordinates;
+  
+  // Parse coordinates if they exist and are a string
+  if (claim.coordinates) {
+    try {
+      if (typeof claim.coordinates === 'string') {
+        parsedCoordinates = JSON.parse(claim.coordinates);
+      } else {
+        parsedCoordinates = claim.coordinates;
+      }
+    } catch (error) {
+      console.warn('Failed to parse coordinates for claim:', claim.id, error);
+      parsedCoordinates = undefined;
+    }
+  }
+  
+  return {
+    ...claim,
+    claimId: claim.id || '', // Use id as claimId since it's not in the Claim type
+    area: (claim.area || 0).toString(), // Convert number to string, fallback to 0
+    dateSubmitted: new Date(claim.dateSubmitted || Date.now()),
+    coordinates: parsedCoordinates
+  };
+};
 
 interface MapViewProps {
   onClaimClick?: (claim: Claim) => void;
