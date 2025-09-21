@@ -46,11 +46,11 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" data-testid="button-reports">
+          <Button variant="outline" size="sm" data-testid="button-reports" onClick={() => navigate('/reports')}>
             <Download className="h-4 w-4 mr-2" />
             {t("common.reports", "Reports")}
           </Button>
-          <Button size="sm" data-testid="button-process-documents">
+          <Button size="sm" data-testid="button-process-documents" onClick={() => navigate('/documents')}>
             <Zap className="h-4 w-4 mr-2" />
             {t("pages.dashboard.processDocuments", "Process Documents")}
           </Button>
