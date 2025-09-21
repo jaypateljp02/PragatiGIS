@@ -49,17 +49,22 @@ export const claims = sqliteTable("claims", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   claimId: text("claim_id").notNull().unique(), // Human-readable ID like FRA-MH-2024-001234
   claimantName: text("claimant_name").notNull(),
-  location: text("location").notNull(),
+  location: text("location").notNull(), // General location
+  village: text("village").notNull(), // Specific village name
+  tehsil: text("tehsil").notNull(), // Administrative subdivision
   district: text("district").notNull(),
   state: text("state").notNull(),
   area: real("area").notNull(),
-  landType: text("land_type").notNull(), // 'individual', 'community'
-  status: text("status").notNull(), // 'pending', 'approved', 'rejected', 'under-review'
+  landType: text("land_type").notNull(), // 'individual', 'community', 'cfr', 'cfrr'
+  status: text("status").notNull(), // 'pending', 'approved', 'rejected', 'under_review'
   dateSubmitted: integer("date_submitted", { mode: 'timestamp' }).notNull(),
   dateProcessed: integer("date_processed", { mode: 'timestamp' }),
   assignedOfficer: text("assigned_officer").references(() => users.id),
   familyMembers: integer("family_members"),
-  coordinates: text("coordinates", { mode: 'json' }), // JSON for land boundaries
+  coordinates: text("coordinates", { mode: 'json' }), // JSON for land boundaries and GPS coordinates
+  surveyNumber: text("survey_number"), // Survey number from government records
+  forestType: text("forest_type"), // Type of forest (Shorea, Teak, Bamboo, etc.)
+  tribalCommunity: text("tribal_community"), // Tribal community (Koya, Bhil, Gond, etc.)
   notes: text("notes"),
   createdAt: integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),

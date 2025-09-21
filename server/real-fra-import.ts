@@ -4,8 +4,8 @@ import { parse } from 'csv-parse/sync';
 import crypto from 'crypto';
 import { DatabaseStorage } from './storage';
 import { db } from './db-local';
-import { fraStatistics } from '@shared/schema-sqlite';
-import type { InsertFraStatistics } from '@shared/schema-sqlite';
+import { fraStatistics, claims } from '@shared/schema-sqlite';
+import type { InsertFraStatistics, InsertClaim } from '@shared/schema-sqlite';
 
 export interface RealFRARecord {
   'Sl. No.'?: string;
@@ -17,6 +17,26 @@ export interface RealFRARecord {
   'Number of Titles Distributed upto 30-06-2024 - Community'?: string;
   'Number of Titles Distributed upto 30-06-2024 - Total'?: string;
   [key: string]: any; // For any additional fields
+}
+
+export interface ClaimRecord {
+  Claim_ID?: string;
+  Claimant_Name?: string;
+  District?: string;
+  Tehsil?: string;
+  Village?: string;
+  State?: string;
+  Claim_Type?: string;
+  Area_Ha?: string;
+  Survey_Number?: string;
+  Status?: string;
+  Submission_Date?: string;
+  Last_Updated?: string;
+  Latitude?: string;
+  Longitude?: string;
+  Forest_Type?: string;
+  Tribal_Community?: string;
+  [key: string]: any;
 }
 
 export class RealFRAImportService {
@@ -142,6 +162,135 @@ export class RealFRAImportService {
       console.error('Error importing real FRA statistics:', error);
       throw error;
     }
+  }
+
+  /**
+   * Import authentic individual FRA claims from the attached CSV file
+   */
+  async importAuthenticClaimsData(csvFilePath?: string): Promise<number> {
+    try {
+      // Use attached CSV file by default
+      const claimsDataPath = csvFilePath || path.join(process.cwd(), 'attached_assets', 'Authentic_Government_FRA_Claims_1758490400729.csv');
+      
+      console.log(`Importing authentic FRA claims from: ${claimsDataPath}`);
+      
+      const csvContent = await fs.readFile(claimsDataPath, 'utf-8');
+      
+      // Parse CSV with proper headers
+      const records = parse(csvContent, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+        skip_records_with_error: false
+      }) as ClaimRecord[];
+
+      console.log(`Found ${records.length} authentic FRA claims to import`);
+
+      let claimsImported = 0;
+
+      for (const record of records) {
+        try {
+          // Skip invalid records
+          if (!record.Claim_ID || !record.Claimant_Name) {
+            continue;
+          }
+
+          // Map claim type to our land type format
+          const landType = this.mapClaimType(record.Claim_Type || '');
+          
+          // Map status to our status format
+          const status = this.mapStatus(record.Status || '');
+          
+          // Parse coordinates
+          const coordinates = {
+            latitude: parseFloat(record.Latitude || '0'),
+            longitude: parseFloat(record.Longitude || '0')
+          };
+
+          // Create claim data
+          const claimData: InsertClaim = {
+            claimId: record.Claim_ID,
+            claimantName: record.Claimant_Name,
+            location: record.Village || '', // Use village as primary location
+            village: record.Village || '',
+            tehsil: record.Tehsil || '',
+            district: record.District || '',
+            state: record.State || '',
+            area: parseFloat(record.Area_Ha || '0'),
+            landType: landType,
+            status: status,
+            dateSubmitted: this.parseDate(record.Submission_Date || ''),
+            dateProcessed: this.parseDate(record.Last_Updated || ''),
+            coordinates: JSON.stringify(coordinates),
+            surveyNumber: record.Survey_Number || '',
+            forestType: record.Forest_Type || '',
+            tribalCommunity: record.Tribal_Community || '',
+            familyMembers: 4, // Default family size
+            assignedOfficer: null,
+            notes: `Imported from authentic government FRA claims dataset`
+          };
+
+          // Insert claim into database
+          await db.insert(claims).values(claimData);
+          claimsImported++;
+          
+          if (claimsImported % 10 === 0) {
+            console.log(`Imported ${claimsImported}/${records.length} claims...`);
+          }
+
+        } catch (error) {
+          console.warn(`Failed to import claim ${record.Claim_ID}:`, error);
+        }
+      }
+
+      console.log(`Successfully imported ${claimsImported} authentic FRA claims from government dataset`);
+      return claimsImported;
+    } catch (error) {
+      console.error('Error importing authentic claims data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Map claim type from CSV to our land type format
+   */
+  private mapClaimType(claimType: string): string {
+    const type = claimType.toLowerCase();
+    if (type.includes('individual')) return 'individual';
+    if (type.includes('community') && type.includes('resource')) return 'cfrr';
+    if (type.includes('community')) return 'community';
+    return 'individual'; // Default
+  }
+
+  /**
+   * Map status from CSV to our status format
+   */
+  private mapStatus(status: string): string {
+    const stat = status.toLowerCase();
+    if (stat.includes('approved')) return 'approved';
+    if (stat.includes('rejected')) return 'rejected';
+    if (stat.includes('pending')) return 'pending';
+    if (stat.includes('under') && stat.includes('review')) return 'under_review';
+    return 'pending'; // Default
+  }
+
+  /**
+   * Parse date string to timestamp
+   */
+  private parseDate(dateStr: string): Date {
+    if (!dateStr) return new Date();
+    
+    try {
+      // Handle YYYY-MM-DD format
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    } catch (error) {
+      console.warn(`Failed to parse date: ${dateStr}`);
+    }
+    
+    return new Date(); // Default to current date
   }
 
   /**

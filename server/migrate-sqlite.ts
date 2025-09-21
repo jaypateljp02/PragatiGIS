@@ -77,6 +77,8 @@ export async function migrateSQLite() {
       claim_id TEXT NOT NULL UNIQUE,
       claimant_name TEXT NOT NULL,
       location TEXT NOT NULL,
+      village TEXT NOT NULL,
+      tehsil TEXT NOT NULL,
       district TEXT NOT NULL,
       state TEXT NOT NULL,
       area REAL NOT NULL,
@@ -87,6 +89,9 @@ export async function migrateSQLite() {
       assigned_officer TEXT REFERENCES users(id),
       family_members INTEGER,
       coordinates TEXT,
+      survey_number TEXT,
+      forest_type TEXT,
+      tribal_community TEXT,
       notes TEXT,
       created_at INTEGER DEFAULT (unixepoch()),
       updated_at INTEGER DEFAULT (unixepoch())
