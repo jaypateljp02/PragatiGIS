@@ -1,0 +1,142 @@
+Claim_ID,Claimant_Name,District,Tehsil,Village,State,Claim_Type,Area_Ha,Survey_Number,Status,Submission_Date,Last_Updated,Latitude,Longitude,Forest_Type,Tribal_Community
+FRA/2020/BET/0001,Radha Devi Dhurwa,Betul,Multai,Multai,Madhya Pradesh,Individual Forest Rights (IFR),3.72,S199/2,Approved,2020-09-23,2022-08-26,21.868613,77.967268,Shorea,Koya
+FRA/2024/SHA/0002,Parvati Devi Panika,Shahdol,Beohari,Beohari,Madhya Pradesh,Individual Forest Rights (IFR),1.68,S871/28,Approved,2024-05-26,2025-04-17,23.277303,81.28272,Mixed,Bhil
+FRA/2020/BET/0003,Suresh Singh Kharwar,Betul,Multai,Bhainsdehi,Madhya Pradesh,Individual Forest Rights (IFR),2.26,S310/28,Rejected,2020-06-02,2021-03-04,21.934944,77.962399,Eucalyptus,Bhil
+FRA/2023/DIN/0004,Parvati Devi Panika,Dindori,Karanjia,Amarkantak,Madhya Pradesh,Individual Forest Rights (IFR),3.32,S404/48,Approved,2023-08-16,2024-01-31,23.017109,81.036895,Teak,Gond
+FRA/2020/MAN/0005,Dinesh Kumar Majhi,Mandla,Bichhiya,Karanjia,Madhya Pradesh,Individual Forest Rights (IFR),3.74,S344/32,Rejected,2020-01-21,2020-11-19,22.656151,80.395697,Shorea,Reang
+FRA/2022/SHA/0006,Vikram Singh Baiga,Shahdol,Beohari,Jaitpur,Madhya Pradesh,Individual Forest Rights (IFR),2.6,S452/19,Pending,2022-05-16,2023-12-02,23.370574,81.318303,Bamboo,Koya
+FRA/2024/BET/0007,Mohan Singh Kol,Betul,Multai,Bhainsdehi,Madhya Pradesh,Individual Forest Rights (IFR),1.26,S555/13,Rejected,2024-06-08,2025-01-12,21.860444,77.922805,Sal,Santhal
+FRA/2023/CHH/0008,Ramesh Kumar Gond,Chhindwara,Tamia,Patalkot,Madhya Pradesh,Individual Forest Rights (IFR),2.65,S460/9,Approved,2023-10-18,2024-12-24,22.069984,78.873349,Bamboo,Kondh
+FRA/2023/SHA/0009,Dinesh Kumar Majhi,Shahdol,Beohari,Beohari,Madhya Pradesh,Individual Forest Rights (IFR),1.33,S930/5,Rejected,2023-02-23,2023-04-17,23.314781,81.297768,Sal,Reang
+FRA/2025/SHE/0010,Meera Devi Bhilala,Sheopur,Karahal,Karahal,Madhya Pradesh,Individual Forest Rights (IFR),3.69,S727/39,Approved,2025-02-03,2026-08-22,25.60298,76.656834,Teak,Gond
+FRA/2020/SHE/0011,Dinesh Kumar Majhi,Sheopur,Karahal,Badagaon,Madhya Pradesh,Individual Forest Rights (IFR),2.08,S810/40,Pending,2020-10-18,2021-04-26,25.766467,76.725041,Shorea,Munda
+FRA/2023/SHE/0012,Sita Devi Bhil,Sheopur,Karahal,Vijaypur,Madhya Pradesh,Individual Forest Rights (IFR),3.37,S892/21,Rejected,2023-05-03,2024-05-27,25.655918,76.785111,Teak,Koya
+FRA/2021/DIN/0013,Dinesh Kumar Majhi,Dindori,Karanjia,Samnapur,Madhya Pradesh,Individual Forest Rights (IFR),0.52,S522/44,Approved,2021-08-23,2023-07-13,22.924524,81.13072,Shorea,Kondh
+FRA/2024/BET/0014,Sita Devi Bhil,Betul,Multai,Multai,Madhya Pradesh,Individual Forest Rights (IFR),2.84,S130/4,Rejected,2024-10-03,2026-07-04,21.984911,77.983275,Teak,Reang
+FRA/2022/SHE/0015,Parvati Devi Panika,Sheopur,Karahal,Badagaon,Madhya Pradesh,Individual Forest Rights (IFR),3.73,S118/25,Rejected,2022-07-26,2023-07-15,25.730456,76.701775,Shorea,Oraon
+FRA/2020/MAN/0016,Kamala Devi Sahariya,Mandla,Bichhiya,Karanjia,Madhya Pradesh,Individual Forest Rights (IFR),0.69,S707/46,Approved,2020-04-21,2021-01-18,22.579129,80.327896,Mixed,Munda
+FRA/2020/SHI/0017,Rajesh Kumar Bharia,Shivpuri,Narwar,Kolaras,Madhya Pradesh,Individual Forest Rights (IFR),2.84,S252/41,Approved,2020-10-10,2021-10-26,25.499785,77.743712,Eucalyptus,Oraon
+FRA/2021/DIN/0018,Suresh Singh Kharwar,Dindori,Karanjia,Amarkantak,Madhya Pradesh,Individual Forest Rights (IFR),3.99,S625/31,Approved,2021-01-25,2022-01-06,22.955471,81.169126,Sal,Tripuri
+FRA/2024/SHE/0019,Parvati Devi Panika,Sheopur,Karahal,Vijaypur,Madhya Pradesh,Individual Forest Rights (IFR),2.87,S976/36,Approved,2024-08-22,2024-12-18,25.670902,76.59657,Teak,Koya
+FRA/2025/CHH/0020,Sunita Devi Korku,Chhindwara,Tamia,Delakhari,Madhya Pradesh,Individual Forest Rights (IFR),1.04,S695/33,Rejected,2025-07-10,2026-10-16,22.150367,78.871647,Teak,Tripuri
+FRA/2023/MAN/0021,Sunita Devi Korku,Mandla,Bichhiya,Mohgaon,Madhya Pradesh,Individual Forest Rights (IFR),1.18,S434/44,Approved,2023-11-19,2024-01-26,22.619893,80.393792,Shorea,Tripuri
+FRA/2020/DIN/0022,Suresh Singh Kharwar,Dindori,Karanjia,Samnapur,Madhya Pradesh,Individual Forest Rights (IFR),2.12,S929/30,Approved,2020-08-30,2021-08-17,22.875902,81.008934,Bamboo,Reang
+FRA/2021/SHA/0023,Suresh Singh Kharwar,Shahdol,Beohari,Jaitpur,Madhya Pradesh,Individual Forest Rights (IFR),3.52,S996/41,Rejected,2021-02-11,2021-11-13,23.299771,81.271751,Teak,Koya
+FRA/2024/DIN/0024,Parvati Devi Panika,Dindori,Karanjia,Karanjia,Madhya Pradesh,Individual Forest Rights (IFR),0.82,S926/36,Approved,2024-01-12,2025-04-02,22.891149,81.064889,Eucalyptus,Reang
+FRA/2025/DIN/0025,Kamala Devi Sahariya,Dindori,Karanjia,Amarkantak,Madhya Pradesh,Individual Forest Rights (IFR),0.76,S196/6,Approved,2025-01-07,2026-08-12,22.991487,81.016775,Sal,Oraon
+FRA/2025/BET/0026,Rajesh Kumar Bharia,Betul,Multai,Multai,Madhya Pradesh,Individual Forest Rights (IFR),1.72,S629/39,Rejected,2025-03-11,2026-10-28,21.961719,77.985007,Shorea,Reang
+FRA/2020/BET/0027,Meera Devi Bhilala,Betul,Multai,Bhainsdehi,Madhya Pradesh,Community Forest Rights (CFR),5.19,S586/24,Rejected,2020-10-08,2020-11-30,21.846622,77.851544,Teak,Reang
+FRA/2021/SHE/0028,Radha Devi Dhurwa,Sheopur,Karahal,Vijaypur,Madhya Pradesh,Community Forest Rights (CFR),32.72,S268/42,Rejected,2021-10-21,2022-01-15,25.74208,76.736397,Bamboo,Munda
+FRA/2022/SHE/0029,Sunita Devi Korku,Sheopur,Karahal,Badagaon,Madhya Pradesh,Individual Forest Rights (IFR),3.51,S859/29,Rejected,2022-08-08,2023-12-14,25.620877,76.603301,Bamboo,Reang
+FRA/2021/DIN/0030,Rajesh Kumar Bharia,Dindori,Karanjia,Amarkantak,Madhya Pradesh,Individual Forest Rights (IFR),2.44,S277/28,Rejected,2021-04-05,2021-05-22,23.008325,80.996647,Bamboo,Bhil
+FRA/2023/MAN/0031,Vikram Singh Baiga,Mandla,Bichhiya,Karanjia,Madhya Pradesh,Community Forest Rights (CFR),33.32,S369/9,Rejected,2023-05-30,2023-06-29,22.624421,80.317007,Shorea,Chenchu
+FRA/2021/SHA/0032,Dinesh Kumar Majhi,Shahdol,Beohari,Jaitpur,Madhya Pradesh,Individual Forest Rights (IFR),1.09,S255/27,Rejected,2021-05-12,2023-02-17,23.222969,81.265428,Bamboo,Reang
+FRA/2023/CHH/0033,Mohan Singh Kol,Chhindwara,Tamia,Patalkot,Madhya Pradesh,Individual Forest Rights (IFR),1.9,S955/12,Rejected,2023-12-08,2025-10-21,22.0316,78.862851,Shorea,Munda
+FRA/2025/MAN/0034,Radha Devi Dhurwa,Mandla,Bichhiya,Mohgaon,Madhya Pradesh,Individual Forest Rights (IFR),2.87,S139/19,Rejected,2025-06-12,2027-04-28,22.598888,80.365216,Teak,Oraon
+FRA/2023/SHA/0035,Sunita Devi Korku,Shahdol,Beohari,Beohari,Madhya Pradesh,Individual Forest Rights (IFR),1.19,S188/22,Approved,2023-09-18,2024-09-08,23.314997,81.376193,Teak,Gond
+FRA/2022/MAN/0036,Parvati Devi Panika,Mandla,Bichhiya,Mohgaon,Madhya Pradesh,Individual Forest Rights (IFR),0.76,S738/11,Approved,2022-01-02,2023-11-13,22.678424,80.293794,Bamboo,Chenchu
+FRA/2022/DIN/0037,Ramesh Kumar Gond,Dindori,Karanjia,Karanjia,Madhya Pradesh,Community Forest Rights (CFR),33.28,S879/8,Approved,2022-09-03,2024-01-04,22.991712,81.176209,Shorea,Oraon
+FRA/2021/SHE/0038,Sita Devi Bhil,Sheopur,Karahal,Badagaon,Madhya Pradesh,Individual Forest Rights (IFR),1.56,S807/18,Approved,2021-05-25,2022-03-28,25.578156,76.62524,Shorea,Munda
+FRA/2023/CHH/0039,Sunita Devi Korku,Chhindwara,Tamia,Patalkot,Madhya Pradesh,Individual Forest Rights (IFR),2.76,S905/1,Rejected,2023-10-15,2024-09-18,22.043456,78.874265,Eucalyptus,Reang
+FRA/2023/MAL/0040,Ramesh Juang,Malkangiri,Chitrakonda,Kalimela,Odisha,Individual Forest Rights (IFR),3.33,S419/48,Rejected,2023-09-11,2024-02-11,18.259666,81.938482,Bamboo,Chenchu
+FRA/2023/SUN/0041,Sita Devi Saora,Sundargarh,Bonai,Gurundia,Odisha,Individual Forest Rights (IFR),3.84,S402/44,Approved,2023-02-04,2023-11-20,22.169495,83.997362,Shorea,Reang
+FRA/2023/KEO/0042,Radha Devi Bhumij,Keonjhar,Champua,Champua,Odisha,Individual Forest Rights (IFR),1.34,S835/7,Under Review,2023-10-27,2024-02-16,21.634326,85.578799,Eucalyptus,Reang
+FRA/2024/MAL/0043,Radha Devi Bhumij,Malkangiri,Chitrakonda,Chitrakonda,Odisha,Individual Forest Rights (IFR),2.19,S172/40,Approved,2024-05-28,2026-05-21,18.358726,81.896251,Sal,Tripuri
+FRA/2024/MAL/0044,Suresh Kumar Munda,Malkangiri,Chitrakonda,Khairput,Odisha,Individual Forest Rights (IFR),3.89,S708/48,Under Review,2024-10-05,2025-10-13,18.341346,81.946063,Sal,Tripuri
+FRA/2023/MAY/0045,Geeta Devi Lodha,Mayurbhanj,Baripada,Baripada,Odisha,Individual Forest Rights (IFR),3.33,S416/48,Approved,2023-01-31,2023-05-13,21.881112,86.718651,Eucalyptus,Tripuri
+FRA/2022/SUN/0046,Savitri Devi Ho,Sundargarh,Bonai,Gurundia,Odisha,Individual Forest Rights (IFR),2.08,S389/50,Approved,2022-05-17,2022-07-03,22.032672,84.080338,Eucalyptus,Santhal
+FRA/2023/KEO/0047,Suresh Kumar Munda,Keonjhar,Champua,Joda,Odisha,Individual Forest Rights (IFR),2.07,S132/16,Approved,2023-03-17,2025-02-06,21.585095,85.560478,Eucalyptus,Munda
+FRA/2020/MAY/0048,Mahesh Kumar Kisan,Mayurbhanj,Baripada,Rairangpur,Odisha,Individual Forest Rights (IFR),2.32,S774/23,Approved,2020-08-03,2021-04-28,21.95626,86.759308,Sal,Munda
+FRA/2024/RAY/0049,Mahesh Kumar Kisan,Rayagada,Gunupur,Padmapur,Odisha,Individual Forest Rights (IFR),1.64,S377/2,Rejected,2024-12-13,2026-09-01,19.155907,83.480767,Mixed,Reang
+FRA/2020/RAY/0050,Naresh Singh Mahli,Rayagada,Gunupur,Kalyansinghpur,Odisha,Individual Forest Rights (IFR),1.55,S479/12,Approved,2020-01-16,2021-11-08,19.154256,83.381174,Teak,Munda
+FRA/2024/KEO/0051,Ramesh Juang,Keonjhar,Champua,Joda,Odisha,Individual Forest Rights (IFR),2.02,S713/18,Approved,2024-08-28,2026-02-21,21.539965,85.650802,Mixed,Kondh
+FRA/2021/KOR/0052,Naresh Singh Mahli,Koraput,Jeypore,Kotpad,Odisha,Individual Forest Rights (IFR),3.79,S504/41,Approved,2021-07-27,2023-04-11,18.804442,82.773673,Sal,Reang
+FRA/2025/RAY/0053,Savitri Devi Ho,Rayagada,Gunupur,Kalyansinghpur,Odisha,Individual Forest Rights (IFR),2.36,S311/3,Approved,2025-02-08,2025-11-06,19.216118,83.314151,Shorea,Santhal
+FRA/2024/MAL/0054,Radha Devi Bhumij,Malkangiri,Chitrakonda,Khairput,Odisha,Individual Forest Rights (IFR),0.52,S357/40,Rejected,2024-05-07,2024-06-14,18.261331,81.870006,Mixed,Chenchu
+FRA/2024/MAY/0055,Radha Devi Bhumij,Mayurbhanj,Baripada,Rairangpur,Odisha,Individual Forest Rights (IFR),3.92,S960/28,Approved,2024-03-27,2026-03-16,21.922629,86.81045,Sal,Reang
+FRA/2021/MAY/0056,Radha Devi Bhumij,Mayurbhanj,Baripada,Baripada,Odisha,Individual Forest Rights (IFR),1.42,S279/43,Rejected,2021-10-20,2022-08-10,21.954067,86.752798,Teak,Tripuri
+FRA/2024/MAL/0057,Ramesh Juang,Malkangiri,Chitrakonda,Chitrakonda,Odisha,Individual Forest Rights (IFR),3.75,S655/7,Approved,2024-10-23,2026-09-19,18.404191,81.934634,Sal,Gond
+FRA/2021/KEO/0058,Meera Devi Kondh,Keonjhar,Champua,Champua,Odisha,Individual Forest Rights (IFR),2.0,S970/40,Approved,2021-06-12,2022-07-14,21.628182,85.661752,Eucalyptus,Santhal
+FRA/2022/RAY/0059,Sita Devi Saora,Rayagada,Gunupur,Kalyansinghpur,Odisha,Individual Forest Rights (IFR),1.75,S993/2,Approved,2022-08-05,2023-10-05,19.212439,83.499503,Sal,Koya
+FRA/2021/KEO/0060,Suresh Kumar Munda,Keonjhar,Champua,Barbil,Odisha,Individual Forest Rights (IFR),1.67,S457/22,Approved,2021-08-01,2023-05-17,21.635813,85.520461,Teak,Munda
+FRA/2025/KOR/0061,Parvati Devi Oraon,Koraput,Jeypore,Kundra,Odisha,Individual Forest Rights (IFR),1.87,S778/28,Approved,2025-06-04,2026-11-03,18.792801,82.691318,Eucalyptus,Kondh
+FRA/2023/SUN/0062,Suresh Kumar Munda,Sundargarh,Bonai,Gurundia,Odisha,Individual Forest Rights (IFR),3.15,S345/46,Approved,2023-05-17,2025-01-18,22.133241,83.958866,Eucalyptus,Munda
+FRA/2025/MAL/0063,Naresh Singh Mahli,Malkangiri,Chitrakonda,Kalimela,Odisha,Individual Forest Rights (IFR),2.73,S557/11,Under Review,2025-05-21,2025-07-03,18.271509,81.802247,Shorea,Oraon
+FRA/2025/KOR/0064,Meera Devi Kondh,Koraput,Jeypore,Jeypore,Odisha,Individual Forest Rights (IFR),0.83,S128/3,Approved,2025-01-10,2025-08-28,18.90558,82.767939,Sal,Kondh
+FRA/2025/MAY/0065,Radha Devi Bhumij,Mayurbhanj,Baripada,Rairangpur,Odisha,Individual Forest Rights (IFR),1.35,S767/34,Approved,2025-02-19,2027-02-09,21.976209,86.694738,Teak,Kondh
+FRA/2024/RAY/0066,Sita Devi Saora,Rayagada,Gunupur,Gunupur,Odisha,Community Forest Rights (CFR),49.07,S978/46,Approved,2024-12-08,2026-11-12,19.136504,83.484924,Teak,Oraon
+FRA/2024/SUN/0067,Geeta Devi Lodha,Sundargarh,Bonai,Gurundia,Odisha,Individual Forest Rights (IFR),2.24,S912/18,Approved,2024-11-22,2025-03-08,22.176947,83.960184,Bamboo,Kondh
+FRA/2025/MAY/0068,Meera Devi Kondh,Mayurbhanj,Baripada,Baripada,Odisha,Community Forest Rights (CFR),19.92,S610/20,Rejected,2025-08-07,2026-01-25,21.844805,86.790444,Sal,Kondh
+FRA/2022/KOR/0069,Naresh Singh Mahli,Koraput,Jeypore,Jeypore,Odisha,Individual Forest Rights (IFR),2.71,S852/25,Pending,2022-06-06,2024-05-30,18.89683,82.790569,Teak,Munda
+FRA/2022/MAY/0070,Parvati Devi Oraon,Mayurbhanj,Baripada,Rairangpur,Odisha,Community Forest Resource Rights (CFRR),122.15,S274/40,Rejected,2022-10-03,2023-07-05,21.979242,86.828574,Shorea,Reang
+FRA/2024/SUN/0071,Geeta Devi Lodha,Sundargarh,Bonai,Koira,Odisha,Community Forest Rights (CFR),23.41,S780/48,Approved,2024-07-05,2025-11-23,22.143634,83.95466,Eucalyptus,Munda
+FRA/2023/MAL/0072,Mahesh Kumar Kisan,Malkangiri,Chitrakonda,Kalimela,Odisha,Individual Forest Rights (IFR),2.58,S393/25,Approved,2023-07-13,2024-05-20,18.285103,81.901662,Eucalyptus,Bhil
+FRA/2021/KEO/0073,Parvati Devi Oraon,Keonjhar,Champua,Champua,Odisha,Individual Forest Rights (IFR),3.82,S735/29,Approved,2021-03-25,2022-08-16,21.684352,85.678809,Mixed,Munda
+FRA/2021/SUN/0074,Ramesh Juang,Sundargarh,Bonai,Bonai,Odisha,Individual Forest Rights (IFR),1.18,S411/41,Approved,2021-05-09,2022-06-19,22.204066,83.942088,Bamboo,Santhal
+FRA/2025/KEO/0075,Dinesh Singh Kharia,Keonjhar,Champua,Barbil,Odisha,Individual Forest Rights (IFR),0.76,S720/32,Pending,2025-06-04,2026-04-18,21.620773,85.613599,Bamboo,Gond
+FRA/2020/RAY/0076,Radha Devi Bhumij,Rayagada,Gunupur,Kalyansinghpur,Odisha,Individual Forest Rights (IFR),3.47,S941/24,Approved,2020-08-07,2021-10-28,19.110657,83.380298,Mixed,Tripuri
+FRA/2020/KOR/0077,Geeta Devi Lodha,Koraput,Jeypore,Kundra,Odisha,Individual Forest Rights (IFR),3.93,S319/7,Rejected,2020-04-01,2020-09-30,18.84017,82.652644,Bamboo,Koya
+FRA/2021/SUN/0078,Parvati Devi Oraon,Sundargarh,Bonai,Bonai,Odisha,Individual Forest Rights (IFR),3.27,S524/25,Approved,2021-09-15,2022-01-29,22.167146,84.084505,Mixed,Koya
+FRA/2020/MAY/0079,Rajesh Kumar Santhal,Mayurbhanj,Baripada,Udala,Odisha,Community Forest Rights (CFR),7.52,S716/38,Approved,2020-08-16,2021-10-08,21.963102,86.746777,Sal,Bhil
+FRA/2022/ADI/0080,Anitha Devi Yerukala,Adilabad,Boath,Jainoor,Telangana,Individual Forest Rights (IFR),1.74,S622/1,Rejected,2022-06-03,2023-02-08,19.72916,78.472554,Mixed,Koya
+FRA/2025/MAN/0081,Rajesh Singh Kolam,Mancherial,Bellampalli,Mandamarri,Telangana,Individual Forest Rights (IFR),2.49,S507/8,Pending,2025-03-25,2026-10-07,18.973524,79.476521,Sal,Tripuri
+FRA/2024/ADI/0082,Padma Devi Sugali,Adilabad,Boath,Kerameri,Telangana,Individual Forest Rights (IFR),2.48,S176/40,Rejected,2024-05-08,2026-03-14,19.750144,78.498782,Teak,Koya
+FRA/2025/KUM/0083,Naresh Kumar Thoti,Kumuram Bheem,Sirpur,Sirpur,Telangana,Individual Forest Rights (IFR),1.63,S762/4,Approved,2025-05-11,2026-10-02,19.41272,79.049379,Sal,Tripuri
+FRA/2023/KUM/0084,Vimala Devi Andh,Kumuram Bheem,Sirpur,Sirpur,Telangana,Individual Forest Rights (IFR),1.61,S612/25,Approved,2023-12-16,2024-06-29,19.422746,79.03117,Sal,Kondh
+FRA/2023/BHA/0085,Kavitha Devi Pardhi,Bhadradri Kothagudem,Charla,Venkatapuram,Telangana,Community Forest Resource Rights (CFRR),179.52,S145/3,Under Review,2023-09-19,2025-05-19,17.573259,80.716104,Mixed,Bhil
+FRA/2024/KUM/0086,Saroja Devi Naikpod,Kumuram Bheem,Sirpur,Sirpur,Telangana,Individual Forest Rights (IFR),1.72,S677/33,Rejected,2024-06-23,2025-10-13,19.343563,79.190241,Shorea,Koya
+FRA/2020/KUM/0087,Vimala Devi Andh,Kumuram Bheem,Sirpur,Kagaznagar,Telangana,Individual Forest Rights (IFR),2.97,S606/4,Pending,2020-04-08,2021-02-09,19.422091,79.213111,Shorea,Oraon
+FRA/2023/MUL/0088,Rajesh Singh Kolam,Mulugu,Eturnagaram,Eturnagaram,Telangana,Individual Forest Rights (IFR),3.24,S373/33,Pending,2023-05-03,2023-06-15,18.262255,79.682526,Sal,Kondh
+FRA/2022/KUM/0089,Vimala Devi Andh,Kumuram Bheem,Sirpur,Rebbena,Telangana,Individual Forest Rights (IFR),3.32,S229/26,Rejected,2022-04-10,2023-04-07,19.279821,79.135786,Teak,Chenchu
+FRA/2025/BHA/0090,Venkatesh Singh Lambada,Bhadradri Kothagudem,Charla,Venkatapuram,Telangana,Community Forest Rights (CFR),19.1,S372/11,Approved,2025-08-06,2027-04-28,17.514531,80.638245,Shorea,Munda
+FRA/2022/ADI/0091,Padma Devi Sugali,Adilabad,Boath,Jainoor,Telangana,Individual Forest Rights (IFR),2.1,S858/33,Pending,2022-12-16,2023-12-26,19.746963,78.563428,Shorea,Munda
+FRA/2023/BHA/0092,Vimala Devi Andh,Bhadradri Kothagudem,Charla,Charla,Telangana,Community Forest Resource Rights (CFRR),47.13,S879/50,Pending,2023-04-06,2025-01-15,17.652934,80.682951,Shorea,Gond
+FRA/2021/MAN/0093,Lakshmi Devi Koya,Mancherial,Bellampalli,Kyathampalli,Telangana,Individual Forest Rights (IFR),0.64,S132/24,Rejected,2021-11-25,2023-05-18,18.897001,79.416014,Mixed,Santhal
+FRA/2023/ADI/0094,Padma Devi Sugali,Adilabad,Boath,Boath,Telangana,Individual Forest Rights (IFR),3.13,S235/16,Approved,2023-12-25,2024-07-28,19.603628,78.46968,Mixed,Tripuri
+FRA/2021/ADI/0095,Suresh Kumar Chenchu,Adilabad,Boath,Boath,Telangana,Individual Forest Rights (IFR),2.91,S541/35,Pending,2021-06-09,2022-08-13,19.717749,78.450296,Bamboo,Kondh
+FRA/2021/BHA/0096,Padma Devi Sugali,Bhadradri Kothagudem,Charla,Venkatapuram,Telangana,Individual Forest Rights (IFR),0.53,S730/47,Pending,2021-04-02,2022-12-12,17.626761,80.593319,Eucalyptus,Santhal
+FRA/2025/BHA/0097,Saroja Devi Naikpod,Bhadradri Kothagudem,Charla,Dummugudem,Telangana,Individual Forest Rights (IFR),2.64,S682/43,Rejected,2025-08-17,2026-04-28,17.507004,80.557196,Eucalyptus,Tripuri
+FRA/2021/MUL/0098,Suresh Kumar Chenchu,Mulugu,Eturnagaram,Eturnagaram,Telangana,Individual Forest Rights (IFR),3.09,S824/20,Approved,2021-08-14,2022-12-03,18.125483,79.796337,Eucalyptus,Oraon
+FRA/2021/ADI/0099,Suresh Kumar Chenchu,Adilabad,Boath,Boath,Telangana,Individual Forest Rights (IFR),3.88,S553/24,Rejected,2021-08-20,2022-05-14,19.56704,78.469265,Teak,Chenchu
+FRA/2022/MAN/0100,Kavitha Devi Pardhi,Mancherial,Bellampalli,Kyathampalli,Telangana,Individual Forest Rights (IFR),0.54,S116/21,Under Review,2022-08-04,2023-02-20,18.934638,79.450974,Shorea,Kondh
+FRA/2024/MUL/0101,Ravi Kumar Gond,Mulugu,Eturnagaram,Govindaraopet,Telangana,Individual Forest Rights (IFR),2.23,S343/38,Pending,2024-07-15,2025-08-14,18.145313,79.644803,Teak,Chenchu
+FRA/2022/KUM/0102,Suresh Kumar Chenchu,Kumuram Bheem,Sirpur,Kagaznagar,Telangana,Individual Forest Rights (IFR),3.68,S306/46,Pending,2022-11-28,2023-12-20,19.351871,79.059473,Shorea,Santhal
+FRA/2024/MUL/0103,Venkatesh Singh Lambada,Mulugu,Eturnagaram,Mangapet,Telangana,Individual Forest Rights (IFR),0.53,S950/2,Under Review,2024-01-09,2025-12-02,18.196432,79.721671,Teak,Koya
+FRA/2024/ADI/0104,Ravi Kumar Gond,Adilabad,Boath,Jainoor,Telangana,Individual Forest Rights (IFR),2.72,S395/44,Pending,2024-12-20,2026-11-28,19.585237,78.625536,Mixed,Bhil
+FRA/2024/MAN/0105,Padma Devi Sugali,Mancherial,Bellampalli,Mandamarri,Telangana,Individual Forest Rights (IFR),2.48,S284/6,Pending,2024-05-30,2025-05-12,18.934398,79.541923,Teak,Koya
+FRA/2024/KUM/0106,Venkatesh Singh Lambada,Kumuram Bheem,Sirpur,Sirpur,Telangana,Individual Forest Rights (IFR),3.8,S848/18,Pending,2024-10-16,2026-10-09,19.326899,79.022044,Bamboo,Tripuri
+FRA/2024/KUM/0107,Mahesh Singh Bhil,Kumuram Bheem,Sirpur,Kagaznagar,Telangana,Individual Forest Rights (IFR),2.03,S284/12,Approved,2024-11-01,2025-02-25,19.358368,79.021105,Bamboo,Kondh
+FRA/2025/ADI/0108,Saroja Devi Naikpod,Adilabad,Boath,Boath,Telangana,Individual Forest Rights (IFR),1.79,S421/21,Approved,2025-08-29,2025-11-22,19.738159,78.624918,Sal,Kondh
+FRA/2022/MUL/0109,Padma Devi Sugali,Mulugu,Eturnagaram,Govindaraopet,Telangana,Individual Forest Rights (IFR),3.36,S264/34,Under Review,2022-09-23,2024-07-23,18.129079,79.696021,Eucalyptus,Koya
+FRA/2021/KUM/0110,Suresh Kumar Chenchu,Kumuram Bheem,Sirpur,Kagaznagar,Telangana,Individual Forest Rights (IFR),1.24,S675/17,Approved,2021-04-27,2022-05-29,19.278148,79.138249,Bamboo,Chenchu
+FRA/2021/DHA/0111,Meera Devi Rupini,Dhalai,Ambassa,Ambassa,Tripura,Individual Forest Rights (IFR),0.87,S994/18,Approved,2021-01-17,2022-01-27,23.934351,91.934362,Teak,Oraon
+FRA/2022/DHA/0112,Shanti Devi Tripuri,Dhalai,Ambassa,Salema,Tripura,Individual Forest Rights (IFR),2.12,S553/22,Rejected,2022-07-13,2022-11-10,23.794955,91.99311,Teak,Reang
+FRA/2021/DHA/0113,Naresh Singh Murasing,Dhalai,Ambassa,Dumburnagar,Tripura,Individual Forest Rights (IFR),3.72,S415/35,Approved,2021-06-08,2021-08-29,23.742982,91.994555,Eucalyptus,Koya
+FRA/2025/SOU/0114,Rakesh Kumar Reang,South Tripura,Belonia,Santirbazar,Tripura,Community Forest Rights (CFR),6.49,S644/30,Rejected,2025-04-16,2026-09-13,23.303291,91.488549,Sal,Koya
+FRA/2023/NOR/0115,Naresh Singh Murasing,North Tripura,Dharmanagar,Panisagar,Tripura,Individual Forest Rights (IFR),3.99,S218/31,Approved,2023-03-13,2024-11-22,24.110709,92.110575,Bamboo,Munda
+FRA/2022/SOU/0116,Kamala Devi Uchai,South Tripura,Belonia,Belonia,Tripura,Individual Forest Rights (IFR),3.1,S772/16,Rejected,2022-11-13,2024-01-24,23.282057,91.478707,Bamboo,Reang
+FRA/2023/SOU/0117,Naresh Singh Murasing,South Tripura,Belonia,Santirbazar,Tripura,Individual Forest Rights (IFR),1.15,S120/14,Approved,2023-02-23,2023-10-28,23.329237,91.361683,Sal,Munda
+FRA/2023/SOU/0118,Meera Devi Rupini,South Tripura,Belonia,Belonia,Tripura,Individual Forest Rights (IFR),1.21,S240/18,Approved,2023-05-13,2024-03-19,23.184734,91.528343,Eucalyptus,Santhal
+FRA/2023/SOU/0119,Shanti Devi Tripuri,South Tripura,Belonia,Rajnagar,Tripura,Individual Forest Rights (IFR),1.62,S824/25,Rejected,2023-05-18,2024-11-13,23.228908,91.537182,Bamboo,Gond
+FRA/2022/DHA/0120,Rakesh Kumar Reang,Dhalai,Ambassa,Dumburnagar,Tripura,Individual Forest Rights (IFR),2.7,S588/38,Rejected,2022-11-09,2023-04-13,23.852651,91.845417,Mixed,Munda
+FRA/2021/WES/0121,Anita Devi Mog,West Tripura,Jirania,Boxanagar,Tripura,Individual Forest Rights (IFR),2.82,S136/37,Rejected,2021-03-29,2022-10-19,23.806818,91.22622,Shorea,Kondh
+FRA/2020/DHA/0122,Dinesh Singh Lushai,Dhalai,Ambassa,Ambassa,Tripura,Individual Forest Rights (IFR),1.36,S469/2,Rejected,2020-09-01,2022-02-12,23.832696,91.993626,Mixed,Bhil
+FRA/2022/SOU/0123,Rakesh Kumar Reang,South Tripura,Belonia,Santirbazar,Tripura,Individual Forest Rights (IFR),1.8,S656/36,Approved,2022-02-01,2022-06-20,23.147836,91.534092,Shorea,Bhil
+FRA/2022/SOU/0124,Rakesh Kumar Reang,South Tripura,Belonia,Rajnagar,Tripura,Individual Forest Rights (IFR),2.65,S587/48,Approved,2022-05-10,2022-10-02,23.198532,91.515936,Sal,Munda
+FRA/2025/DHA/0125,Rakesh Kumar Reang,Dhalai,Ambassa,Ambassa,Tripura,Individual Forest Rights (IFR),0.52,S294/2,Rejected,2025-09-10,2026-03-20,23.878358,91.975394,Bamboo,Chenchu
+FRA/2021/NOR/0126,Umesh Singh Jamatia,North Tripura,Dharmanagar,Kanchanpur,Tripura,Individual Forest Rights (IFR),1.96,S547/8,Pending,2021-04-25,2022-10-14,24.098833,92.084238,Sal,Koya
+FRA/2020/DHA/0127,Umesh Singh Jamatia,Dhalai,Ambassa,Ambassa,Tripura,Individual Forest Rights (IFR),3.62,S599/42,Approved,2020-02-01,2020-03-28,23.760931,91.87004,Mixed,Kondh
+FRA/2025/WES/0128,Anita Devi Mog,West Tripura,Jirania,Jirania,Tripura,Individual Forest Rights (IFR),3.91,S742/47,Approved,2025-07-06,2026-06-19,23.87023,91.357248,Mixed,Tripuri
+FRA/2020/WES/0129,Rakesh Kumar Reang,West Tripura,Jirania,Jirania,Tripura,Individual Forest Rights (IFR),2.14,S559/34,Approved,2020-03-19,2020-12-06,23.804799,91.215527,Bamboo,Oraon
+FRA/2023/NOR/0130,Rajesh Kumar Noatia,North Tripura,Dharmanagar,Panisagar,Tripura,Individual Forest Rights (IFR),2.41,S529/14,Under Review,2023-11-24,2025-07-27,24.104618,92.096782,Sal,Bhil
+FRA/2023/DHA/0131,Shanti Devi Tripuri,Dhalai,Ambassa,Salema,Tripura,Individual Forest Rights (IFR),1.05,S587/29,Approved,2023-09-25,2025-06-17,23.772521,91.897888,Sal,Koya
+FRA/2021/WES/0132,Anita Devi Mog,West Tripura,Jirania,Boxanagar,Tripura,Individual Forest Rights (IFR),1.54,S415/16,Rejected,2021-11-27,2023-07-25,23.78996,91.233739,Sal,Kondh
+FRA/2021/WES/0133,Dinesh Singh Lushai,West Tripura,Jirania,Boxanagar,Tripura,Individual Forest Rights (IFR),1.35,S143/1,Approved,2021-04-29,2021-09-04,23.926556,91.205592,Bamboo,Bhil
+FRA/2020/NOR/0134,Shanti Devi Tripuri,North Tripura,Dharmanagar,Panisagar,Tripura,Individual Forest Rights (IFR),2.2,S233/11,Approved,2020-07-02,2021-10-17,24.093093,92.12262,Mixed,Chenchu
+FRA/2023/SOU/0135,Rajesh Kumar Noatia,South Tripura,Belonia,Santirbazar,Tripura,Individual Forest Rights (IFR),3.06,S481/26,Rejected,2023-10-07,2023-11-30,23.299521,91.431825,Bamboo,Tripuri
+FRA/2021/SOU/0136,Umesh Singh Jamatia,South Tripura,Belonia,Santirbazar,Tripura,Individual Forest Rights (IFR),1.71,S219/24,Approved,2021-05-10,2022-09-24,23.271324,91.548787,Sal,Kondh
+FRA/2025/WES/0137,Meera Devi Rupini,West Tripura,Jirania,Jirania,Tripura,Individual Forest Rights (IFR),3.8,S527/12,Pending,2025-02-24,2025-09-20,23.867708,91.255744,Bamboo,Santhal
+FRA/2023/SOU/0138,Naresh Singh Murasing,South Tripura,Belonia,Santirbazar,Tripura,Individual Forest Rights (IFR),1.6,S986/47,Rejected,2023-11-21,2024-04-10,23.27422,91.487274,Sal,Tripuri
+FRA/2024/WES/0139,Meera Devi Rupini,West Tripura,Jirania,Boxanagar,Tripura,Individual Forest Rights (IFR),2.39,S973/44,Approved,2024-06-10,2024-11-01,23.863989,91.246355,Eucalyptus,Bhil
+FRA/2024/NOR/0140,Geeta Devi Kuki,North Tripura,Dharmanagar,Kanchanpur,Tripura,Individual Forest Rights (IFR),3.65,S157/41,Rejected,2024-01-01,2024-05-24,24.120152,92.20884,Eucalyptus,Kondh
+FRA/2020/DHA/0141,Geeta Devi Kuki,Dhalai,Ambassa,Dumburnagar,Tripura,Individual Forest Rights (IFR),1.84,S596/2,Approved,2020-09-14,2022-03-19,23.922102,91.943733,Mixed,Munda
