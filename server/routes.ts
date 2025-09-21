@@ -672,6 +672,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         },
         targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetStates: claim.state ? [claim.state] : undefined,
+        targetDistricts: claim.district ? [claim.district] : undefined,
         excludeUsers: [] // Send to all relevant users
       });
       
@@ -703,6 +705,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         },
         targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetStates: claim.state ? [claim.state] : undefined,
+        targetDistricts: claim.district ? [claim.district] : undefined,
         excludeUsers: [] // Send to all relevant users
       });
       
@@ -726,6 +730,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Claim not found" });
       }
 
+      // Broadcast real-time event for claim approval
+      (req.app as any).broadcastEvent({
+        type: 'claim_approved',
+        data: { 
+          claim,
+          approvedBy: {
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetStates: claim.state ? [claim.state] : undefined,
+        targetDistricts: claim.district ? [claim.district] : undefined
+      });
+
       // Log the approval
       await storage.logAudit({
         userId: req.user.id,
@@ -737,6 +757,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent') || null
       });
 
+      console.log(`Claim approved: ${claim.id} by ${req.user.username}`);
       res.json(claim);
     } catch (error) {
       res.status(500).json({ error: "Failed to approve claim" });
@@ -759,6 +780,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Claim not found" });
       }
 
+      // Broadcast real-time event for claim rejection
+      (req.app as any).broadcastEvent({
+        type: 'claim_rejected',
+        data: { 
+          claim,
+          reason,
+          rejectedBy: {
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role
+          }
+        },
+        targetRoles: ['ministry', 'state', 'district', 'village'],
+        targetStates: claim.state ? [claim.state] : undefined,
+        targetDistricts: claim.district ? [claim.district] : undefined
+      });
+
       // Log the rejection
       await storage.logAudit({
         userId: req.user.id,
@@ -770,6 +808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent') || null
       });
 
+      console.log(`Claim rejected: ${claim.id} by ${req.user.username}`);
       res.json(claim);
     } catch (error) {
       res.status(500).json({ error: "Failed to reject claim" });
@@ -2221,16 +2260,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     path: '/ws'
   });
 
-  // Store active WebSocket connections with user context
-  const activeConnections = new Map<string, { ws: WebSocket; userId: string; role: string; }>();
+  // Store active WebSocket connections with user context and data scoping
+  const activeConnections = new Map<string, { 
+    ws: WebSocket; 
+    userId: string; 
+    role: string; 
+    stateId: number | null;
+    districtId: number | null;
+  }>();
 
-  // WebSocket Event Broadcasting System
+  // WebSocket Event Broadcasting System with Data Scoping
   const broadcastEvent = (event: {
     type: string;
     data: any;
     targetRoles?: string[];
     targetUsers?: string[];
     excludeUsers?: string[];
+    targetStates?: string[];
+    targetDistricts?: string[];
   }) => {
     console.log(`Broadcasting WebSocket event: ${event.type}`, { 
       targetRoles: event.targetRoles,
@@ -2240,11 +2287,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     activeConnections.forEach((connection, connectionId) => {
       try {
-        // Check if connection should receive this event
+        // Check if connection should receive this event with data scoping
         const shouldReceive = (
           (!event.targetRoles || event.targetRoles.includes(connection.role)) &&
           (!event.targetUsers || event.targetUsers.includes(connection.userId)) &&
-          (!event.excludeUsers || !event.excludeUsers.includes(connection.userId))
+          (!event.excludeUsers || !event.excludeUsers.includes(connection.userId)) &&
+          (!event.targetStates || !connection.stateId || event.targetStates.includes(connection.stateId.toString())) &&
+          (!event.targetDistricts || !connection.districtId || event.targetDistricts.includes(connection.districtId.toString()))
         );
 
         if (shouldReceive && connection.ws.readyState === WebSocket.OPEN) {
@@ -2267,12 +2316,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('New WebSocket connection attempt');
     
     try {
-      // Extract session token from URL query parameters or headers
-      const url = new URL(req.url || '', 'http://localhost');
-      const token = url.searchParams.get('token') || req.headers.cookie?.match(/fra_session=([^;]+)/)?.[1];
+      // Extract session token from cookies only (more secure than query params)
+      const token = req.headers.cookie?.match(/fra_session=([^;]+)/)?.[1];
       
       if (!token) {
-        console.log('WebSocket connection rejected: No authentication token');
+        console.log('WebSocket connection rejected: No session cookie found');
         ws.close(1008, 'Authentication required');
         return;
       }
@@ -2292,12 +2340,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
 
-      // Generate connection ID and store connection
+      // Generate connection ID and store connection with data scoping context
       const connectionId = randomUUID();
       activeConnections.set(connectionId, { 
         ws, 
         userId: user.id, 
-        role: user.role 
+        role: user.role,
+        stateId: user.stateId,
+        districtId: user.districtId
       });
 
       console.log(`WebSocket authenticated for user ${user.username} (${user.role}). Active connections: ${activeConnections.size}`);

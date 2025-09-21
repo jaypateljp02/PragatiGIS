@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import AppSidebar from "@/components/AppSidebar";
@@ -102,12 +103,14 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <WorkflowProvider>
-            <TooltipProvider>
-              <AppLayout />
-              <Toaster />
-            </TooltipProvider>
-          </WorkflowProvider>
+          <WebSocketProvider>
+            <WorkflowProvider>
+              <TooltipProvider>
+                <AppLayout />
+                <Toaster />
+              </TooltipProvider>
+            </WorkflowProvider>
+          </WebSocketProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
