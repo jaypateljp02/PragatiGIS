@@ -153,6 +153,111 @@ export default function StateDashboard() {
   const approvalRate = stats.totalClaims > 0 ? Math.round((stats.approvedClaims / stats.totalClaims) * 100) : 0;
   const avgProcessingTime = 15; // days - calculated from recent claims processing times
 
+  // Export function to generate comprehensive report
+  const handleExportReport = () => {
+    const reportData = {
+      reportMetadata: {
+        generatedAt: new Date().toISOString(),
+        state: stateData.state,
+        stateCode: stateData.stateCode,
+        reportType: "Forest Rights Dashboard Report"
+      },
+      keyMetrics: {
+        totalClaims: stats.totalClaims,
+        approvedClaims: stats.approvedClaims,
+        pendingClaims: stats.pendingClaims,
+        rejectedClaims: stats.rejectedClaims,
+        processingClaims: stats.processing,
+        approvalRate: approvalRate,
+        totalAreaRecognized: stats.totalArea,
+        averageProcessingTime: avgProcessingTime,
+        districtsCount: stats.districts,
+        villagesCovered: stats.villages
+      },
+      demographics: stateData.demographics,
+      districtBreakdown: districtData.map(district => ({
+        name: district.name,
+        totalClaims: district.totalClaims,
+        approvedClaims: district.approvedClaims,
+        pendingClaims: district.pendingClaims,
+        approvalRate: district.totalClaims > 0 ? Math.round((district.approvedClaims / district.totalClaims) * 100) : 0,
+        area: district.area,
+        population: district.population
+      })),
+      keyInitiatives: stateData.keyInitiatives,
+      currentChallenges: stateData.challenges,
+      recentUpdates: stateData.recentUpdates
+    };
+
+    // Convert to CSV format for better compatibility
+    const csvContent = [
+      // Header information
+      ['Forest Rights Dashboard Report'],
+      ['Generated on:', new Date().toLocaleDateString()],
+      ['State:', stateData.state],
+      ['State Code:', stateData.stateCode],
+      [''],
+      
+      // Key Metrics
+      ['KEY METRICS'],
+      ['Total Claims', stats.totalClaims],
+      ['Approved Claims', stats.approvedClaims],
+      ['Pending Claims', stats.pendingClaims],
+      ['Rejected Claims', stats.rejectedClaims],
+      ['Processing Claims', stats.processing],
+      ['Approval Rate (%)', approvalRate],
+      ['Total Area Recognized (hectares)', stats.totalArea],
+      ['Average Processing Time (days)', avgProcessingTime],
+      ['Districts Count', stats.districts],
+      ['Villages Covered', stats.villages],
+      [''],
+      
+      // District Breakdown
+      ['DISTRICT BREAKDOWN'],
+      ['District Name', 'Total Claims', 'Approved Claims', 'Pending Claims', 'Approval Rate (%)', 'Area (hectares)', 'Population'],
+      ...districtData.map(district => [
+        district.name,
+        district.totalClaims,
+        district.approvedClaims,
+        district.pendingClaims,
+        district.totalClaims > 0 ? Math.round((district.approvedClaims / district.totalClaims) * 100) : 0,
+        district.area,
+        district.population
+      ]),
+      [''],
+      
+      // Key Initiatives
+      ['KEY INITIATIVES'],
+      ...stateData.keyInitiatives.map(initiative => [initiative]),
+      [''],
+      
+      // Current Challenges
+      ['CURRENT CHALLENGES'],
+      ...stateData.challenges.map(challenge => [challenge]),
+      [''],
+      
+      // Recent Updates
+      ['RECENT UPDATES'],
+      ...stateData.recentUpdates.map(update => [update])
+    ];
+
+    // Convert to CSV string
+    const csvString = csvContent
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    // Create download
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${stateData.state}_Forest_Rights_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (statsLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -179,7 +284,7 @@ export default function StateDashboard() {
           <Badge variant="outline" className="bg-primary/10">
             {t("pages.stateDashboard.stateCode", "State Code")}: {stateData.stateCode}
           </Badge>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportReport} data-testid="button-export-report">
             <Download className="h-4 w-4 mr-2" />
             {t("pages.stateDashboard.exportReport", "Export Report")}
           </Button>

@@ -33,6 +33,7 @@ function Router() {
       <Route path="/login" component={LoginPage} />
       <Route path="/" component={() => <ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/state-dashboard" component={() => <ProtectedRoute><StateDashboard /></ProtectedRoute>} />
+      <Route path="/state-analytics" component={() => <ProtectedRoute><StateDashboard /></ProtectedRoute>} />
       <Route path="/claims/:id" component={() => <ProtectedRoute><ClaimDetailPage /></ProtectedRoute>} />
       <Route path="/claims" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/bulk-upload" component={() => <ProtectedRoute><BulkUploadPage /></ProtectedRoute>} />
