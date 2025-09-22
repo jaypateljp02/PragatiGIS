@@ -76,25 +76,29 @@ function AppLayout() {
     return <Router />;
   }
 
-  // For authenticated users, show full sidebar layout
+  // For authenticated users, show full sidebar layout with providers
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1">
-          <header className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeToggle />
+    <WebSocketProvider>
+      <WorkflowProvider>
+        <SidebarProvider style={style as React.CSSProperties}>
+          <div className="flex h-screen w-full">
+            <AppSidebar />
+            <div className="flex flex-col flex-1">
+              <header className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                <div className="flex items-center gap-2">
+                  <LanguageSwitcher />
+                  <ThemeToggle />
+                </div>
+              </header>
+              <main className="flex-1 overflow-auto p-6">
+                <Router />
+              </main>
             </div>
-          </header>
-          <main className="flex-1 overflow-auto p-6">
-            <Router />
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+          </div>
+        </SidebarProvider>
+      </WorkflowProvider>
+    </WebSocketProvider>
   );
 }
 
@@ -103,14 +107,10 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <WebSocketProvider>
-            <WorkflowProvider>
-              <TooltipProvider>
-                <AppLayout />
-                <Toaster />
-              </TooltipProvider>
-            </WorkflowProvider>
-          </WebSocketProvider>
+          <TooltipProvider>
+            <AppLayout />
+            <Toaster />
+          </TooltipProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
