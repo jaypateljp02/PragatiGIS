@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Workflow types
 export interface WorkflowStep {
@@ -99,18 +100,20 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowInstance | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
 
-  // Fetch user workflows
+  // Fetch user workflows - only when authenticated
   const { data: workflows = [], isLoading: workflowsLoading } = useQuery<WorkflowInstance[]>({
     queryKey: ['/api/workflows'],
-    refetchInterval: 10000, // Refresh every 10 seconds for active workflows
+    enabled: isAuthenticated, // Only fetch when user is authenticated
+    refetchInterval: isAuthenticated ? 10000 : false, // Only refresh when authenticated
   });
 
-  // Fetch current workflow details with steps
+  // Fetch current workflow details with steps - only when authenticated and workflow selected
   const { data: workflowDetails, isLoading: detailsLoading } = useQuery<WorkflowInstance>({
     queryKey: ['/api/workflows', currentWorkflow?.id],
-    enabled: !!currentWorkflow?.id,
-    refetchInterval: 5000, // More frequent refresh for active workflow
+    enabled: isAuthenticated && !!currentWorkflow?.id, // Only fetch when authenticated and workflow selected
+    refetchInterval: isAuthenticated && currentWorkflow?.id ? 5000 : false, // Only refresh when authenticated and active
   });
 
   const isLoading = workflowsLoading || detailsLoading;
