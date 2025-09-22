@@ -64,6 +64,51 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Centralized helper functions
+  const getArea = (claim: Claim): number => {
+    return Number(claim.area || (claim as any).areaHectares || (claim as any).landArea || 0);
+  };
+
+  const getStatus = (claim: Claim): string => {
+    if (!claim.status) return 'unknown';
+    return claim.status.toLowerCase().trim().replace(/[\s_]+/g, '-');
+  };
+
+  const normalizeFilterValue = (value: string | undefined): string => {
+    if (!value) return '';
+    const normalized = value.trim().toLowerCase();
+    return ['', 'all', 'all states', 'all districts'].includes(normalized) ? '' : normalized;
+  };
+
+  const parseClaimDate = (dateValue: any): Date => {
+    if (!dateValue) return new Date(0);
+    
+    // Handle numeric values (epoch seconds or milliseconds)
+    if (typeof dateValue === 'number') {
+      const ms = dateValue < 1e12 ? dateValue * 1000 : dateValue;
+      return new Date(ms);
+    }
+    
+    // Handle string values
+    if (typeof dateValue === 'string') {
+      // Try parsing as number first
+      const numericValue = Number(dateValue);
+      if (!isNaN(numericValue)) {
+        const ms = numericValue < 1e12 ? numericValue * 1000 : numericValue;
+        return new Date(ms);
+      }
+      
+      // Try parsing as ISO string or other date format
+      const parsedDate = Date.parse(dateValue);
+      if (!isNaN(parsedDate)) {
+        return new Date(parsedDate);
+      }
+    }
+    
+    // Default fallback
+    return new Date(0);
+  };
+
   // Fetch dashboard stats for reports
   const { data: dashboardStats } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
@@ -117,14 +162,22 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   const getFilteredClaims = () => {
     let filteredClaims = [...claims];
     
-    // Apply state filter
-    if (reportOptions.stateFilter && reportOptions.stateFilter !== 'all') {
-      filteredClaims = filteredClaims.filter(claim => claim.state === reportOptions.stateFilter);
+    // Apply state filter with robust normalization
+    const normalizedStateFilter = normalizeFilterValue(reportOptions.stateFilter);
+    if (normalizedStateFilter) {
+      filteredClaims = filteredClaims.filter(claim => {
+        const claimState = normalizeFilterValue(claim.state);
+        return claimState === normalizedStateFilter;
+      });
     }
     
-    // Apply district filter
-    if (reportOptions.districtFilter && reportOptions.districtFilter !== 'all') {
-      filteredClaims = filteredClaims.filter(claim => claim.district === reportOptions.districtFilter);
+    // Apply district filter with robust normalization
+    const normalizedDistrictFilter = normalizeFilterValue(reportOptions.districtFilter);
+    if (normalizedDistrictFilter) {
+      filteredClaims = filteredClaims.filter(claim => {
+        const claimDistrict = normalizeFilterValue(claim.district);
+        return claimDistrict === normalizedDistrictFilter;
+      });
     }
     
     // Apply date range filter only if not 'all'
@@ -150,10 +203,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       }
       
       filteredClaims = filteredClaims.filter(claim => {
-        // Handle both epoch seconds and milliseconds
-        const val = claim.dateSubmitted;
-        const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
-        const claimDate = new Date(ms);
+        const claimDate = parseClaimDate(claim.dateSubmitted);
         return claimDate >= cutoffDate;
       });
     }
@@ -163,11 +213,13 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   
   // Helper function to get filtered dashboard stats
   const getFilteredStats = (filteredClaims: Claim[]) => {
-    const approved = filteredClaims.filter(c => c.status === 'approved').length;
-    const pending = filteredClaims.filter(c => c.status === 'pending').length;
-    const underReview = filteredClaims.filter(c => c.status === 'under-review').length;
-    const rejected = filteredClaims.filter(c => c.status === 'rejected').length;
-    const totalArea = filteredClaims.reduce((sum, c) => sum + (c.area || 0), 0);
+    const approved = filteredClaims.filter(c => getStatus(c) === 'approved').length;
+    const pending = filteredClaims.filter(c => getStatus(c) === 'pending').length;
+    const underReview = filteredClaims.filter(c => getStatus(c) === 'under-review').length;
+    const rejected = filteredClaims.filter(c => getStatus(c) === 'rejected').length;
+    
+    // Calculate total area using centralized helper
+    const totalArea = filteredClaims.reduce((sum, c) => sum + getArea(c), 0);
     
     return {
       totalClaims: filteredClaims.length,
@@ -330,7 +382,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     pdf.setTextColor(0, 0, 0);
     
     // Risk analysis summary
-    const highRiskClaims = filteredClaims.filter(c => (c.area || 0) > 50).length;
+    const highRiskClaims = filteredClaims.filter(c => getArea(c) > 50).length;
     const communityRights = filteredClaims.filter(c => c.landType === 'community').length;
     
     pdf.text('AI-Powered Risk Assessment:', 20, currentY);
@@ -345,7 +397,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     // Policy compliance insights
     pdf.text('Policy Compliance Overview:', 20, currentY);
     currentY += 10;
-    const compliantClaims = filteredClaims.filter(c => (c.area || 0) <= 100).length;
+    const compliantClaims = filteredClaims.filter(c => getArea(c) <= 100).length;
     pdf.text(`Claims within area limits: ${compliantClaims}/${filteredClaims.length}`, 25, currentY);
     currentY += 7;
     
@@ -384,7 +436,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     pdf.setTextColor(0, 0, 0);
     
     // Policy adherence metrics
-    const withinAreaLimits = filteredClaims.filter(c => (c.area || 0) <= 100).length;
+    const withinAreaLimits = filteredClaims.filter(c => getArea(c) <= 100).length;
     const complianceRate = filteredClaims.length > 0 ? (withinAreaLimits / filteredClaims.length * 100).toFixed(1) : '0';
     
     pdf.text('Policy Adherence Metrics:', 20, currentY);
@@ -403,7 +455,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     currentY += 10;
     
     // Compliance violations
-    const violations = filteredClaims.filter(c => (c.area || 0) > 100);
+    const violations = filteredClaims.filter(c => getArea(c) > 100);
     if (violations.length > 0) {
       pdf.text('Potential Compliance Issues:', 20, currentY);
       currentY += 10;
@@ -412,7 +464,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
           pdf.addPage();
           currentY = 30;
         }
-        pdf.text(`Claim ${claim.id}: ${claim.area} hectares (exceeds 100ha limit)`, 25, currentY);
+        pdf.text(`Claim ${claim.id}: ${getArea(claim)} hectares (exceeds 100ha limit)`, 25, currentY);
         currentY += 7;
       });
     }
@@ -432,7 +484,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     pdf.setTextColor(0, 0, 0);
     
     // Forest cover analysis
-    const totalArea = filteredClaims.reduce((sum, c) => sum + (c.area || 0), 0);
+    const totalArea = filteredClaims.reduce((sum, c) => sum + getArea(c), 0);
     const forestClaims = filteredClaims.filter(c => c.landType && c.landType.toLowerCase().includes('forest')).length;
     
     pdf.text('Forest Cover Analysis:', 20, currentY);
@@ -443,9 +495,9 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
     currentY += 10;
     
     // Environmental impact categories
-    const highImpact = filteredClaims.filter(c => (c.area || 0) > 50).length;
-    const mediumImpact = filteredClaims.filter(c => (c.area || 0) > 20 && (c.area || 0) <= 50).length;
-    const lowImpact = filteredClaims.filter(c => (c.area || 0) <= 20).length;
+    const highImpact = filteredClaims.filter(c => getArea(c) > 50).length;
+    const mediumImpact = filteredClaims.filter(c => getArea(c) > 20 && getArea(c) <= 50).length;
+    const lowImpact = filteredClaims.filter(c => getArea(c) <= 20).length;
     
     pdf.text('Environmental Impact Categories:', 20, currentY);
     currentY += 10;
@@ -524,8 +576,8 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       pdf.text((claim.id || '').substring(0, 15), 20, currentY);
       pdf.text((claim.claimantName || '').substring(0, 25), 40, currentY);
       pdf.text((claim.location || '').substring(0, 25), 80, currentY);
-      pdf.text((claim.area || 0).toString(), 120, currentY);
-      const normalizedStatus = claim.status || 'Unknown';
+      pdf.text(getArea(claim).toString(), 120, currentY);
+      const normalizedStatus = getStatus(claim);
       pdf.text(normalizedStatus.substring(0, 12), 145, currentY);
       pdf.text((claim.landType || '').substring(0, 15), 165, currentY);
       currentY += 6;
@@ -556,11 +608,9 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       // Add filtered claims data sheet
       if (filteredClaims.length > 0) {
         const claimsData = filteredClaims.map(claim => {
-          // Normalize status and format date
-          const normalizedStatus = claim.status;
-          const val = claim.dateSubmitted;
-          const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
-          const formattedDate = new Date(ms).toISOString().split('T')[0]; // YYYY-MM-DD format
+          // Use centralized helpers for consistency
+          const normalizedStatus = getStatus(claim);
+          const formattedDate = parseClaimDate(claim.dateSubmitted).toISOString().split('T')[0];
           
           return {
             'Claim ID': claim.id,
@@ -568,7 +618,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
             'Location': claim.location,
             'District': claim.district,
             'State': claim.state,
-            'Area (hectares)': claim.area,
+            'Area (hectares)': getArea(claim),
             'Land Type': claim.landType,
             'Status': normalizedStatus,
             'Date Submitted': formattedDate
@@ -649,11 +699,9 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       const csvContent = [headers.join(',')];
       
       filteredClaims.forEach(claim => {
-        // Normalize status and format date
-        const normalizedStatus = claim.status;
-        const val = claim.dateSubmitted;
-        const ms = typeof val === 'number' && val < 1e12 ? val * 1000 : val;
-        const formattedDate = new Date(ms).toISOString().split('T')[0]; // YYYY-MM-DD format
+        // Use centralized helpers for consistency
+        const normalizedStatus = getStatus(claim);
+        const formattedDate = parseClaimDate(claim.dateSubmitted).toISOString().split('T')[0];
         
         const row = [
           `"${claim.id}"`,
@@ -661,7 +709,7 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
           `"${claim.location || ''}"`,
           `"${claim.district || ''}"`,
           `"${claim.state || ''}"`,
-          `"${claim.area || 0}"`,
+          `"${getArea(claim)}"`,
           `"${claim.landType || ''}"`,
           `"${normalizedStatus}"`,
           `"${formattedDate}"`

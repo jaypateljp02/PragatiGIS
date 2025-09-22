@@ -12,9 +12,18 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function ReportsPage() {
   const { t } = useLanguage();
   
-  // Fetch claims data for reports
+  // Fetch claims data for reports - use detailed format to get individual claims
   const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
+    queryKey: ['/api/claims', 'detailed'],
+    queryFn: async () => {
+      const response = await fetch('/api/claims?format=detailed', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch claims: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: true,
   });
 
