@@ -242,15 +242,15 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       
       pdf.setFontSize(11);
       pdf.setTextColor(0, 0, 0);
-      pdf.text(`Total Claims Analyzed: ${filteredStats.totalClaims.toLocaleString()}`, 20, currentY);
+      pdf.text(`Total Claims Analyzed: ${(filteredStats.totalClaims || 0).toLocaleString()}`, 20, currentY);
       currentY += 7;
-      pdf.text(`Approved Claims: ${filteredStats.approvedClaims.toLocaleString()}`, 20, currentY);
+      pdf.text(`Approved Claims: ${(filteredStats.approvedClaims || 0).toLocaleString()}`, 20, currentY);
       currentY += 7;
-      pdf.text(`Pending Claims: ${filteredStats.pendingClaims.toLocaleString()}`, 20, currentY);
+      pdf.text(`Pending Claims: ${(filteredStats.pendingClaims || 0).toLocaleString()}`, 20, currentY);
       currentY += 7;
-      pdf.text(`Rejected Claims: ${filteredStats.rejectedClaims.toLocaleString()}`, 20, currentY);
+      pdf.text(`Rejected Claims: ${(filteredStats.rejectedClaims || 0).toLocaleString()}`, 20, currentY);
       currentY += 7;
-      pdf.text(`Total Area Covered: ${filteredStats.totalArea}`, 20, currentY);
+      pdf.text(`Total Area Covered: ${filteredStats.totalArea || '0 hectares'}`, 20, currentY);
       currentY += 15;
       
       setGenerationProgress(50);
@@ -300,9 +300,14 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
       
     } catch (error) {
       console.error('PDF generation failed:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        name: error instanceof Error ? error.name : 'Unknown error type'
+      });
       toast({
         title: t('pages.reports.reportError', 'Generation Failed'),
-        description: t('pages.reports.reportFailed', 'Failed to generate PDF report'),
+        description: t('pages.reports.reportFailed', `Failed to generate PDF report: ${error instanceof Error ? error.message : 'Unknown error'}`),
         variant: "destructive"
       });
     } finally {
