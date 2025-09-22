@@ -753,29 +753,23 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
   };
 
   const handleGenerateReport = async () => {
-    // Route based on template and format
-    if (reportOptions.template === 'data-export') {
-      // Data export uses the selected format
-      switch (reportOptions.format) {
-        case 'excel':
-          await generateExcelReport();
-          break;
-        case 'csv':
-          await generateCSVReport();
-          break;
-        case 'pdf':
-          await generatePDFReport();
-          break;
-        default:
-          toast({
-            title: t('pages.reports.reportError', 'Unsupported Format'),
-            description: t('pages.reports.reportFailed', 'Selected format is not supported'),
-            variant: "destructive"
-          });
-      }
-    } else {
-      // Other templates default to PDF
-      await generatePDFReport();
+    // Route based on format selection - respect user's choice regardless of template
+    switch (reportOptions.format) {
+      case 'excel':
+        await generateExcelReport();
+        break;
+      case 'csv':
+        await generateCSVReport();
+        break;
+      case 'pdf':
+        await generatePDFReport();
+        break;
+      default:
+        toast({
+          title: t('pages.reports.reportError', 'Unsupported Format'),
+          description: t('pages.reports.reportFailed', 'Selected format is not supported'),
+          variant: "destructive"
+        });
     }
   };
 
