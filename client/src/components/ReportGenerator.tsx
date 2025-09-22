@@ -521,12 +521,12 @@ export default function ReportGenerator({ claims = [] }: ReportGeneratorProps) {
         currentY += 3;
       }
       
-      pdf.text(claim.id.substring(0, 15), 20, currentY);
+      pdf.text((claim.id || '').substring(0, 15), 20, currentY);
       pdf.text((claim.claimantName || '').substring(0, 25), 40, currentY);
       pdf.text((claim.location || '').substring(0, 25), 80, currentY);
       pdf.text((claim.area || 0).toString(), 120, currentY);
-      const normalizedStatus = claim.status;
-      pdf.text(normalizedStatus, 145, currentY);
+      const normalizedStatus = claim.status || 'Unknown';
+      pdf.text(normalizedStatus.substring(0, 12), 145, currentY);
       pdf.text((claim.landType || '').substring(0, 15), 165, currentY);
       currentY += 6;
     });
