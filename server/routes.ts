@@ -1442,6 +1442,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create claim from OCR document data
+  app.post("/api/documents/:id/create-claim", requireAuth, requireRole("ministry", "state", "district"), async (req, res) => {
+    try {
+      const document = await storage.getDocument(req.params.id);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      if (!document.extractedData) {
+        return res.status(400).json({ error: "No extracted data available for claim creation" });
+      }
+
+      const extractedFields = (document.extractedData as any)?.extractedFields || {};
+      
+      // Generate unique claim ID
+      const stateCode = extractedFields.state?.substring(0, 2)?.toUpperCase() || 'XX';
+      const claimId = `FRA-${stateCode}-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+      
+      // Map extracted data to claim format
+      const claimData = {
+        claimId,
+        claimantName: extractedFields.applicantName || 'Unknown Claimant',
+        location: `${extractedFields.village || ''}, ${extractedFields.district || ''}`.trim().replace(/^,\s*/, ''),
+        village: extractedFields.village || 'Unknown Village',
+        tehsil: extractedFields.tehsil || extractedFields.village || 'Unknown Tehsil',
+        district: extractedFields.district || 'Unknown District',
+        state: extractedFields.state || 'Unknown State',
+        area: extractedFields.area || 0,
+        landType: extractedFields.landType || 'individual',
+        status: 'pending',
+        dateSubmitted: extractedFields.submissionDate ? new Date(extractedFields.submissionDate) : new Date(),
+        assignedOfficer: (req as any).user.id,
+        notes: `Auto-created from document ${document.originalFilename} via AI extraction`,
+        familyMembers: extractedFields.familyMembers,
+        surveyNumber: extractedFields.surveyNumber,
+        forestType: extractedFields.forestType,
+        tribalCommunity: extractedFields.tribalCommunity
+      };
+
+      // Create the claim
+      const newClaim = await storage.createClaim(claimData);
+      
+      // Update document status to indicate claim created
+      await storage.updateDocument(req.params.id, {
+        reviewStatus: 'approved-claim-created'
+      });
+
+      console.log(`Claim created from document ${document.id}: ${newClaim.claimId}`);
+      res.json({ 
+        claim: newClaim, 
+        message: 'Claim created successfully from extracted document data' 
+      });
+    } catch (error) {
+      console.error('Error creating claim from document:', error);
+      res.status(500).json({ error: "Failed to create claim from document" });
+    }
+  });
+
   // Get documents for OCR review
   app.get("/api/ocr-review", requireAuth, async (req, res) => {
     try {

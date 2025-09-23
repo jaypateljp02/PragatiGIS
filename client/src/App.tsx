@@ -41,7 +41,7 @@ function Router() {
       <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
       <Route path="/dss" component={() => <ProtectedRoute><DSSPage /></ProtectedRoute>} />
-      <Route path="/ai-analysis" component={() => <ProtectedRoute><AIAnalysisPage /></ProtectedRoute>} />
+      <Route path="/ai-analysis" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/reports" component={() => <ProtectedRoute><ReportsPage /></ProtectedRoute>} />
       <Route path="/settings" component={() => <ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route component={NotFound} />
