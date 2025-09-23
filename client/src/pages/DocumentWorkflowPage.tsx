@@ -488,24 +488,7 @@ export default function DocumentWorkflowPage() {
       {/* Current Workflow Status */}
       {currentWorkflow && (
         <Card data-testid="workflow-status-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Workflow className="h-5 w-5" />
-                Current Workflow: {currentWorkflow.name}
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  Step {currentWorkflow.completedSteps + 1} of {currentWorkflow.totalSteps}
-                </Badge>
-                <Progress 
-                  value={(currentWorkflow.completedSteps / currentWorkflow.totalSteps) * 100} 
-                  className="w-24 h-2" 
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">
