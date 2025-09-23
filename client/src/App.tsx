@@ -23,7 +23,6 @@ import DocumentWorkflowPage from "@/pages/DocumentWorkflowPage";
 import StateDashboard from "@/pages/StateDashboard";
 import SettingsPage from "@/pages/SettingsPage";
 import BulkUploadPage from "@/pages/BulkUploadPage";
-import AIAnalysisPage from "@/pages/AIAnalysisPage";
 import NotFound from "@/pages/not-found";
 import { useLocation } from "wouter";
 
@@ -41,7 +40,6 @@ function Router() {
       <Route path="/documents" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/maps" component={() => <ProtectedRoute><MapPage /></ProtectedRoute>} />
       <Route path="/dss" component={() => <ProtectedRoute><DSSPage /></ProtectedRoute>} />
-      <Route path="/ai-analysis" component={() => <ProtectedRoute><DocumentWorkflowPage /></ProtectedRoute>} />
       <Route path="/reports" component={() => <ProtectedRoute><ReportsPage /></ProtectedRoute>} />
       <Route path="/settings" component={() => <ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route component={NotFound} />
