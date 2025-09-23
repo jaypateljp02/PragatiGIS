@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FileText, Upload, Eye, CheckCircle2, Zap, RefreshCw, ArrowRight, Workflow, MapPin, Brain, Download, Info } from "lucide-react";
+import { FileText, Upload, Eye, CheckCircle2, Zap, RefreshCw, ArrowRight, Workflow, MapPin, Brain, Download, Info, Globe, Sparkles, FileSearch, Languages } from "lucide-react";
 import DocumentUpload from "@/components/DocumentUpload";
 import WorkflowOrchestrator from "@/components/WorkflowOrchestrator";
 import ClaimsTable, { type Claim } from "@/components/ClaimsTable";
@@ -29,12 +29,37 @@ interface OCRDocument {
   ocrStatus: 'pending' | 'processing' | 'completed' | 'failed';
   ocrText: string | null;
   extractedData: {
+    // Legacy fields
     claimId?: string;
     claimantName?: string;
     location?: string;
     area?: string;
     date?: string;
     status?: string;
+    // AI-enhanced fields
+    documentType?: string;
+    language?: string;
+    confidence?: number;
+    processingDate?: string;
+    validationStatus?: string;
+    fileInfo?: {
+      originalName: string;
+      fileType: string;
+      fileSize: number;
+    };
+    extractedFields?: {
+      claimNumber?: string;
+      applicantName?: string;
+      state?: string;
+      district?: string;
+      village?: string;
+      area?: number;
+      landType?: string;
+      submissionDate?: string;
+      status?: string;
+    };
+    extractedText?: string;
+    summary?: string;
   } | null;
   confidence: number;
   reviewStatus: 'pending' | 'approved' | 'rejected';
@@ -262,6 +287,31 @@ export default function DocumentWorkflowPage() {
       case 'rejected': return 'bg-destructive';
       default: return 'bg-chart-4';
     }
+  };
+
+  const getLanguageBadgeColor = (language: string) => {
+    const colors: Record<string, string> = {
+      'English': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      'Hindi': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      'Odia': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+      'Telugu': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'Bengali': 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300',
+      'Gujarati': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+    };
+    return colors[language] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+  };
+
+  const isAIProcessed = (doc: OCRDocument) => {
+    return doc.extractedData?.validationStatus === 'ai_processed' || 
+           (doc.extractedData?.documentType && doc.extractedData?.documentType !== 'Unknown');
+  };
+
+  const getProcessingMethodIcon = (doc: OCRDocument) => {
+    return isAIProcessed(doc) ? Brain : FileSearch;
+  };
+
+  const getProcessingMethodLabel = (doc: OCRDocument) => {
+    return isAIProcessed(doc) ? 'AI Analysis' : 'Traditional OCR';
   };
 
   const pendingReviewCount = documents.filter((d: OCRDocument) => d.reviewStatus === 'pending').length;
@@ -590,15 +640,44 @@ export default function DocumentWorkflowPage() {
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm truncate">{doc.originalFilename}</h4>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-medium text-sm truncate">{doc.originalFilename}</h4>
+                                {isAIProcessed(doc) && (
+                                  <span title="AI Processed">
+                                    <Sparkles className="h-3 w-3 text-purple-500 flex-shrink-0" />
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-muted-foreground truncate">{doc.filename}</p>
+                              
+                              {/* AI Analysis Indicators */}
+                              <div className="flex items-center gap-2 mt-1">
+                                {doc.extractedData?.documentType && (
+                                  <Badge variant="secondary" className="text-xs h-4 px-1">
+                                    <FileText className="h-2 w-2 mr-1" />
+                                    {doc.extractedData.documentType}
+                                  </Badge>
+                                )}
+                                {doc.extractedData?.language && (
+                                  <Badge variant="outline" className={`text-xs h-4 px-1 ${getLanguageBadgeColor(doc.extractedData.language)}`}>
+                                    <Globe className="h-2 w-2 mr-1" />
+                                    {doc.extractedData.language}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            <Badge 
-                              variant="outline" 
-                              className={`${getStatusColor(doc.reviewStatus)} text-white text-xs`}
-                            >
-                              {doc.reviewStatus}
-                            </Badge>
+                            <div className="flex flex-col items-end gap-1">
+                              <Badge 
+                                variant="outline" 
+                                className={`${getStatusColor(doc.reviewStatus)} text-white text-xs`}
+                              >
+                                {doc.reviewStatus}
+                              </Badge>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                {React.createElement(getProcessingMethodIcon(doc), { className: "h-3 w-3" })}
+                                <span>{getProcessingMethodLabel(doc)}</span>
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="mt-2 flex items-center justify-between">
@@ -618,13 +697,18 @@ export default function DocumentWorkflowPage() {
               <div className="lg:col-span-2 space-y-6">
                 {selectedDoc ? (
                   <>
-                    {/* Document Info */}
+                    {/* Document Info with AI Analysis Results */}
                     <Card>
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5" />
+                            {React.createElement(getProcessingMethodIcon(selectedDoc), { className: "h-5 w-5" })}
                             {selectedDoc.originalFilename}
+                            {isAIProcessed(selectedDoc) && (
+                              <span title="AI Processed">
+                                <Sparkles className="h-4 w-4 text-purple-500" />
+                              </span>
+                            )}
                           </CardTitle>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className={`${getStatusColor(selectedDoc.reviewStatus)} text-white`}>
@@ -635,6 +719,57 @@ export default function DocumentWorkflowPage() {
                             </span>
                           </div>
                         </div>
+                        
+                        {/* AI Analysis Summary */}
+                        {selectedDoc.extractedData && (
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
+                            {selectedDoc.extractedData.documentType && (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                  <FileText className="h-3 w-3" />
+                                  Document Type
+                                </div>
+                                <Badge variant="secondary" className="w-full justify-center">
+                                  {selectedDoc.extractedData.documentType}
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            {selectedDoc.extractedData.language && (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                  <Globe className="h-3 w-3" />
+                                  Language
+                                </div>
+                                <Badge className={`w-full justify-center ${getLanguageBadgeColor(selectedDoc.extractedData.language)}`}>
+                                  {selectedDoc.extractedData.language}
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <Zap className="h-3 w-3" />
+                                Processing Method
+                              </div>
+                              <Badge variant="outline" className={`w-full justify-center ${isAIProcessed(selectedDoc) ? 'text-purple-700 border-purple-300 bg-purple-50' : 'text-blue-700 border-blue-300 bg-blue-50'}`}>
+                                {getProcessingMethodLabel(selectedDoc)}
+                              </Badge>
+                            </div>
+                            
+                            {selectedDoc.extractedData.confidence && (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                  <Brain className="h-3 w-3" />
+                                  AI Confidence
+                                </div>
+                                <div className={`text-center font-semibold ${getConfidenceColor((selectedDoc.extractedData.confidence || 0) * 100)}`}>
+                                  {Math.round((selectedDoc.extractedData.confidence || 0) * 100)}%
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardHeader>
                       <CardContent>
                         <div className="grid gap-4 md:grid-cols-2">
@@ -657,7 +792,7 @@ export default function DocumentWorkflowPage() {
                                 <Label htmlFor="claim-id" className="text-sm">Claim ID</Label>
                                 <Input
                                   id="claim-id"
-                                  value={editedData.claimId || ""}
+                                  value={editedData.claimId || editedData.extractedFields?.claimNumber || ""}
                                   onChange={(e) => setEditedData((prev: any) => ({ ...prev, claimId: e.target.value }))}
                                   placeholder="e.g., FRA/2024/001"
                                   className="mt-1"
@@ -668,7 +803,7 @@ export default function DocumentWorkflowPage() {
                                 <Label htmlFor="claimant-name" className="text-sm">Claimant Name</Label>
                                 <Input
                                   id="claimant-name"
-                                  value={editedData.claimantName || ""}
+                                  value={editedData.claimantName || editedData.extractedFields?.applicantName || ""}
                                   onChange={(e) => setEditedData((prev: any) => ({ ...prev, claimantName: e.target.value }))}
                                   placeholder="Full name of claimant"
                                   className="mt-1"
@@ -679,7 +814,11 @@ export default function DocumentWorkflowPage() {
                                 <Label htmlFor="location" className="text-sm">Location</Label>
                                 <Input
                                   id="location"
-                                  value={editedData.location || ""}
+                                  value={editedData.location || [
+                                    editedData.extractedFields?.village,
+                                    editedData.extractedFields?.district,
+                                    editedData.extractedFields?.state
+                                  ].filter(Boolean).join(', ') || ""}
                                   onChange={(e) => setEditedData((prev: any) => ({ ...prev, location: e.target.value }))}
                                   placeholder="Village, District, State"
                                   className="mt-1"
@@ -690,16 +829,67 @@ export default function DocumentWorkflowPage() {
                                 <Label htmlFor="area" className="text-sm">Area (hectares)</Label>
                                 <Input
                                   id="area"
-                                  value={editedData.area || ""}
+                                  value={editedData.area || editedData.extractedFields?.area || ""}
                                   onChange={(e) => setEditedData((prev: any) => ({ ...prev, area: e.target.value }))}
                                   placeholder="e.g., 2.5"
                                   className="mt-1"
                                   data-testid="input-area"
                                 />
                               </div>
+                              
+                              {/* Additional AI-extracted fields */}
+                              {editedData.extractedFields?.landType && (
+                                <div>
+                                  <Label htmlFor="land-type" className="text-sm">Land Type</Label>
+                                  <Input
+                                    id="land-type"
+                                    value={editedData.extractedFields.landType}
+                                    onChange={(e) => setEditedData((prev: any) => ({ 
+                                      ...prev, 
+                                      extractedFields: { ...prev.extractedFields, landType: e.target.value }
+                                    }))}
+                                    placeholder="Individual/Community"
+                                    className="mt-1"
+                                    data-testid="input-land-type"
+                                  />
+                                </div>
+                              )}
+                              
+                              {editedData.extractedFields?.submissionDate && (
+                                <div>
+                                  <Label htmlFor="submission-date" className="text-sm">Submission Date</Label>
+                                  <Input
+                                    id="submission-date"
+                                    value={editedData.extractedFields.submissionDate}
+                                    onChange={(e) => setEditedData((prev: any) => ({ 
+                                      ...prev, 
+                                      extractedFields: { ...prev.extractedFields, submissionDate: e.target.value }
+                                    }))}
+                                    placeholder="YYYY-MM-DD"
+                                    className="mt-1"
+                                    data-testid="input-submission-date"
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
+                        
+                        {/* AI Summary Section */}
+                        {selectedDoc.extractedData?.summary && (
+                          <div className="mt-6 space-y-3">
+                            <Label className="flex items-center gap-2 text-base font-semibold">
+                              <Brain className="h-4 w-4 text-purple-500" />
+                              AI Document Summary
+                            </Label>
+                            <div className="bg-purple-50 dark:bg-purple-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                              <p className="text-sm leading-relaxed text-purple-900 dark:text-purple-100">
+                                {selectedDoc.extractedData.summary}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
                       </CardContent>
                     </Card>
 
