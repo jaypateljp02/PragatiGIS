@@ -63,7 +63,13 @@ interface OCRDocument {
   } | null;
   confidence: number;
   reviewStatus: 'pending' | 'approved' | 'rejected';
+  // Processing-only fields for transitional state
+  processingStatus?: 'uploading' | 'processing';
+  processingProgress?: number;
 }
+
+// Type for documents that are displayed (includes processing documents)
+type DisplayDocument = OCRDocument;
 
 export default function DocumentWorkflowPage() {
   const { t } = useLanguage();
@@ -73,6 +79,13 @@ export default function DocumentWorkflowPage() {
   const [editedData, setEditedData] = useState<any>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [showWorkflowIntegration, setShowWorkflowIntegration] = useState(true);
+  const [processingDocuments, setProcessingDocuments] = useState<Array<{
+    id: string;
+    name: string;
+    status: 'uploading' | 'processing';
+    progress: number;
+    uploadTime: Date;
+  }>>([]);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -96,6 +109,36 @@ export default function DocumentWorkflowPage() {
     queryKey: ['/api/ocr-review'],
     refetchInterval: 5000, // Auto-refresh every 5 seconds
   });
+
+  // Clean up processing documents that have appeared in API response
+  React.useEffect(() => {
+    if (documents.length > 0) {
+      setProcessingDocuments(prev => 
+        prev.filter(procDoc => 
+          !documents.some(apiDoc => apiDoc.originalFilename === procDoc.name)
+        )
+      );
+    }
+  }, [documents]);
+
+  // Merge processing documents with API documents for display
+  const allDocuments = React.useMemo(() => {
+    const mockProcessingDocs: DisplayDocument[] = processingDocuments.map(procDoc => ({
+      id: procDoc.id,
+      filename: procDoc.name,
+      originalFilename: procDoc.name,
+      ocrText: '',
+      extractedData: null,
+      confidence: 0,
+      reviewStatus: 'pending' as const,
+      uploadedAt: procDoc.uploadTime.toISOString(),
+      ocrStatus: procDoc.status === 'uploading' ? 'pending' : 'processing',
+      processingStatus: procDoc.status,
+      processingProgress: procDoc.progress
+    }));
+    
+    return [...mockProcessingDocs, ...documents];
+  }, [processingDocuments, documents]);
 
   // Fetch claims data for claims management
   const { data: claims = [], isLoading: claimsLoading, error: claimsError } = useQuery<Claim[]>({
@@ -327,7 +370,7 @@ export default function DocumentWorkflowPage() {
     return 0;
   };
 
-  const pendingReviewCount = documents.filter((d: OCRDocument) => d.reviewStatus === 'pending').length;
+  const pendingReviewCount = allDocuments.filter((d: DisplayDocument) => d.reviewStatus === 'pending' || d.processingStatus).length;
 
   // Auto-create workflow if none exists and user uploads documents
   useEffect(() => {
@@ -589,11 +632,23 @@ export default function DocumentWorkflowPage() {
           <DocumentUpload 
             onFilesUploaded={(files) => {
               console.log('Files uploaded for processing:', files);
+              
+              // Add uploaded files to processing state
+              const newProcessingDocs = files.map(file => ({
+                id: file.id,
+                name: file.name,
+                status: file.status as 'uploading' | 'processing',
+                progress: file.progress,
+                uploadTime: new Date()
+              }));
+              
+              setProcessingDocuments(prev => [...prev, ...newProcessingDocs]);
+              
               // Auto-switch to review tab after upload
               setTimeout(() => {
                 setActiveTab("review");
                 refetch(); // Refresh the documents list
-              }, 2000);
+              }, 1000);
             }}
             maxFiles={20}
             acceptedTypes={['.pdf', '.jpg', '.jpeg', '.png', '.tiff']}
@@ -616,7 +671,7 @@ export default function DocumentWorkflowPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    {t("pages.documentWorkflow.documents", "Documents")} ({documents.length})
+                    {t("pages.documentWorkflow.documents", "Documents")} ({allDocuments.length})
                   </CardTitle>
                   <CardDescription>
                     {t("pages.documentWorkflow.clickToReview", "Click a document to review its OCR results")}
@@ -625,13 +680,17 @@ export default function DocumentWorkflowPage() {
                 <CardContent>
                   <ScrollArea className="h-96">
                     <div className="space-y-2">
-                      {documents.map((doc: OCRDocument) => (
+                      {allDocuments.map((doc: DisplayDocument) => (
                         <div
                           key={doc.id}
-                          className={`p-3 rounded-lg border cursor-pointer hover-elevate transition-colors ${
+                          className={`p-3 rounded-lg border transition-colors ${
+                            (doc as any).processingStatus 
+                              ? 'cursor-not-allowed opacity-75' 
+                              : 'cursor-pointer hover-elevate'
+                          } ${
                             selectedDoc?.id === doc.id ? 'bg-primary/5 border-primary' : 'hover:bg-muted/50'
                           }`}
-                          onClick={() => handleDocumentSelect(doc)}
+                          onClick={() => !doc.processingStatus && handleDocumentSelect(doc)}
                           data-testid={`document-${doc.id}`}
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -663,12 +722,18 @@ export default function DocumentWorkflowPage() {
                               </div>
                             </div>
                             <div className="flex flex-col items-end gap-1">
-                              <Badge 
-                                variant="outline" 
-                                className={`${getStatusColor(doc.reviewStatus)} text-white text-xs`}
-                              >
-                                {doc.reviewStatus}
-                              </Badge>
+                              {doc.processingStatus ? (
+                                <Badge variant="secondary" className="text-white text-xs animate-pulse">
+                                  {doc.processingStatus === 'uploading' ? 'Uploading' : 'Processing'}
+                                </Badge>
+                              ) : (
+                                <Badge 
+                                  variant="outline" 
+                                  className={`${getStatusColor(doc.reviewStatus)} text-white text-xs`}
+                                >
+                                  {doc.reviewStatus}
+                                </Badge>
+                              )}
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 {React.createElement(getProcessingMethodIcon(doc), { className: "h-3 w-3" })}
                                 <span>{getProcessingMethodLabel(doc)}</span>
@@ -677,10 +742,21 @@ export default function DocumentWorkflowPage() {
                           </div>
                           
                           <div className="mt-2 flex items-center justify-between">
-                            <span className={`text-xs font-medium ${getConfidenceColor(getConfidencePercent(doc))}`} data-testid={`text-confidence-${doc.id}`}>
-                              {getConfidencePercent(doc)}{t("pages.documentWorkflow.confident", "% confident")}
-                            </span>
-                            <Progress value={getConfidencePercent(doc)} className="w-16 h-1" data-testid={`progress-confidence-${doc.id}`} />
+                            {doc.processingStatus ? (
+                              <>
+                                <span className="text-xs font-medium text-blue-600">
+                                  {doc.processingProgress}% {doc.processingStatus}
+                                </span>
+                                <Progress value={doc.processingProgress} className="w-16 h-1" />
+                              </>
+                            ) : (
+                              <>
+                                <span className={`text-xs font-medium ${getConfidenceColor(getConfidencePercent(doc))}`} data-testid={`text-confidence-${doc.id}`}>
+                                  {getConfidencePercent(doc)}{t("pages.documentWorkflow.confident", "% confident")}
+                                </span>
+                                <Progress value={getConfidencePercent(doc)} className="w-16 h-1" data-testid={`progress-confidence-${doc.id}`} />
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
