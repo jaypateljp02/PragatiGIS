@@ -80,6 +80,12 @@ export default function AppSidebar() {
       badge: "AI"
     },
     {
+      title: t("navigation.aiAnalysis", "AI Document Analysis"),
+      url: "/ai-analysis",
+      icon: Eye,
+      badge: "NEW"
+    },
+    {
       title: t("navigation.reports", "Reports"),
       url: "/reports",
       icon: Download,

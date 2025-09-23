@@ -12,6 +12,7 @@ import {
   insertWorkflowInstanceSchema,
   insertWorkflowTransitionSchema
 } from "@shared/schema-sqlite";
+import { analyzeDocument, classifyDocument, extractText, summarizeDocument } from "./gemini-ai-service";
 import { z } from 'zod';
 import { randomUUID } from "crypto";
 import multer from "multer";
@@ -374,6 +375,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Dashboard stats error:', error);
       res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+    }
+  });
+
+  // AI Document Classification API - Classify uploaded documents using Gemini AI
+  app.post("/api/ai/classify-document", requireAuth, upload.single('document'), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No document uploaded" });
+      }
+
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: "Only image files are supported for AI classification" });
+      }
+
+      console.log(`AI classifying document: ${req.file.originalname} (${req.file.mimetype})`);
+      
+      // Use Gemini AI to classify the document
+      const classification = await classifyDocument(req.file.buffer, req.file.mimetype);
+      
+      res.json({
+        success: true,
+        classification: {
+          documentType: classification.type,
+          confidence: classification.confidence,
+          language: classification.language,
+          filename: req.file.originalname,
+          fileType: req.file.mimetype
+        }
+      });
+    } catch (error) {
+      console.error('AI document classification error:', error);
+      res.status(500).json({ error: "Failed to classify document with AI" });
+    }
+  });
+
+  // AI Document Analysis API - Full document analysis using Gemini AI
+  app.post("/api/ai/analyze-document", requireAuth, upload.single('document'), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No document uploaded" });
+      }
+
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: "Only image files are supported for AI analysis" });
+      }
+
+      console.log(`AI analyzing document: ${req.file.originalname} (${req.file.mimetype})`);
+      
+      // Use Gemini AI to perform full document analysis
+      const analysis = await analyzeDocument(req.file.buffer, req.file.mimetype);
+      
+      res.json({
+        success: true,
+        analysis: {
+          extractedText: analysis.extractedText,
+          documentType: analysis.documentType,
+          confidence: analysis.confidence,
+          language: analysis.language,
+          extractedFields: analysis.extractedFields,
+          filename: req.file.originalname,
+          fileType: req.file.mimetype,
+          summary: await summarizeDocument(analysis.extractedText)
+        }
+      });
+    } catch (error) {
+      console.error('AI document analysis error:', error);
+      res.status(500).json({ error: "Failed to analyze document with AI" });
     }
   });
 
@@ -868,10 +938,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Starting real OCR processing for ${document.originalFilename} (${document.fileType})`);
 
-      // Real OCR processing based on file type
+      // AI-powered OCR and data extraction
       const ocrText = await extractTextFromDocument(document, fileBuffer);
-      const extractedData = await extractStructuredData(ocrText, document);
-      const confidence = calculateConfidence(ocrText, document);
+      const extractedData = await extractStructuredDataWithAI(document, fileBuffer, ocrText);
+      const confidence = extractedData.confidence || calculateConfidence(ocrText, document);
 
       // File content is stored permanently in database, no cleanup needed
 
@@ -933,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Extract text from document using real OCR
+  // Extract text from document using AI-powered OCR
   async function extractTextFromDocument(document: any, fileBuffer: Buffer): Promise<string> {
     try {
       const fileType = document.fileType;
@@ -945,9 +1015,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const sizeKB = Math.round(fileBuffer.length / 1024);
         return `PDF Document Analysis:\n\nFilename: ${document.originalFilename}\nSize: ${sizeKB} KB\nPages: Estimated ${Math.ceil(sizeKB / 50)} pages\n\nNote: For best OCR results with PDFs, please:\n1. Convert PDF pages to high-quality images (JPG/PNG)\n2. Or use PDFs with selectable text\n\nThis PDF was uploaded successfully. To extract text, please upload as an image file.`;
       } else if (fileType.startsWith('image/')) {
-        // Real image OCR using Tesseract - this will actually read your image!
-        console.log('Processing image with Tesseract OCR...');
-        return await extractTextFromImageBuffer(fileBuffer, document.originalFilename);
+        // AI-powered text extraction with Gemini
+        console.log('Processing image with AI-powered OCR...');
+        try {
+          const aiResult = await extractText(fileBuffer, fileType);
+          return aiResult.text;
+        } catch (aiError) {
+          console.log('AI OCR failed, falling back to Tesseract:', aiError);
+          return await extractTextFromImageBuffer(fileBuffer, document.originalFilename);
+        }
       } else {
         return `Unsupported file type: ${fileType}. Please upload PDF, JPEG, PNG, or TIFF files.`;
       }
@@ -1006,6 +1082,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
     }
+  }
+
+  // AI-powered structured data extraction with enhanced accuracy
+  async function extractStructuredDataWithAI(document: any, fileBuffer: Buffer, fallbackText: string): Promise<any> {
+    try {
+      // First try AI-powered analysis for structured data extraction
+      if (document.fileType.startsWith('image/')) {
+        console.log('Using AI-powered document analysis...');
+        const aiResult = await analyzeDocument(fileBuffer, document.fileType);
+        
+        return {
+          documentType: aiResult.documentType,
+          processingDate: new Date().toISOString().split('T')[0],
+          confidence: aiResult.confidence,
+          language: aiResult.language,
+          validationStatus: 'ai_processed',
+          fileInfo: {
+            originalName: document.originalFilename,
+            fileType: document.fileType,
+            fileSize: document.fileSize
+          },
+          extractedFields: aiResult.extractedFields,
+          extractedText: aiResult.extractedText
+        };
+      }
+    } catch (aiError) {
+      console.log('AI analysis failed, falling back to pattern matching:', aiError);
+    }
+    
+    // Fallback to pattern-based extraction
+    return await extractStructuredData(fallbackText, document);
   }
 
   // Enhanced structured data extraction with government compliance rules
