@@ -314,6 +314,19 @@ export default function DocumentWorkflowPage() {
     return isAIProcessed(doc) ? 'AI Analysis' : 'Traditional OCR';
   };
 
+  // Normalize confidence values to 0-100 scale consistently
+  const getConfidencePercent = (doc: OCRDocument): number => {
+    // Prefer AI confidence from extractedData (0-1 scale)
+    if (doc.extractedData?.confidence !== undefined) {
+      return Math.round(doc.extractedData.confidence * 100);
+    }
+    // Fallback to document confidence - handle both scales
+    if (doc.confidence !== undefined) {
+      return doc.confidence <= 1 ? Math.round(doc.confidence * 100) : Math.min(Math.max(doc.confidence, 0), 100);
+    }
+    return 0;
+  };
+
   const pendingReviewCount = documents.filter((d: OCRDocument) => d.reviewStatus === 'pending').length;
 
   // Auto-create workflow if none exists and user uploads documents
@@ -653,13 +666,13 @@ export default function DocumentWorkflowPage() {
                               {/* AI Analysis Indicators */}
                               <div className="flex items-center gap-2 mt-1">
                                 {doc.extractedData?.documentType && (
-                                  <Badge variant="secondary" className="text-xs h-4 px-1">
+                                  <Badge variant="secondary" className="text-xs h-4 px-1" data-testid={`badge-document-type-${doc.id}`}>
                                     <FileText className="h-2 w-2 mr-1" />
                                     {doc.extractedData.documentType}
                                   </Badge>
                                 )}
                                 {doc.extractedData?.language && (
-                                  <Badge variant="outline" className={`text-xs h-4 px-1 ${getLanguageBadgeColor(doc.extractedData.language)}`}>
+                                  <Badge variant="outline" className={`text-xs h-4 px-1 ${getLanguageBadgeColor(doc.extractedData.language)}`} data-testid={`badge-language-${doc.id}`}>
                                     <Globe className="h-2 w-2 mr-1" />
                                     {doc.extractedData.language}
                                   </Badge>
@@ -681,10 +694,10 @@ export default function DocumentWorkflowPage() {
                           </div>
                           
                           <div className="mt-2 flex items-center justify-between">
-                            <span className={`text-xs font-medium ${getConfidenceColor(doc.confidence)}`}>
-                              {doc.confidence}{t("pages.documentWorkflow.confident", "% confident")}
+                            <span className={`text-xs font-medium ${getConfidenceColor(getConfidencePercent(doc))}`} data-testid={`text-confidence-${doc.id}`}>
+                              {getConfidencePercent(doc)}{t("pages.documentWorkflow.confident", "% confident")}
                             </span>
-                            <Progress value={doc.confidence} className="w-16 h-1" />
+                            <Progress value={getConfidencePercent(doc)} className="w-16 h-1" data-testid={`progress-confidence-${doc.id}`} />
                           </div>
                         </div>
                       ))}
@@ -714,8 +727,8 @@ export default function DocumentWorkflowPage() {
                             <Badge variant="outline" className={`${getStatusColor(selectedDoc.reviewStatus)} text-white`}>
                               {selectedDoc.reviewStatus}
                             </Badge>
-                            <span className={`text-sm font-medium ${getConfidenceColor(selectedDoc.confidence)}`}>
-                              {selectedDoc.confidence}% Confidence
+                            <span className={`text-sm font-medium ${getConfidenceColor(getConfidencePercent(selectedDoc))}`} data-testid="text-confidence-detail">
+                              {getConfidencePercent(selectedDoc)}% Confidence
                             </span>
                           </div>
                         </div>
@@ -729,7 +742,7 @@ export default function DocumentWorkflowPage() {
                                   <FileText className="h-3 w-3" />
                                   Document Type
                                 </div>
-                                <Badge variant="secondary" className="w-full justify-center">
+                                <Badge variant="secondary" className="w-full justify-center" data-testid="badge-document-type-detail">
                                   {selectedDoc.extractedData.documentType}
                                 </Badge>
                               </div>
@@ -741,7 +754,7 @@ export default function DocumentWorkflowPage() {
                                   <Globe className="h-3 w-3" />
                                   Language
                                 </div>
-                                <Badge className={`w-full justify-center ${getLanguageBadgeColor(selectedDoc.extractedData.language)}`}>
+                                <Badge className={`w-full justify-center ${getLanguageBadgeColor(selectedDoc.extractedData.language)}`} data-testid="badge-language-detail">
                                   {selectedDoc.extractedData.language}
                                 </Badge>
                               </div>
@@ -752,19 +765,19 @@ export default function DocumentWorkflowPage() {
                                 <Zap className="h-3 w-3" />
                                 Processing Method
                               </div>
-                              <Badge variant="outline" className={`w-full justify-center ${isAIProcessed(selectedDoc) ? 'text-purple-700 border-purple-300 bg-purple-50' : 'text-blue-700 border-blue-300 bg-blue-50'}`}>
+                              <Badge variant="outline" className={`w-full justify-center ${isAIProcessed(selectedDoc) ? 'text-purple-700 border-purple-300 bg-purple-50' : 'text-blue-700 border-blue-300 bg-blue-50'}`} data-testid="badge-processing-method">
                                 {getProcessingMethodLabel(selectedDoc)}
                               </Badge>
                             </div>
                             
-                            {selectedDoc.extractedData.confidence && (
+                            {isAIProcessed(selectedDoc) && (
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                                   <Brain className="h-3 w-3" />
                                   AI Confidence
                                 </div>
-                                <div className={`text-center font-semibold ${getConfidenceColor((selectedDoc.extractedData.confidence || 0) * 100)}`}>
-                                  {Math.round((selectedDoc.extractedData.confidence || 0) * 100)}%
+                                <div className={`text-center font-semibold ${getConfidenceColor(getConfidencePercent(selectedDoc))}`} data-testid="text-ai-confidence">
+                                  {getConfidencePercent(selectedDoc)}%
                                 </div>
                               </div>
                             )}
@@ -883,7 +896,7 @@ export default function DocumentWorkflowPage() {
                               AI Document Summary
                             </Label>
                             <div className="bg-purple-50 dark:bg-purple-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                              <p className="text-sm leading-relaxed text-purple-900 dark:text-purple-100">
+                              <p className="text-sm leading-relaxed text-purple-900 dark:text-purple-100" data-testid="text-ai-summary">
                                 {selectedDoc.extractedData.summary}
                               </p>
                             </div>
