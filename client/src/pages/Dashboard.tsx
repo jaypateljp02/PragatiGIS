@@ -46,7 +46,7 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("pages.dashboard.title", "FRA Atlas Dashboard")}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("pages.dashboard.title", "PragatiGIS Dashboard")}</h1>
           <p className="text-muted-foreground">
             {t("pages.dashboard.subtitle", "Monitor Forest Rights Act claims and document processing across India")}
           </p>

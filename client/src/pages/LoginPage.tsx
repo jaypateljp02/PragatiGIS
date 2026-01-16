@@ -40,7 +40,7 @@ export default function LoginPage() {
       await login(username.trim(), password);
       toast({
         title: t("auth.loginSuccess", "Login Successful"),
-        description: t("auth.welcomeMessage", "Welcome to FRA Atlas Platform"),
+        description: t("auth.welcomeMessage", "Welcome to PragatiGIS Platform"),
       });
     } catch (error: any) {
       console.error('Login error:', error);
@@ -69,8 +69,8 @@ export default function LoginPage() {
       {/* Header */}
       <header className="w-full p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <img src={logoImage} alt="FRA Atlas Logo" className="h-8 w-8" />
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">{t("header.title", "FRA Atlas")}</span>
+          <img src={logoImage} alt="PragatiGIS Logo" className="h-8 w-8" />
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">{t("header.title", "PragatiGIS")}</span>
         </div>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
@@ -89,7 +89,7 @@ export default function LoginPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {t("loginPage.welcomeTitle", "Welcome to FRA Atlas Platform")}
+              {t("loginPage.welcomeTitle", "Welcome to PragatiGIS Platform")}
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               {t("loginPage.description", "Forest Rights Act document management and processing system for India's tribal communities")}
@@ -101,7 +101,7 @@ export default function LoginPage() {
             <CardHeader className="text-center">
               <CardTitle className="text-xl">{t("auth.signInSubtitle", "Sign In to Continue")}</CardTitle>
               <CardDescription>
-                {t("loginPage.useCredentials", "Use your credentials to access the FRA Atlas Platform")}
+                {t("loginPage.useCredentials", "Use your credentials to access the PragatiGIS Platform")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

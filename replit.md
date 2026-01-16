@@ -1,6 +1,6 @@
 # Overview
 
-The FRA Atlas Platform is a comprehensive Forest Rights Act (FRA) document management system designed to digitize and process FRA claims across India. The platform serves multiple user types (Ministry, State, District, Village administrators) and provides OCR processing for multi-language documents, geospatial visualization, analytics dashboards, and decision support tools. The system targets key states including Madhya Pradesh, Odisha, Telangana, and Tripura, with support for local languages (Hindi, Odia, Telugu, Bengali, Gujarati, and English).
+The PragatiGIS Platform is a comprehensive Forest Rights Act (FRA) document management system designed to digitize and process FRA claims across India. The platform serves multiple user types (Ministry, State, District, Village administrators) and provides OCR processing for multi-language documents, geospatial visualization, analytics dashboards, and decision support tools. The system targets key states including Madhya Pradesh, Odisha, Telangana, and Tripura, with support for local languages (Hindi, Odia, Telugu, Bengali, Gujarati, and English).
 
 # User Preferences
 

@@ -48,7 +48,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <CardTitle>Authentication Required</CardTitle>
             <CardDescription>
-              Please log in to access the FRA Atlas Platform
+              Please log in to access the PragatiGIS Platform
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">

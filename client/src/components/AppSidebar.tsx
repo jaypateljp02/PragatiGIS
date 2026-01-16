@@ -103,10 +103,10 @@ export default function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-md overflow-hidden">
-            <img src={logoImage} alt="FRA Atlas Logo" className="h-8 w-8 object-contain" />
+            <img src={logoImage} alt="PragatiGIS Logo" className="h-8 w-8 object-contain" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">{t("header.title", "FRA Atlas")}</h2>
+            <h2 className="text-lg font-semibold">{t("header.title", "PragatiGIS")}</h2>
             <p className="text-xs text-muted-foreground">{t("header.subtitle", "Forest Rights Platform")}</p>
           </div>
         </div>

@@ -57,7 +57,7 @@ export default function ReportsPage() {
         <div>
           <h1 className="text-3xl font-bold">{t("pages.reports.title", "Reports")}</h1>
           <p className="text-muted-foreground">
-            {t("pages.reports.subtitle", "Generate comprehensive reports and export data from the FRA Atlas Platform")}
+            {t("pages.reports.subtitle", "Generate comprehensive reports and export data from the PragatiGIS Platform")}
           </p>
         </div>
         <div className="flex items-center gap-2">

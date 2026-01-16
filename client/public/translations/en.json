@@ -22,7 +22,7 @@
     "reports": "Reports"
   },
   "header": {
-    "title": "FRA Atlas",
+    "title": "PragatiGIS",
     "subtitle": "Forest Rights Platform"
   },
   "auth": {
@@ -34,7 +34,7 @@
     "passwordPlaceholder": "Enter your password",
     "signingIn": "Signing in...",
     "loginSuccess": "Login Successful",
-    "welcomeMessage": "Welcome to FRA Atlas Platform",
+    "welcomeMessage": "Welcome to PragatiGIS Platform",
     "loginFailed": "Login Failed",
     "invalidCredentials": "Invalid username or password. Please try again.",
     "demoCredentials": "Demo Credentials:",
@@ -60,9 +60,9 @@
     "approvedToday": "Approved Today"
   },
   "loginPage": {
-    "welcomeTitle": "Welcome to FRA Atlas Platform",
+    "welcomeTitle": "Welcome to PragatiGIS Platform",
     "description": "Forest Rights Act document management and processing system for India's tribal communities",
-    "useCredentials": "Use your credentials to access the FRA Atlas Platform",
+    "useCredentials": "Use your credentials to access the PragatiGIS Platform",
     "platformFeatures": "Platform Features:",
     "feature1": "Document processing with OCR support",
     "feature2": "Geospatial claim visualization", 
@@ -74,7 +74,7 @@
   },
   "pages": {
     "dashboard": {
-      "title": "FRA Atlas Dashboard",
+      "title": "PragatiGIS Dashboard",
       "subtitle": "Monitor Forest Rights Act claims and document processing across India",
       "processDocuments": "Process Documents",
       "newClaims": "New Claims",
@@ -88,7 +88,7 @@
     },
     "reports": {
       "title": "Reports",
-      "subtitle": "Generate comprehensive reports and export data from the FRA Atlas Platform",
+      "subtitle": "Generate comprehensive reports and export data from the PragatiGIS Platform",
       "loadingData": "Loading report data...",
       "loadError": "Failed to load claims data for reports. Please check your authentication and try again.",
       "claimsAvailable": "Claims Available",

@@ -1,4 +1,4 @@
-# FRA Atlas Platform Design Guidelines
+# PragatiGIS Platform Design Guidelines
 
 ## Design Approach
 **Reference-Based Approach** - Drawing inspiration from modern data platforms like Notion (clean layouts), Linear (sophisticated data visualization), and government portals for professional credibility. This platform requires a balance of analytical functionality with institutional trust.
