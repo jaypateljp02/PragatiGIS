@@ -34,10 +34,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoggingIn || !username.trim() || !password.trim()) return;
-    
+
     setIsLoggingIn(true);
     try {
-      await login(username.trim(), password);
+      await login(username.trim(), password.trim());
       toast({
         title: t("auth.loginSuccess", "Login Successful"),
         description: t("auth.welcomeMessage", "Welcome to PragatiGIS Platform"),

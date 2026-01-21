@@ -1,9 +1,9 @@
-import { 
-  type User, 
-  type InsertUser, 
-  type Claim, 
-  type InsertClaim, 
-  type Document, 
+import {
+  type User,
+  type InsertUser,
+  type Claim,
+  type InsertClaim,
+  type Document,
   type InsertDocument,
   type UserSession,
   type InsertSession,
@@ -17,7 +17,7 @@ import {
   type WorkflowTransition,
   type InsertWorkflowTransition,
   users,
-  claims, 
+  claims,
   documents,
   userSessions,
   auditLog,
@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
       // First run migration to ensure all tables exist
       const { migrateSQLite } = await import('./migrate-sqlite');
       await migrateSQLite();
-      
+
       // Then seed initial data
       await this.seedInitialData();
       console.log('Database initialized successfully');
@@ -136,7 +136,7 @@ export class DatabaseStorage implements IStorage {
         { id: 5, name: "Maharashtra", code: "MH", language: "Marathi" },
         { id: 6, name: "Gujarat", code: "GJ", language: "Gujarati" },
       ];
-      
+
       await db.insert(states).values(statesData);
 
       // Seed districts  
@@ -154,7 +154,7 @@ export class DatabaseStorage implements IStorage {
       // Seed demo users with hashed passwords
       const demoUsersData = [
         {
-          id: "admin-1", username: "ministry.admin", email: "admin@tribal.gov.in", 
+          id: "admin-1", username: "ministry.admin", email: "admin@tribal.gov.in",
           password: await this.hashPassword("admin123"), fullName: "Ministry Administrator", role: "ministry",
           stateId: null, districtId: null, isActive: true
         },
@@ -239,15 +239,27 @@ export class DatabaseStorage implements IStorage {
 
   async verifyPassword(username: string, password: string): Promise<User | null> {
     const user = await this.getUserByUsername(username);
-    if (!user || !user.isActive) {
+
+    if (!user) {
+      console.log(`[Auth] Login failed: User '${username}' not found`);
+      return null;
+    }
+
+    if (!user.isActive) {
+      console.log(`[Auth] Login failed: User '${username}' is inactive`);
       return null;
     }
 
     try {
       const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        console.log(`[Auth] Login failed: Invalid password for user '${username}'`);
+      } else {
+        console.log(`[Auth] Login successful for user '${username}'`);
+      }
       return isValidPassword ? user : null;
     } catch (error) {
-      console.error('Password verification error:', error);
+      console.error('[Auth] Password verification error:', error);
       return null;
     }
   }
@@ -410,7 +422,7 @@ export class DatabaseStorage implements IStorage {
     } else if (resourceId) {
       return await db.select().from(auditLog).where(eq(auditLog.resourceId, resourceId)).orderBy(sql`${auditLog.createdAt} DESC`);
     }
-    
+
     return await db.select().from(auditLog).orderBy(sql`${auditLog.createdAt} DESC`);
   }
 

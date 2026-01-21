@@ -1,9 +1,32 @@
 import express, { type Request, Response, NextFunction } from "express";
+import "express-async-errors"; // Patch express to handle async errors
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import helmet from "helmet";
+import compression from "compression";
+import rateLimit from "express-rate-limit";
 
 const app = express();
+
+// Security: Helmet (with content security policy adjustment for development if needed)
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled for dev simplification, can be tuned for prod
+  crossOriginEmbedderPolicy: false
+}));
+
+// Performance: Compression
+app.use(compression());
+
+// Security: Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." }
+});
+app.use("/api", limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -48,9 +71,9 @@ app.use((req, res, next) => {
     if (res.headersSent) {
       return next(err);
     }
-    
+
     console.error('Unhandled error:', err);
-    
+
     // Handle specific Multer errors with proper JSON responses
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: "File too large. Maximum file size is 50MB." });
@@ -61,13 +84,13 @@ app.use((req, res, next) => {
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({ error: "Too many files. Maximum 1 file allowed." });
     }
-    
+
     // Handle other error types
     const status = err.status || err.statusCode || 500;
-    
+
     // Use generic message for 500+ errors to avoid information disclosure
     const message = status >= 500 ? "Internal Server Error" : (err.message || "An error occurred");
-    
+
     return res.status(status).json({ error: message });
   });
 
@@ -84,14 +107,13 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || '3000', 10);
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host: "127.0.0.1",
   }, () => {
     log(`serving on port ${port}`);
-    
+
     // Set up quarterly FRA data sync scheduler (singleton - runs only once at startup)
     setupQuarterlyFRASync();
   });
@@ -106,19 +128,19 @@ function setupQuarterlyFRASync(): void {
     log('Quarterly FRA sync scheduler already initialized, skipping');
     return;
   }
-  
+
   quarterlySchedulerInitialized = true;
-  
+
   // In production, this would be a proper cron job or task scheduler
   // For development, we set up a timer-based approach
   const THREE_MONTHS_MS = 7 * 24 * 60 * 60 * 1000; // 1 week for testing (normally would be 3 months)
-  
+
   const scheduleNextSync = () => {
     const nextSync = new Date();
     nextSync.setMonth(nextSync.getMonth() + 3);
-    
+
     log(`FRA quarterly data sync scheduled for: ${nextSync.toDateString()}`);
-    
+
     // Schedule the next sync
     setTimeout(async () => {
       try {
@@ -126,12 +148,12 @@ function setupQuarterlyFRASync(): void {
         const { RealFRAImportService } = await import('./real-fra-import');
         const storage = await import('./storage');
         const realImportService = new RealFRAImportService(storage.storage);
-        
+
         const csvFilePath = await realImportService.downloadRealFRAData();
         const imported = await realImportService.importRealFRAStatistics(csvFilePath);
-        
+
         log(`Scheduled sync completed: imported ${imported} FRA statistics`);
-        
+
         // Schedule the next sync
         scheduleNextSync();
       } catch (error) {
@@ -141,7 +163,7 @@ function setupQuarterlyFRASync(): void {
       }
     }, THREE_MONTHS_MS);
   };
-  
+
   scheduleNextSync();
   log('Quarterly FRA data sync scheduler initialized successfully');
 }
