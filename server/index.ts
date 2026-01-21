@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import "dotenv/config"; // Load environment variables from .env
 import "express-async-errors"; // Patch express to handle async errors
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
